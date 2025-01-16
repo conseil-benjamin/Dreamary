@@ -1,4 +1,4 @@
-package com.example.dreamary
+package com.example.dreamary.views.activities
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
