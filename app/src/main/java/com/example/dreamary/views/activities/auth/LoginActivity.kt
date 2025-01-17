@@ -1,5 +1,6 @@
 package com.example.dreamary.views.activities.auth
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
@@ -44,11 +46,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.dreamary.models.repositories.AuthRepository
+import com.example.dreamary.models.repositories.AuthResponse
 import com.example.dreamary.viewmodels.auth.LoginViewModel
 import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 @Preview(showBackground = true)
 @Composable
@@ -63,6 +67,8 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
 )) {
     var password by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -134,16 +140,16 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
 
             Button(
                 onClick = {
-//                    viewModel.createAccountWithEmail(email, password, navController)
-//                        .onEach { response ->
-//                            if (response is AuthResponse.Success) {
-//                                println("Success")
-//                            } else {
-//                                println("Error")
-//                                Log.i("logGoogle", "error")
-//                            }
-//                        }
-//                        .launchIn(coroutineScope)
+                    viewModel.createAccountWithEmail(email, password)
+                        .onEach { response: Any ->
+                            if (response is AuthResponse.Success) {
+                                println("Success")
+                            } else {
+                                println("Error")
+                                Log.i("logGoogle", "error")
+                            }
+                        }
+                        .launchIn(coroutineScope)
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF6200EE),
@@ -187,16 +193,16 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                     contentColor = Color(0xFFFFFFFF),
                 ),
                 onClick = {
-//                    viewModel.signInWithGoogle(navController)
-//                        .onEach { response ->
-//                            if (response is AuthResponse.Success) {
-//                                println("Success")
-//                            } else {
-//                                println("Error")
-//                                Log.i("logGoogle", "error")
-//                            }
-//                        }
-//                        .launchIn(coroutineScope)
+                    viewModel.signInWithGoogle(navController)
+                        .onEach { response ->
+                            if (response is AuthResponse.Success) {
+                                println("Success")
+                            } else {
+                                println("Error")
+                                Log.i("logGoogle", "error")
+                            }
+                        }
+                        .launchIn(coroutineScope)
                 },
                 modifier = Modifier
                     .padding(top = 16.dp),

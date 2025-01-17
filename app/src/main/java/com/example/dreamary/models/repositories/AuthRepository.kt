@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -19,7 +20,7 @@ import java.security.MessageDigest
 import java.util.UUID
 import com.example.dreamary.R
 
-class AuthRepository(val context: Context) {
+class AuthRepository(private val context: Context) {
     private val auth = Firebase.auth
 
     fun createAccountWithEmail(password: String, email: String): Flow<AuthResponse> = callbackFlow {
@@ -45,7 +46,7 @@ class AuthRepository(val context: Context) {
         }
     }
 
-    fun signInWithGoogle(navController: NavHostController): Flow<AuthResponse> = callbackFlow {
+    fun signInWithGoogle(navController: NavController): Flow<AuthResponse> = callbackFlow {
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(context.getString(R.string.default_web_client_id))
@@ -105,7 +106,7 @@ class AuthRepository(val context: Context) {
 
 
     @SuppressLint("CommitPrefEdits")
-    fun saveUserData (context: Context, navController: NavHostController){
+    fun saveUserData (context: Context, navController: NavController){
         val user = auth.currentUser
         user?.let {
             val displayName = it.displayName
