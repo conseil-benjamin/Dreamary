@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dreamary</string>
+    <string name="slogan">Explore your dream</string>
+    <string name="login_field_password">Password</string>
+    <string name="btn_connect_login">Login</string>
+    <string name="Login_ou">Or</string>
+    <string name="Login_btn_connexion_google">" Continue with google"</string>
+    <string name="Login_forgot_password">Forgot password ?</string>
+    <string name="Login_no_account">No account ?</string>
+    <string name="Login_register">Register</string>
+</resources>

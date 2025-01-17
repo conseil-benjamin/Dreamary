@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">Dreamary</string>
-    <string name="default_web_client_id">521876673392-q8johr89m576ncgp8uv9ujgj2iudj8q1.apps.googleusercontent.com</string>
+    <string name="default_web_client_id" translatable="false">521876673392-q8johr89m576ncgp8uv9ujgj2iudj8q1.apps.googleusercontent.com</string>
+    <string name="slogan">Explorer vos rêves</string>
+    <string name="login_field_password">Mot de passe</string>
+    <string name="btn_connect_login">Se connecter</string>
+    <string name="Login_ou">Ou</string>
+    <string name="Login_btn_connexion_google">Continuer avec google</string>
+    <string name="Login_forgot_password">Mot de passe oublié ?</string>
+    <string name="Login_no_account">Pas encore de compte ?</string>
+    <string name="Login_register">S\'inscrire</string>
 </resources>
