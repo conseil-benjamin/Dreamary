@@ -9,4 +9,13 @@
     <string name="Login_forgot_password">Mot de passe oublié ?</string>
     <string name="Login_no_account">Pas encore de compte ?</string>
     <string name="Login_register">S\'inscrire</string>
+    <string name="Register_input_name">Prénom</string>
+    <string name="Register_input_confirm_password">Confirmer le mot de passe</string>
+    <string name="Register_password_strenght_informations">Le mot de passe doit contenir au moins 8 caractères, une majuscule, un chiffre et un caractère spécial</string>
+    <string name="Register_accept_rules">J\'accepte les conditions d\'utilisation et la politique de confidentialité</string>
+    <string name="Register_create_account">Créer mon compte</string>
+    <string name="Register_text_already_account">Déjà un compte ?</string>
+    <string name="Register_text_redirection_login">Se connecter</string>
+    <string name="Register_text_join_app">Rejoignez Dreamary</string>
+    <string name="Register_slogan">Commencez votre voyage onirique</string>
 </resources>

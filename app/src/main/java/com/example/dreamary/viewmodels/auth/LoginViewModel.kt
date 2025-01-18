@@ -32,14 +32,14 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    fun createAccountWithEmail(email: String, password: String): Flow<Any> {
+    fun signInWithEmail(email: String, password: String, navController: NavController): Flow<Any> {
         viewModelScope.launch {
-            repository.createAccountWithEmail(email, password)
+            repository.signInWithEmail(email, password, navController)
                 .collect { response ->
                     _authState.value = when(response) {
                         is AuthResponse.Success -> AuthState.Authenticated
                         is AuthResponse.Error -> AuthState.Error(response.message)
-                        else -> { AuthState.Initial}
+                        else -> { AuthState.Initial }
                     }
                 }
         }

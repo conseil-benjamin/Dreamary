@@ -3,6 +3,7 @@ package com.example.dreamary.views.activities.auth
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -44,11 +45,13 @@ import com.example.dreamary.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.repositories.AuthResponse
+import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.auth.LoginViewModel
 import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
 import kotlinx.coroutines.flow.launchIn
@@ -107,7 +110,8 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                 placeholder = {
                     Text(
                         text = "Email",
-                        color = Color.White
+                        color = Color.White,
+                        fontSize = 12.sp
                     )
                 },
                 leadingIcon = {
@@ -125,7 +129,8 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                 placeholder = {
                     Text(
                         text = stringResource(id = R.string.login_field_password),
-                        color = Color.White
+                        color = Color.White,
+                        fontSize = 12.sp
                     )
                 },
                 leadingIcon = {
@@ -140,7 +145,7 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
 
             Button(
                 onClick = {
-                    viewModel.createAccountWithEmail(email, password)
+                    viewModel.signInWithEmail(email, password, navController)
                         .onEach { response: Any ->
                             if (response is AuthResponse.Success) {
                                 println("Success")
@@ -232,7 +237,11 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                 )
                 Text(
                     text = stringResource(id = R.string.Login_register),
-                    modifier = Modifier.padding(top = 16.dp, start = 4.dp),
+                    modifier = Modifier
+                        .padding(top = 16.dp, start = 4.dp)
+                        .clickable(onClick = {
+                            navController.navigate(NavRoutes.Register.route)
+                        }),
                     color = Color(Color(0xFF6200EE).toArgb())
                 )
             }

@@ -9,4 +9,13 @@
     <string name="Login_forgot_password">Forgot password ?</string>
     <string name="Login_no_account">No account ?</string>
     <string name="Login_register">Register</string>
+    <string name="Register_input_name">Name</string>
+    <string name="Register_input_confirm_password">Confirm password</string>
+    <string name="Register_password_strenght_informations">"The password must contain at least 8 characters, an uppercase letter, a number and a special character. "</string>
+    <string name="Register_accept_rules">"I accept the terms of use and privacy policy "</string>
+    <string name="Register_create_account">Create my account</string>
+    <string name="Register_text_already_account">Already a account ?</string>
+    <string name="Register_text_redirection_login">Connect</string>
+    <string name="Register_text_join_app">Join Dreamary</string>
+    <string name="Register_slogan">"Start your dream journey "</string>
 </resources>

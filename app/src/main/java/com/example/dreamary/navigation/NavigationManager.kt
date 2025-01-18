@@ -7,8 +7,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.routes.NavRoutes
+import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
 import com.example.dreamary.views.activities.auth.LoginActivity
+import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
 
 @Composable
@@ -26,11 +29,16 @@ fun NavigationManager() {
         composable(NavRoutes.Login.route) {
             LoginActivity(
                 navController = navController,
-                viewModel = viewModel()
+                viewModel = viewModel(factory = LoginViewModelFactory(
+                    repository = AuthRepository(LocalContext.current)
+                ))
             )
         }
         composable(NavRoutes.Home.route) {
             HomeActivity(navController = navController)
+        }
+        composable(NavRoutes.Register.route) {
+            RegisterActivity(navController = navController)
         }
     }
 }
