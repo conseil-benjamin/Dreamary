@@ -23,7 +23,7 @@ import com.example.dreamary.models.routes.NavRoutes
 class AuthRepository(private val context: Context) {
     private val auth = Firebase.auth
 
-    fun createAccountWithEmail(email: String, password: String, navController: NavController): Flow<AuthResponse> = callbackFlow {
+    fun createAccountWithEmail(context: Context, email: String, password: String, navController: NavController): Flow<AuthResponse> = callbackFlow {
         if (email.isEmpty() || password.isEmpty()) {
             trySend(AuthResponse.Error(message = "Error"))
             return@callbackFlow
@@ -40,7 +40,7 @@ class AuthRepository(private val context: Context) {
         awaitClose()
     }
 
-    fun signInWithEmail(email: String, password: String, navController: NavController): Flow<AuthResponse> = callbackFlow {
+    fun signInWithEmail(context: Context, email: String, password: String, navController: NavController): Flow<AuthResponse> = callbackFlow {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {

@@ -18,4 +18,10 @@
     <string name="Register_text_redirection_login">Se connecter</string>
     <string name="Register_text_join_app">Rejoignez Dreamary</string>
     <string name="Register_slogan">Commencez votre voyage onirique</string>
+    <string name="Login_error_message">Email ou mot de passe invalide</string>
+    <string name="Register_error_message">Erreur lors de la création de votre compte</string>
+    <string name="Register_form_error_name">Aucun prénom renseigné</string>
+    <string name="Register_form_error_email">Email format incorrect</string>
+    <string name="Register_password_error">Mot de passe : Contraintes non respectés</string>
+    <string name="Register_confirm_password_error">Les mots de passe sont différents</string>
 </resources>

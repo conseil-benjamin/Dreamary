@@ -18,4 +18,10 @@
     <string name="Register_text_redirection_login">Connect</string>
     <string name="Register_text_join_app">Join Dreamary</string>
     <string name="Register_slogan">"Start your dream journey "</string>
+    <string name="Login_error_message">Email or password incorrect</string>
+    <string name="Register_error_message">Error while the creation of your account</string>
+    <string name="Register_form_error_name">No name enter</string>
+    <string name="Register_form_error_email">Email bad format</string>
+    <string name="Register_password_error">"Password: Constraints not met "</string>
+    <string name="Register_confirm_password_error">Password do not match</string>
 </resources>
