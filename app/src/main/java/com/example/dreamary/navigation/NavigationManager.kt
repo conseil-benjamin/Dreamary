@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
+import com.example.dreamary.views.activities.Dreams.AddDreamActivity
 import com.example.dreamary.views.activities.auth.LoginActivity
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
@@ -39,6 +40,12 @@ fun NavigationManager() {
         }
         composable(NavRoutes.Register.route) {
             RegisterActivity(navController = navController)
+        }
+        composable(NavRoutes.Profile.route) {
+            // ProfileActivity(navController = navController)
+        }
+        composable(NavRoutes.AddDream.route) {
+            AddDreamActivity(navController = navController)
         }
     }
 }

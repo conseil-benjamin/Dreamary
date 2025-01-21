@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ListItemDefaults.contentColor
@@ -22,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import com.example.dreamary.utils.SnackbarManager
+import com.example.dreamary.views.components.BottomNavigation
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
@@ -49,7 +51,8 @@ fun HomeActivity(navController: NavController) {
         }
     }
 
-        Scaffold(
+    Scaffold(
+        bottomBar = { BottomNavigation(navController = navController) },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
         Column(

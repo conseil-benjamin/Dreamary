@@ -163,15 +163,19 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                         if(isPasswordVisible) {
                             // icone pour rendre le mot de passe invisible
                             Icon(
-                                imageVector = Icons.Rounded.Lock, contentDescription = null,
-                                modifier = Modifier.clickable {
+                                painter = painterResource(id = R.drawable.hide_password), contentDescription = "see password",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
                                     isPasswordVisible = !isPasswordVisible
                                 }
                             )
                         } else {
                             Icon(
-                                imageVector = Icons.Rounded.MailOutline, contentDescription = null,
-                                modifier = Modifier.clickable {
+                                painter = painterResource(id = R.drawable.see_password), contentDescription = "see password",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
                                     isPasswordVisible = !isPasswordVisible
                                 }
                             )

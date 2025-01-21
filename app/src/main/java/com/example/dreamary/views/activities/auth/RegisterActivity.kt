@@ -191,15 +191,19 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                         if(isPasswordVisible) {
                             // icone pour rendre le mot de passe invisible
                             Icon(
-                                imageVector = Icons.Rounded.Lock, contentDescription = null,
-                                modifier = Modifier.clickable {
+                                painter = painterResource(id = R.drawable.hide_password), contentDescription = "see password",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
                                     isPasswordVisible = !isPasswordVisible
                                 }
                             )
                         } else {
                             Icon(
-                                imageVector = Icons.Rounded.MailOutline, contentDescription = null,
-                                modifier = Modifier.clickable {
+                                painter = painterResource(id = R.drawable.see_password), contentDescription = "see password",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
                                     isPasswordVisible = !isPasswordVisible
                                 }
                             )
@@ -247,7 +251,7 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                     Text(
                         text = stringResource(id = R.string.Register_password_strenght_informations),
                         color = Color.White,
-                        fontSize = 9.sp
+                        fontSize = 10.sp
                     )
                 }
 
@@ -255,7 +259,7 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
                         checked = isRulesAccepted,
@@ -265,7 +269,7 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                     Text(
                         text = stringResource(id = R.string.Register_accept_rules),
                         color = Color.White,
-                        fontSize = 9.sp
+                        fontSize = 10.sp
                     )
                 }
 

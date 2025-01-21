@@ -24,4 +24,8 @@
     <string name="Register_form_error_email">Email bad format</string>
     <string name="Register_password_error">"Password: Constraints not met "</string>
     <string name="Register_confirm_password_error">Password do not match</string>
+    <string name="BottomNavigation_journal">Dreams</string>
+    <string name="BottomNavigation_Stats">Stats</string>
+    <string name="BottomNavigation_Social">Social</string>
+    <string name="BottomNavigation_Guide">Guide</string>
 </resources>
