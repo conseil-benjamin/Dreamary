@@ -50,6 +50,7 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-auth:21.0.0")
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
     //implementation(libs.firebase.firestore)
     val credentialManagerVersion = "1.5.0-alpha05"
     implementation("androidx.credentials:credentials:$credentialManagerVersion")

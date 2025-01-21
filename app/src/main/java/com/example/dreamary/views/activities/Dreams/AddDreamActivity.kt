@@ -1,6 +1,7 @@
 package com.example.dreamary.views.activities.Dreams
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.google.firebase.Firebase
+import com.google.firebase.storage.storage
+import com.example.dreamary.R
+import kotlin.coroutines.jvm.internal.CompletedContinuation.context
 
 @Preview(showBackground = true)
 @Composable
@@ -116,6 +121,19 @@ fun DreamType () {
 @Composable
 fun DescribeDream () {
     Text("DescribeDream")
+    var storage = Firebase.storage
+    var storageRef = storage.reference
+    var imageRef = storageRef.child(R.drawable.lune.toString())
+
+    //utiliser l'uri de l'image pour la mettre dans le storage
+
+    Button(
+        onClick = {
+           // imageRef.putFile(R.drawable.lune)
+        }
+    ) {
+        Text("Ajouter une image")
+    }
 }
 
 @Composable
