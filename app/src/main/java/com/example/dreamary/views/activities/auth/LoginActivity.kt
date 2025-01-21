@@ -22,8 +22,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.MailOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -51,6 +51,7 @@ import com.example.dreamary.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -79,6 +80,7 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
     var password by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     val context = LocalContext.current
+    var isPasswordVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -157,10 +159,25 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                             fontSize = 12.sp
                         )
                     },
-                    leadingIcon = {
-                        Icon(imageVector = Icons.Rounded.Lock, contentDescription = null)
+                    trailingIcon = {
+                        if(isPasswordVisible) {
+                            // icone pour rendre le mot de passe invisible
+                            Icon(
+                                imageVector = Icons.Rounded.Lock, contentDescription = null,
+                                modifier = Modifier.clickable {
+                                    isPasswordVisible = !isPasswordVisible
+                                }
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Rounded.MailOutline, contentDescription = null,
+                                modifier = Modifier.clickable {
+                                    isPasswordVisible = !isPasswordVisible
+                                }
+                            )
+                        }
                     },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()

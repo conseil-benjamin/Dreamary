@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.MailOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -49,6 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -188,14 +190,24 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                         )
                     },
                     trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Rounded.Lock, contentDescription = null,
-                            modifier = Modifier.clickable {
-                                isPasswordVisible = !isPasswordVisible
-                            }
-                        )
+                        if(isPasswordVisible) {
+                            // icone pour rendre le mot de passe invisible
+                            Icon(
+                                imageVector = Icons.Rounded.Lock, contentDescription = null,
+                                modifier = Modifier.clickable {
+                                    isPasswordVisible = !isPasswordVisible
+                                }
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Rounded.MailOutline, contentDescription = null,
+                                modifier = Modifier.clickable {
+                                    isPasswordVisible = !isPasswordVisible
+                                }
+                            )
+                        }
                     },
-                    visualTransformation = if (isPasswordVisible) PasswordVisualTransformation() else TODO(),
+                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -212,7 +224,7 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                             fontSize = 13.sp
                         )
                     },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()

@@ -35,6 +35,7 @@ private fun PreviewHomeActivity() {
 @Composable
 fun HomeActivity(navController: NavController) {
     val auth = Firebase.auth
+    val context = LocalContext.current
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -59,6 +60,7 @@ fun HomeActivity(navController: NavController) {
             Button(
                 onClick = {
                     auth.signOut()
+                    //context.getSharedPreferences("isLoggedIn", 0).edit().putBoolean("isLoggedIn", false).apply()
                     navController.navigate("login")
                 },
                 colors = ButtonDefaults.buttonColors(
