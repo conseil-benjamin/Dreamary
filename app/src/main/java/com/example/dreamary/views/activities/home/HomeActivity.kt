@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,7 +34,6 @@ private fun PreviewHomeActivity() {
     HomeActivity(navController = NavController(LocalContext.current))
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeActivity(navController: NavController) {
     val auth = Firebase.auth
@@ -54,11 +54,13 @@ fun HomeActivity(navController: NavController) {
     Scaffold(
         bottomBar = { BottomNavigation(navController = navController) },
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) {
+    ) { paddingValues ->
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
             Button(
                 onClick = {
