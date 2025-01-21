@@ -23,7 +23,7 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
 
     // TODO : Renvoyer un message d'erreur personnalisé dans la snackbar
     // TODO : vérifier si la checkbox est cochée
-    fun checkValidForm(email: String, password: String, confirmPassword: String): Boolean {
+    fun checkValidForm(email: String, password: String, confirmPassword: String, cguAccepted: Boolean): Boolean {
         if (password != confirmPassword) {
             _authState.value = AuthState.Error("Passwords do not match")
             return false
@@ -41,12 +41,25 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
             _authState.value = AuthState.Error("Invalid email address")
             return false
         }
+
+        if (!cguAccepted) {
+            _authState.value = AuthState.Error("You must accept the terms and conditions")
+            return false
+        }
+
         return true
     }
 
-    fun createAccountWithEmail(context: Context, email: String, password: String, confirmPassword: String, navController: NavController): Flow<Any> {
+    fun createAccountWithEmail(
+        context: Context,
+        email: String,
+        password: String,
+        confirmPassword: String,
+        navController: NavController,
+        isRulesAccepted: Boolean
+    ): Flow<Any> {
         viewModelScope.launch {
-            if (checkValidForm(email, password, confirmPassword) != true) {
+            if (checkValidForm(email, password, confirmPassword, isRulesAccepted) != true) {
                 SnackbarManager.showMessage(context.getString(R.string.Register_error_message), R.drawable.error)
                 return@launch
             }

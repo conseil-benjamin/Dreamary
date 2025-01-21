@@ -54,11 +54,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import coil.size.Scale
 import com.example.dreamary.R
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.repositories.AuthResponse
@@ -260,8 +258,8 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                     horizontalArrangement = Arrangement.Start,
                 ) {
                     Checkbox(
-                        checked = false,
-                        onCheckedChange = { isRulesAccepted = it },
+                        checked = isRulesAccepted,
+                        onCheckedChange = { isChecked -> isRulesAccepted = isChecked },
                         modifier = Modifier.padding(end = 8.dp)
                     )
                     Text(
@@ -278,7 +276,8 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                             email,
                             password,
                             confirmPassword,
-                            navController
+                            navController,
+                            isRulesAccepted
                         )
                             .onEach { response: Any ->
                                 if (response is AuthResponse.Success) {
