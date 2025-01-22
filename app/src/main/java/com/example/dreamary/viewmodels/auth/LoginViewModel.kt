@@ -26,9 +26,10 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
                 .collect { response ->
                     _authState.value = when(response) {
                         is AuthResponse.Success -> AuthState.Authenticated
-                        is AuthResponse.Error -> SnackbarManager.showMessage(response.message, R.drawable.error)
+                        is AuthResponse.Error -> AuthState.Error(response.message)
                         else -> { AuthState.Initial }
-                    } as AuthState
+                        // todo : handle other cases afficher un message d'erreur dans la snackbar
+                    }
                 }
         }
         return flow {
@@ -47,10 +48,15 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
             repository.signInWithEmail(context, email, password, navController)
                 .collect { response ->
                     _authState.value = when(response) {
-                        is AuthResponse.Success -> AuthState.Authenticated
-                        is AuthResponse.Error -> SnackbarManager.showMessage(response.message, R.drawable.error)
-                        else -> { AuthState.Initial }
-                    } as AuthState
+                        is AuthResponse.Success -> {
+                            AuthState.Authenticated
+                        }
+                        is AuthResponse.Error -> {
+                            SnackbarManager.showMessage(response.message, R.drawable.error)
+                            AuthState.Error(response.message)
+                        }
+                        else -> AuthState.Initial
+                    }
                 }
         }
         return flow {

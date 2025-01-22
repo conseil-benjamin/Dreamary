@@ -56,7 +56,7 @@ fun BottomNavigation(navController: NavController) {
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
         ) {
             Icon(
-                painter = painterResource(id = if (selected == 0) R.drawable.lune else R.drawable.plus), contentDescription = "Home",
+                painter = painterResource(id = if (selected == 0) R.drawable.lune_selected else R.drawable.lune), contentDescription = "Home",
                 modifier = Modifier.size(24.dp)
             )
             Text(

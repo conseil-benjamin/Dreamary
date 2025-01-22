@@ -1,6 +1,7 @@
 package com.example.dreamary.views.activities.home
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,8 +24,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import com.example.dreamary.ui.theme.DreamaryTheme
 import com.example.dreamary.utils.SnackbarManager
 import com.example.dreamary.views.components.BottomNavigation
+import com.example.dreamary.views.components.TopNavigation
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
@@ -36,9 +39,6 @@ private fun PreviewHomeActivity() {
 
 @Composable
 fun HomeActivity(navController: NavController) {
-    val auth = Firebase.auth
-    val context = LocalContext.current
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Ecoute des messages du SnackbarManager
@@ -51,32 +51,35 @@ fun HomeActivity(navController: NavController) {
         }
     }
 
-    Scaffold(
-        bottomBar = { BottomNavigation(navController = navController) },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+    DreamaryTheme {
+        Scaffold(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            Button(
-                onClick = {
-                    auth.signOut()
-                    //context.getSharedPreferences("isLoggedIn", 0).edit().putBoolean("isLoggedIn", false).apply()
-                    navController.navigate("login")
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                ),
+                .background(MaterialTheme.colorScheme.onSurface),
+            bottomBar = { BottomNavigation(navController = navController) },
+            topBar = { TopNavigation(navController = navController) },
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { paddingValues ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
             ) {
-                Text("Sign Out")
-            }
+                Button(
+                    onClick = {
+                        //
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                ) {
+                    Text("Sign Out")
+                }
 
-            Text("HomeActivity")
+                Text("HomeActivity")
+            }
         }
     }
 }

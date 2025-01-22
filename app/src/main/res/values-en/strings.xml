@@ -28,4 +28,5 @@
     <string name="BottomNavigation_Stats">Stats</string>
     <string name="BottomNavigation_Social">Social</string>
     <string name="BottomNavigation_Guide">Guide</string>
+    <string name="TopNavigation">Profile</string>
 </resources>

@@ -150,7 +150,8 @@ class AuthRepository(private val context: Context) {
         editor2.apply()
 
         navController.navigate(NavRoutes.Home.route) {
-            popUpTo("login") { inclusive = true }
+            popUpTo(NavRoutes.Login.route) {inclusive = true}
+            // TODO : faire un popUpTo sur l'écran d'inscription aussi
         }
     }
 
