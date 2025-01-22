@@ -6,4 +6,5 @@ sealed class NavRoutes(val route: String) {
     data object Register : NavRoutes("register")
     data object Profile : NavRoutes("profile")
     data object AddDream : NavRoutes("addDream")
+    data object BurgerMenu : NavRoutes("burgerMenu")
 }

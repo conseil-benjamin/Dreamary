@@ -66,19 +66,6 @@ fun HomeActivity(navController: NavController) {
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                Button(
-                    onClick = {
-                        //
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                ) {
-                    Text("Sign Out")
-                }
-
-                Text("HomeActivity")
             }
         }
     }

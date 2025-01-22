@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.dreamary.R
+import com.example.dreamary.ui.theme.DreamaryTheme
 
 @Preview(showBackground = true)
 @Composable
@@ -37,109 +40,122 @@ fun BottomNavigationPreview() {
 
 @Composable
 fun BottomNavigation(navController: NavController) {
-    var selected by remember { mutableStateOf(4) }
+    var selected by remember { mutableIntStateOf(0) }
 
-    Row(
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(76.dp),
-    ) {
-        Column (
+    DreamaryTheme {
+        Row(
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             modifier = Modifier
-                .weight(1f)
-                .clickable {
-                    selected = 0
-                    navController.navigate("home")
-                },
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
-        ) {
-            Icon(
-                painter = painterResource(id = if (selected == 0) R.drawable.lune_selected else R.drawable.lune), contentDescription = "Home",
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = stringResource(id = R.string.BottomNavigation_journal),
-                fontSize = 14.sp
-            )
-        }
-        Column (
-            modifier = Modifier
-                .weight(1f)
-                .clickable {
-                    selected = 1
-                    navController.navigate("home")
-                },
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
-        ){
-            Icon(
-                painter = painterResource(id = if (selected == 1) R.drawable.progress_selected else R.drawable.progress), contentDescription = "Home",
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = stringResource(id = R.string.BottomNavigation_Stats),
-                fontSize = 14.sp
-            )
-        }
-        Column (
-            modifier = Modifier
-                .weight(1f)
                 .fillMaxWidth()
-                .wrapContentSize(Alignment.TopCenter)
-                .clickable {
-                    selected = 2
-                    navController.navigate("addDream")
-                },
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                .height(76.dp),
         ) {
-            Icon(
-                painter = painterResource(id = if (selected == 2) R.drawable.plus else R.drawable.plus), contentDescription = "Home",
+            Column(
                 modifier = Modifier
-                    .size(24.dp)
-                    .clip(shape = androidx.compose.foundation.shape.CircleShape)
-                    .background(Color(0xFF3F51B5))
-            )
-        }
-        Column (
-            modifier = Modifier
-                .weight(1f)
-                .clickable {
-                    selected = 3
-                    navController.navigate("home")
-                },
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
-        ) {
-            Icon(
-                painter = painterResource(id = if (selected == 3) R.drawable.users_selected else R.drawable.users), contentDescription = "Home",
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = stringResource(id = R.string.BottomNavigation_Social),
-                fontSize = 14.sp
-            )
-        }
-        Column (
-            modifier = Modifier
-                .weight(1f)
-                .clickable {
-                    selected = 4
-                    navController.navigate("home")
-                },
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
-        ) {
-            Icon(
-                painter = painterResource(id = if (selected == 4) R.drawable.book_selected else R.drawable.book), contentDescription = "Home",
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = stringResource(id = R.string.BottomNavigation_Guide),
-                fontSize = 14.sp
-            )
+                    .weight(1f)
+                    .clickable {
+                        selected = 0
+                        navController.navigate("home")
+                    },
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+            ) {
+                Icon(
+                    tint = if (selected == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    painter = painterResource(id = R.drawable.lune),
+                    contentDescription = "Home",
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.BottomNavigation_journal),
+                    fontSize = 14.sp
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        selected = 1
+                        navController.navigate("home")
+                    },
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+            ) {
+                Icon(
+                    tint = if (selected == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    painter = painterResource(id = if (selected == 1) R.drawable.progress_selected else R.drawable.progress),
+                    contentDescription = "Home",
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.BottomNavigation_Stats),
+                    fontSize = 14.sp
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .wrapContentSize(Alignment.TopCenter)
+                    .clickable {
+                        selected = 2
+                        navController.navigate("addDream")
+                    },
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+            ) {
+                Icon(
+                    tint = if (selected == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    painter = painterResource(id = if (selected == 2) R.drawable.plus else R.drawable.plus),
+                    contentDescription = "Home",
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(shape = androidx.compose.foundation.shape.CircleShape)
+                        .background(Color(0xFF3F51B5))
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        selected = 3
+                        navController.navigate("home")
+                    },
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+            ) {
+                Icon(
+                    tint = if (selected == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    painter = painterResource(id = if (selected == 3) R.drawable.users_selected else R.drawable.users),
+                    contentDescription = "Home",
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.BottomNavigation_Social),
+                    fontSize = 14.sp
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        selected = 4
+                        navController.navigate("home")
+                    },
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+            ) {
+                Icon(
+                    tint = if (selected == 4) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    painter = painterResource(id = if (selected == 4) R.drawable.book_selected else R.drawable.book),
+                    contentDescription = "Home",
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.BottomNavigation_Guide),
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
         }
     }
 }

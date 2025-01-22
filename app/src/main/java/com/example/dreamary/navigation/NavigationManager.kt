@@ -22,6 +22,7 @@ import com.example.dreamary.views.activities.Dreams.AddDreamActivity
 import com.example.dreamary.views.activities.auth.LoginActivity
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
+import com.example.dreamary.views.components.MenuBurger
 
 @Composable
 fun NavigationManager() {
@@ -111,6 +112,9 @@ fun NavigationManager() {
         }
         composable(NavRoutes.AddDream.route) {
             AddDreamActivity(navController = navController)
+        }
+        composable(NavRoutes.BurgerMenu.route) {
+            MenuBurger(navController = navController)
         }
     }
 }

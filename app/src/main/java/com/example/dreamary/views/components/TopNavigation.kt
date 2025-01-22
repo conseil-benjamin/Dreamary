@@ -1,5 +1,6 @@
 package com.example.dreamary.views.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -79,6 +80,11 @@ fun TopNavigation(navController: NavController) {
             modifier = Modifier
                 .weight(1f)
                 .size(24.dp)
+                .clickable(
+                    onClick = {
+                        navController.navigate("burgerMenu")
+                    }
+                )
         )
     }
 }
