@@ -156,9 +156,6 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 5.dp, end = 5.dp, top = 5.dp)
-                        .width(200.dp)
-                        .height(40.dp)
-
                 )
 
                 OutlinedTextField(

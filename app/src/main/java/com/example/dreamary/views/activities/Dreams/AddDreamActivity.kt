@@ -25,7 +25,6 @@ import androidx.navigation.NavController
 import com.google.firebase.Firebase
 import com.google.firebase.storage.storage
 import com.example.dreamary.R
-import kotlin.coroutines.jvm.internal.CompletedContinuation.context
 
 @Preview(showBackground = true)
 @Composable

@@ -75,7 +75,7 @@ fun BottomNavigation(navController: NavController) {
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
         ){
             Icon(
-                painter = painterResource(id = if (selected == 1) R.drawable.progress else R.drawable.plus), contentDescription = "Home",
+                painter = painterResource(id = if (selected == 1) R.drawable.progress_selected else R.drawable.progress), contentDescription = "Home",
                 modifier = Modifier.size(24.dp)
             )
             Text(
@@ -114,7 +114,7 @@ fun BottomNavigation(navController: NavController) {
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
         ) {
             Icon(
-                painter = painterResource(id = if (selected == 3) R.drawable.users else R.drawable.plus), contentDescription = "Home",
+                painter = painterResource(id = if (selected == 3) R.drawable.users_selected else R.drawable.users), contentDescription = "Home",
                 modifier = Modifier.size(24.dp)
             )
             Text(

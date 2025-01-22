@@ -1,6 +1,14 @@
 package com.example.dreamary.navigation
 
 import android.content.Context
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,7 +35,24 @@ fun NavigationManager() {
 
     val navController = rememberNavController()
     NavHost(navController, startDestination = startDestination) {
-        composable(NavRoutes.Login.route) {
+        composable(
+            route = NavRoutes.Login.route,
+            enterTransition = {
+                scaleIn(
+                    initialScale = 0.9f,
+                    animationSpec = tween(200)
+                ) + fadeIn(
+                    initialAlpha = 0.3f,
+                    animationSpec = tween(200)
+                )
+            },
+            exitTransition = {
+                scaleOut(
+                    targetScale = 1.1f,
+                    animationSpec = tween(200)
+                ) + fadeOut(animationSpec = tween(200))
+            }
+        ) {
             LoginActivity(
                 navController = navController,
                 viewModel = viewModel(factory = LoginViewModelFactory(
@@ -35,10 +60,50 @@ fun NavigationManager() {
                 ))
             )
         }
-        composable(NavRoutes.Home.route) {
+        composable(
+            route = NavRoutes.Home.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 300 },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(
+                    initialAlpha = 0.3f,
+                    animationSpec = tween(150)
+                )
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -300 },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(150))
+            },
+        ) {
             HomeActivity(navController = navController)
         }
-        composable(NavRoutes.Register.route) {
+        composable(
+            route = NavRoutes.Register.route,
+            enterTransition = {
+                scaleIn(
+                    initialScale = 0.9f,
+                    animationSpec = tween(200)
+                ) + fadeIn(
+                    initialAlpha = 0.3f,
+                    animationSpec = tween(200)
+                )
+            },
+            exitTransition = {
+                scaleOut(
+                    targetScale = 1.1f,
+                    animationSpec = tween(200)
+                ) + fadeOut(animationSpec = tween(200))
+            }
+        ) {
             RegisterActivity(navController = navController)
         }
         composable(NavRoutes.Profile.route) {
