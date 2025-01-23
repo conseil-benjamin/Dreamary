@@ -29,4 +29,17 @@
     <string name="BottomNavigation_Social">Social</string>
     <string name="BottomNavigation_Guide">Guide</string>
     <string name="TopNavigation">Profil</string>
+    <string name="Burger_text_compte">Compte</string>
+    <string name="Burger_Settings">Paramètres</string>
+    <string name="Burger_account_manage">Gérer votre compte</string>
+    <string name="Burger_Premium" translatable="false">Premium</string>
+    <string name="Burger_got_all_features">Débloquez toutes les fonctionnalités</string>
+    <string name="Burger_Dream_diary">Journal des rêves</string>
+    <string name="Burger_all_your_dreams">Tous vos rêves</string>
+    <string name="Burger_onirique">Guide Onirique</string>
+    <string name="Burger_dream_lucid">Apprener à rêver lucidement</string>
+    <string name="Burger_help_and_support">AIde et Support</string>
+    <string name="Burger_btn_logout">Déconnexion</string>
+    <string name="Create_user_successfull">Compte créé avec succès !</string>
+    <string name="Error_Creating_new_user">Erreur création utilisateur : vérifié vos informations</string>
 </resources>

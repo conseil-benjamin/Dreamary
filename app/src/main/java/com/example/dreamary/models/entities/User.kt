@@ -1,9 +1,48 @@
 package com.example.dreamary.models.entities
 
-data class User(
-    val id: Int,
-    val firstName: String,
-    val email: String
-)
+import java.util.Date
 
+data class User(
+    val uid: String,
+    val email: String,
+    val username: String,
+    val fullName: String,
+    val bio: String,
+    val profilePictureUrl: String,
+    val metadata: Map<String, Any> = mapOf(
+        "accountStatus" to "",
+        "lastDreamDate" to Date(),
+        "isPremium" to false,
+        "lastLogin" to Date(),
+        "createdAt" to Date()
+    ),
+    val preferences: Map<String, Any> = mapOf(
+        "notifications" to true,
+        "theme" to "dark",
+        "isPrivateProfile" to false,
+        "language" to "fr"
+    ),
+    val dreamStats: Map<String, Int> = mapOf(
+        "nightmares" to 0,
+        "totalDreams" to 0,
+        "lucidDreams" to 0,
+        "longestStreak" to 0,
+        "currentStreak" to 0
+    ),
+    val achievements: Map<String, Any> = mapOf(
+        "unlockedBadges" to listOf<String>(),
+        "totalBadges" to 0
+    ),
+    val progression: Map<String, Any> = mapOf(
+        "xpNeeded" to 0,
+        "level" to 1,
+        "xp" to 0,
+        "rank" to ""
+    ),
+    val social: Map<String, Any> = mapOf(
+        "groups" to listOf<String>(),
+        "followers" to 0,
+        "following" to 0
+    )
+)
 

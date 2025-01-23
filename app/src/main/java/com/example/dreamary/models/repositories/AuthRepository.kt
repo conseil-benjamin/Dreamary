@@ -32,7 +32,7 @@ class AuthRepository(private val context: Context) {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     trySend(AuthResponse.Success)
-                    saveUserData(context, navController)
+                    saveUserData(context, navController, true)
                 } else {
                     trySend(AuthResponse.Error(message = task.exception?.message ?: ""))
                 }
@@ -45,7 +45,7 @@ class AuthRepository(private val context: Context) {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     trySend(AuthResponse.Success)
-                    saveUserData(context, navController)
+                    saveUserData(context, navController, false)
                 } else {
                     trySend(AuthResponse.Error(message = task.exception?.message ?: ""))
                 }
@@ -64,7 +64,7 @@ class AuthRepository(private val context: Context) {
         }
     }
 
-    fun signInWithGoogle(navController: NavController): Flow<AuthResponse> = callbackFlow {
+    fun signInWithGoogle(navController: NavController, newMember: Boolean): Flow<AuthResponse> = callbackFlow {
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(context.getString(R.string.default_web_client_id))
@@ -101,7 +101,7 @@ class AuthRepository(private val context: Context) {
                             .addOnCompleteListener {
                                 if (it.isSuccessful) {
                                     trySend(AuthResponse.Success)
-                                    saveUserData(context, navController)
+                                    saveUserData(context, navController, newMember)
                                 } else {
                                     trySend(AuthResponse.Error(message = it.exception?.message ?: ""))
                                 }
@@ -124,7 +124,7 @@ class AuthRepository(private val context: Context) {
 
 
     @SuppressLint("CommitPrefEdits")
-    fun saveUserData (context: Context, navController: NavController){
+    fun saveUserData (context: Context, navController: NavController, newMember: Boolean){
         val user = auth.currentUser
         user?.let {
             val displayName = it.displayName
@@ -135,7 +135,6 @@ class AuthRepository(private val context: Context) {
             // Afficher les informations de l'utilisateur
             Log.d("User Info", "Display Name: $displayName")
             Log.d("User Info", "Email: $email")
-            Log.d("User Info", "Photo URL: $photoUrl")
             Log.d("User Info", "UID: $uid")
         }
         val editor = context.getSharedPreferences("user", Context.MODE_PRIVATE).edit()
@@ -146,12 +145,27 @@ class AuthRepository(private val context: Context) {
         editor.apply()
 
         val editor2 = context.getSharedPreferences("isLoggedIn", Context.MODE_PRIVATE).edit()
-        editor2.putBoolean("isLoggedIn", true)
-        editor2.apply()
 
-        navController.navigate(NavRoutes.Home.route) {
-            popUpTo(NavRoutes.Login.route) {inclusive = true}
-            // TODO : faire un popUpTo sur l'écran d'inscription aussi
+        if (newMember) {
+            // Si l'utilisateur est un nouveau membre, il doit remplir des informations supplémentaires avant de continuer à utiliser l'application
+            // on lui affichera la page info complémentaires tant qu'il ne l'aura pas rempli et qu'il aura isLoggedin à false
+            // déclaré un nouveau sharedPreference pour gérer l'état de l'utilisateur
+            // par exemple userInCreation = true alors on redirgie vers la page d'info complémentaires
+            // si userInCreation = false alors on redirige vers la page d'accueil s'il est login bien sur
+
+            val editor3 = context.getSharedPreferences("userInCreation", Context.MODE_PRIVATE).edit()
+            editor3.putBoolean("userInCreation", true)
+            editor2.putBoolean("isLoggedIn", true)
+            editor2.apply()
+            navController.navigate(NavRoutes.UserMoreInformation.route) {
+                popUpTo(NavRoutes.Register.route) {inclusive = true}
+            }
+        } else{
+            editor2.putBoolean("isLoggedIn", true)
+            editor2.apply()
+            navController.navigate(NavRoutes.Home.route) {
+                popUpTo(NavRoutes.Login.route) {inclusive = true}
+            }
         }
     }
 

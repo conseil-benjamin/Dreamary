@@ -22,7 +22,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
 
     fun signInWithGoogle(navController: NavController): Flow<Any> {
         viewModelScope.launch {
-            repository.signInWithGoogle(navController)
+            repository.signInWithGoogle(navController, false)
                 .collect { response ->
                     _authState.value = when(response) {
                         is AuthResponse.Success -> AuthState.Authenticated

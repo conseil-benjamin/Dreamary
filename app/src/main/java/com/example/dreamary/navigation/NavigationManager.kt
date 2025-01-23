@@ -20,6 +20,7 @@ import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
 import com.example.dreamary.views.activities.Dreams.AddDreamActivity
 import com.example.dreamary.views.activities.auth.LoginActivity
+import com.example.dreamary.views.activities.auth.MoreInformations
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
 import com.example.dreamary.views.components.MenuBurger
@@ -28,7 +29,11 @@ import com.example.dreamary.views.components.MenuBurger
 fun NavigationManager() {
     val context = LocalContext.current
     val isLoggedIn = context.getSharedPreferences("isLoggedIn", Context.MODE_PRIVATE)
-    val startDestination = if (isLoggedIn.getBoolean("isLoggedIn", false)) {
+    val isUserInCreation = context.getSharedPreferences("userInCreation", Context.MODE_PRIVATE)
+
+    val startDestination = if (isUserInCreation.getBoolean("userInCreation", true)) {
+        NavRoutes.UserMoreInformation.route
+    } else if (isLoggedIn.getBoolean("isLoggedIn", true)) {
         NavRoutes.Home.route
     } else {
         NavRoutes.Login.route
@@ -116,5 +121,9 @@ fun NavigationManager() {
         composable(NavRoutes.BurgerMenu.route) {
             MenuBurger(navController = navController)
         }
+        composable(NavRoutes.UserMoreInformation.route) {
+            MoreInformations(navController = navController)
+        }
+
     }
 }

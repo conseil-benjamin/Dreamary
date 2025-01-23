@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -108,7 +109,11 @@ fun MenuBurger(navController: NavController) {
         }
         SimpleDivider()
         Column {
-            Text("Compte")
+            Text(
+                text = stringResource(id = R.string.Burger_text_compte),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Column (
                 modifier = Modifier
                     .fillMaxWidth()
@@ -135,12 +140,12 @@ fun MenuBurger(navController: NavController) {
                             .weight(3f)
                     ) {
                         Text(
-                            text= "Paramètres",
+                            text= stringResource(id = R.string.Burger_Settings),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Gérer votre compte",
+                            text = stringResource(id = R.string.Burger_account_manage),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -174,12 +179,12 @@ fun MenuBurger(navController: NavController) {
                             .weight(3f)
                     ) {
                         Text(
-                           text = "Premium",
+                           text = stringResource(id = R.string.Burger_Premium),
                            style = MaterialTheme.typography.labelLarge,
                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Débloquez toutes les fonctionnalités",
+                            text = stringResource(id = R.string.Burger_got_all_features),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -196,7 +201,11 @@ fun MenuBurger(navController: NavController) {
             }
         }
         Column {
-            Text("Navigation")
+            Text(
+                text = "Navigation",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -218,12 +227,12 @@ fun MenuBurger(navController: NavController) {
                         .weight(4f)
                 ) {
                     Text(
-                        text = "Journal des rêves",
+                        text = stringResource(id = R.string.Burger_Dream_diary),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Tous vos rêves",
+                        text = stringResource(id = R.string.Burger_all_your_dreams),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -250,12 +259,12 @@ fun MenuBurger(navController: NavController) {
                         .weight(4f)
                 ) {
                     Text(
-                        text = "Guide Onirique",
+                        text = stringResource(id = R.string.Burger_onirique),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Apprener à rêver lucidement",
+                        text = stringResource(id = R.string.Burger_dream_lucid),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -267,7 +276,11 @@ fun MenuBurger(navController: NavController) {
                 .fillMaxWidth()
                 .padding(8.dp),
         ) {
-            Text("Support")
+            Text(
+                text = "Support",
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.labelLarge
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -289,7 +302,7 @@ fun MenuBurger(navController: NavController) {
                         .weight(4f)
                 ) {
                     Text(
-                        text = "Aide et Support",
+                        text = stringResource(id = R.string.Burger_help_and_support),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -337,7 +350,7 @@ fun MenuBurger(navController: NavController) {
                             .padding(end = 8.dp)
                     )
                     Text(
-                        text = "Déconnexion",
+                        text = stringResource(id = R.string.Burger_btn_logout),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
