@@ -21,7 +21,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -64,14 +63,16 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.util.Date
 import android.Manifest
-import android.os.Environment
+import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.runtime.collectAsState
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModel
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.views.components.CustomDropdown
+import java.util.Calendar
 
 @Preview(showBackground = true)
 @Composable
@@ -216,7 +217,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     }
 
     // Vérification initiale de la permission
-    fun checkAudioPermission() = {
+    fun checkAudioPermission(): () -> Unit = {
         when {
             ContextCompat.checkSelfPermission(
                 context,
@@ -236,8 +237,6 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
             }
         }
     }
-
-    Text("AddDreamActivity")
 
     DreamaryTheme {
         Scaffold(
@@ -278,7 +277,9 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                 }
 
                 item{
-                    Emotions()
+                    Emotions(
+                        pickedEmotions = pickedEmotions
+                    )
                 }
 
                 item{
@@ -371,16 +372,29 @@ fun ItemsleepInfo(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+fun showTimePicker(context: Context, onTimeSelected: (Int, Int) -> Unit) {
+    val calendar = Calendar.getInstance()
+    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+    val minute = calendar.get(Calendar.MINUTE)
+
+    val timePickerDialog = TimePickerDialog(context, { _, selectedHour, selectedMinute ->
+        onTimeSelected(selectedHour, selectedMinute)
+    }, hour, minute, true)
+
+    timePickerDialog.show()
+}
+
 @Composable
 fun ContextSleep (
     contextSleep: MutableMap<String, Any>,
     onContextSleepChanged: (MutableMap<String, Any>) -> Unit
 ) {
-    var temperature by remember { mutableStateOf("") }
-    val currentDate = Date()
     var noiseLevel by remember { mutableStateOf(contextSleep["noiseLevel"] as? String ?: "Calme") }
     var position by remember { mutableStateOf(contextSleep["position"] as? String ?: "Sur le dos") }
+    var temperature by remember { mutableStateOf(contextSleep["temperature"] as? String ?: "") }
+
+    val context = LocalContext.current
+    var time by remember { mutableStateOf(contextSleep["time"] as? String ?: "") }
 
     Row(
         modifier = Modifier
@@ -392,7 +406,8 @@ fun ContextSleep (
                 .weight(1f)
         ) {
             Row(
-
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.lhorloge),
@@ -400,12 +415,26 @@ fun ContextSleep (
                     modifier = Modifier
                         .size(24.dp)
                 )
-                Text(
-                    text = currentDate.toString(),
-                )
+                Button(
+                    onClick = { showTimePicker(context) { hour, minute ->
+                        contextSleep["time"] = "$hour:$minute"
+                        onContextSleepChanged(contextSleep)
+                        time = "$hour:$minute"
+                    } },
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Color.White)
+                ) {
+                    if (time.isEmpty()) {
+                        Text("Heure de coucher")
+                    } else {
+                        Text(time)
+                    }
+                }
             }
             Row(
-
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.thermometre),
@@ -415,7 +444,11 @@ fun ContextSleep (
                 )
                 TextField(
                     value = temperature,
-                    onValueChange = { temperature = it },
+                    onValueChange = {
+                        temperature = it
+                        onContextSleepChanged(contextSleep)
+                        contextSleep["temperature"] = it
+                                    },
                     label = { Text("Température") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier
@@ -427,12 +460,16 @@ fun ContextSleep (
             modifier = Modifier
                 .weight(1f)
         ){
-            Row {
+            Row (
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.lune),
+                    painter = painterResource(id = R.drawable.bed),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(24.dp),
+                        .size(24.dp)
+                        .padding(end = 8.dp),
                 )
                 CustomDropdown(
                     options = listOf("Sur le dos", "Sur le ventre", "Sur le côté"),
@@ -442,15 +479,18 @@ fun ContextSleep (
                         onContextSleepChanged(contextSleep)
                         contextSleep["position"] = it
                                        },
-                    label = "Etat"
                 )
             }
-            Row {
+            Row (
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ){
                 Icon(
-                    painter = painterResource(id = R.drawable.etoile),
+                    painter = painterResource(id = R.drawable.son),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(24.dp),
+                        .size(24.dp)
+                        .padding(end = 8.dp),
                 )
                 CustomDropdown(
                     options = listOf("Calme", "Bruyant", "Normal"),
@@ -458,9 +498,7 @@ fun ContextSleep (
                     onOptionSelected = {
                         noiseLevel = it
                         onContextSleepChanged(contextSleep)
-                        contextSleep["noiseLevel"] = it
-                                       },
-                    label = "Heure"
+                        contextSleep["noiseLevel"] = it },
                 )
             }
         }
@@ -504,8 +542,8 @@ fun ItemDreamType (
         modifier = Modifier
             .padding(16.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if(dreamTypeChoose.value == text) Color.Red else Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            containerColor = if(dreamTypeChoose.value == text) Color(0xFFeff2fe) else MaterialTheme.colorScheme.surface,
+            contentColor = if (dreamTypeChoose.value == text) Color(0xFF555393) else MaterialTheme.colorScheme.onSurface,
         ),
     ) {
         Column (
@@ -603,28 +641,22 @@ fun DescribeDream(
 }
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun Emotions (
-    pickedEmotions: SnapshotStateList<String> = remember { mutableStateListOf() }
+    pickedEmotions: SnapshotStateList<String>
 ) {
     Text("Emotions ressenties")
-    Row (
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalArrangement = Arrangement.Start
-    ){
+        mainAxisSpacing = 8.dp,
+        crossAxisSpacing = 8.dp,
+    ) {
         ItemEmotion(
             text = "Joie",
-            pickedEmotions = pickedEmotions
-        )
-        ItemEmotion(
-            text = "Tristesse",
-            pickedEmotions = pickedEmotions
-        )
-        ItemEmotion(
-            text = "Colère",
             pickedEmotions = pickedEmotions
         )
         ItemEmotion(
@@ -632,11 +664,19 @@ fun Emotions (
             pickedEmotions = pickedEmotions
         )
         ItemEmotion(
-            text = "Dégoût",
+            text = "Confusion",
             pickedEmotions = pickedEmotions
         )
         ItemEmotion(
-            text = "Surprise",
+            text = "Paix",
+            pickedEmotions = pickedEmotions
+        )
+        ItemEmotion(
+            text = "Excitation",
+            pickedEmotions = pickedEmotions
+        )
+        ItemEmotion(
+            text = "Mélancolie",
             pickedEmotions = pickedEmotions
         )
     }
@@ -658,8 +698,28 @@ fun ItemEmotion(
             }
         },
         colors = ButtonDefaults.buttonColors(
-            containerColor = if(pickedEmotions.contains(text)) Color.Red else Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            containerColor = when {
+                pickedEmotions.contains(text) && text == "Peur" -> Color(0xFFfee3e1)
+                pickedEmotions.contains(text) && text == "Joie" -> Color(0xFFfef9c2)
+                pickedEmotions.contains(text) && text == "Confusion" -> Color(0xFFf4e8ff)
+                pickedEmotions.contains(text) && text == "Paix" -> Color(0xFFdcfce7)
+                pickedEmotions.contains(text) && text == "Excitation" -> Color(0xFFffeed5)
+                pickedEmotions.contains(text) && text == "Mélancolie" -> Color(0xFFdceaff)
+                else -> {
+                    MaterialTheme.colorScheme.surface
+                }
+            },
+            contentColor = when {
+                pickedEmotions.contains(text) && text == "Peur" -> Color(0xFF8f7036)
+                pickedEmotions.contains(text) && text == "Joie" -> Color(0xFF8c4f54)
+                pickedEmotions.contains(text) && text == "Confusion" -> Color(0xFF5a347c)
+                pickedEmotions.contains(text) && text == "Paix" -> Color(0xFF67a189)
+                pickedEmotions.contains(text) && text == "Excitation" -> Color(0xFF77412c)
+                pickedEmotions.contains(text) && text == "Mélancolie" -> Color(0xFF3f559e)
+                else -> {
+                    MaterialTheme.colorScheme.onSurface
+                }
+            }
         ),
     ) {
         Text(text)
@@ -696,14 +756,13 @@ fun Environment(
 
     Text("Environnement")
     CustomDropdown(
-        options = listOf("Intérieur", "Extérieur"),
+        options = listOf("Intérieur", "Extérieur", "Les deux"),
         selectedOption = selectedType,
         onOptionSelected = {
             selectedType = it
             onEnvironmentChanged(environment)
             environment["type"] = it
         },
-        label = "Type"
     )
 
     CustomDropdown(
@@ -714,7 +773,6 @@ fun Environment(
             onEnvironmentChanged(environment)
             environment["season"] = it
         },
-        label = "Saison"
     )
 
     CustomDropdown(
@@ -725,9 +783,9 @@ fun Environment(
             onEnvironmentChanged(environment)
             environment["weather"] = it
         },
-        label = "Météo"
     )
 
+    // TODO : surement changer ca par un simple textfield pour les couleurs
     CustomDropdown(
         options = listOf("Rouge", "Bleu", "Vert", "Jaune"),
         selectedOption = selectedColors,
@@ -736,7 +794,6 @@ fun Environment(
             onEnvironmentChanged(environment)
             environment["dominantColors"] = it
         },
-        label = "Couleurs dominantes"
     )
 }
 

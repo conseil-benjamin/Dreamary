@@ -1,10 +1,12 @@
 package com.example.dreamary.views.activities.auth
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -53,6 +55,18 @@ import kotlin.toString
 @Composable
 fun MoreInformationsPreview() {
     MoreInformations(navController = NavController(LocalContext.current))
+}
+
+fun isUsernameAlreadyTaken(username: String, context: Context, callback: (Boolean) -> Unit): Boolean {
+    val db = FirebaseFirestore.getInstance()
+    db.collection("users").whereEqualTo("username", username).get()
+        .addOnSuccessListener { documents ->
+            callback(documents.size() > 0)
+        }
+        .addOnFailureListener {
+            callback(false)
+        }
+    return false
 }
 
 fun createUser(email: String, fullName: String, username: String, bio: String, navController: NavController, context: Context, couroutineScope: CoroutineScope) {
@@ -115,72 +129,80 @@ fun createUser(email: String, fullName: String, username: String, bio: String, n
         return
     }
 
-    db.collection("users").document(user.uid).set(user)
-        .addOnSuccessListener {
-            // Save user data in SharedPreferences
-            val sharedPreferences = context.getSharedPreferences("user", Context.MODE_PRIVATE)
-            with(sharedPreferences.edit()) {
-                putString("uid", user.uid)
-                putString("email", user.email)
-                putString("username", user.username)
-                putString("fullName", user.fullName)
-                putString("bio", user.bio)
-                putString("profilePictureUrl", user.profilePictureUrl)
-                putString("accountStatus", user.metadata["accountStatus"] as String)
-                putString(
-                    "lastDreamDate",
-                    (user.metadata["lastDreamDate"] as Timestamp).toDate().toString()
-                )
-                putBoolean("isPremium", user.metadata["isPremium"] as Boolean)
-                putString(
-                    "lastLogin",
-                    (user.metadata["lastLogin"] as Timestamp).toDate().toString()
-                )
-                putString(
-                    "createdAt",
-                    (user.metadata["createdAt"] as Timestamp).toDate().toString()
-                )
-                putBoolean("notifications", user.preferences["notifications"] as Boolean)
-                putString("theme", user.preferences["theme"] as String)
-                putBoolean("isPrivateProfile", user.preferences["isPrivateProfile"] as Boolean)
-                putString("language", user.preferences["language"] as String)
-                putInt("nightmares", user.dreamStats["nightmares"] as Int)
-                putInt("totalDreams", user.dreamStats["totalDreams"] as Int)
-                putInt("lucidDreams", user.dreamStats["lucidDreams"] as Int)
-                putInt("longestStreak", user.dreamStats["longestStreak"] as Int)
-                putInt("currentStreak", user.dreamStats["currentStreak"] as Int)
-                putStringSet("unlockedBadges", (user.achievements["unlockedBadges"] as List<String>).toSet())
-                putInt("totalBadges", user.achievements["totalBadges"] as Int)
-                putInt("xpNeeded", user.progression["xpNeeded"] as Int)
-                putInt("level", user.progression["level"] as Int)
-                putInt("xp", user.progression["xp"] as Int)
-                putString("rank", user.progression["rank"] as String)
-                putStringSet("groups", (user.social["groups"] as List<String>).toSet())
-                putInt("followers", user.social["followers"] as Int)
-                putInt("following", user.social["following"] as Int)
-                apply()
-            }
-            // Rediriger vers l'écran d'accueil
-            val editor = context.getSharedPreferences("userInCreation", Context.MODE_PRIVATE).edit()
-            editor.putBoolean("userInCreation", false)
-            editor.apply()
-            val editor2 = context.getSharedPreferences("isLoggedIn", Context.MODE_PRIVATE).edit()
-            editor2.putBoolean("isLoggedIn", true)
-            editor2.apply()
+    isUsernameAlreadyTaken(username, context) { isTaken ->
+        if (isTaken) {
             couroutineScope.launch {
-                SnackbarManager.showMessage(context.getString(R.string.Create_user_successfull), R.drawable.success)
+                SnackbarManager.showMessage(context.getString(R.string.More_Informations_username_already_taken), R.drawable.error)
             }
-            navController.navigate(NavRoutes.Home.route) {
-                popUpTo(NavRoutes.UserMoreInformation.route) {
-                    inclusive = true
+        } else {
+            db.collection("users").document(user.uid).set(user)
+                .addOnSuccessListener {
+                    // Save user data in SharedPreferences
+                    val sharedPreferences = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+                    with(sharedPreferences.edit()) {
+                        putString("uid", user.uid)
+                        putString("email", user.email)
+                        putString("username", user.username)
+                        putString("fullName", user.fullName)
+                        putString("bio", user.bio)
+                        putString("profilePictureUrl", user.profilePictureUrl)
+                        putString("accountStatus", user.metadata["accountStatus"] as String)
+                        putString(
+                            "lastDreamDate",
+                            (user.metadata["lastDreamDate"] as Timestamp).toDate().toString()
+                        )
+                        putBoolean("isPremium", user.metadata["isPremium"] as Boolean)
+                        putString(
+                            "lastLogin",
+                            (user.metadata["lastLogin"] as Timestamp).toDate().toString()
+                        )
+                        putString(
+                            "createdAt",
+                            (user.metadata["createdAt"] as Timestamp).toDate().toString()
+                        )
+                        putBoolean("notifications", user.preferences["notifications"] as Boolean)
+                        putString("theme", user.preferences["theme"] as String)
+                        putBoolean("isPrivateProfile", user.preferences["isPrivateProfile"] as Boolean)
+                        putString("language", user.preferences["language"] as String)
+                        putInt("nightmares", user.dreamStats["nightmares"] as Int)
+                        putInt("totalDreams", user.dreamStats["totalDreams"] as Int)
+                        putInt("lucidDreams", user.dreamStats["lucidDreams"] as Int)
+                        putInt("longestStreak", user.dreamStats["longestStreak"] as Int)
+                        putInt("currentStreak", user.dreamStats["currentStreak"] as Int)
+                        putStringSet("unlockedBadges", (user.achievements["unlockedBadges"] as List<String>).toSet())
+                        putInt("totalBadges", user.achievements["totalBadges"] as Int)
+                        putInt("xpNeeded", user.progression["xpNeeded"] as Int)
+                        putInt("level", user.progression["level"] as Int)
+                        putInt("xp", user.progression["xp"] as Int)
+                        putString("rank", user.progression["rank"] as String)
+                        putStringSet("groups", (user.social["groups"] as List<String>).toSet())
+                        putInt("followers", user.social["followers"] as Int)
+                        putInt("following", user.social["following"] as Int)
+                        apply()
+                    }
+                    // Rediriger vers l'écran d'accueil
+                    val editor = context.getSharedPreferences("userInCreation", Context.MODE_PRIVATE).edit()
+                    editor.putBoolean("userInCreation", false)
+                    editor.apply()
+                    val editor2 = context.getSharedPreferences("isLoggedIn", Context.MODE_PRIVATE).edit()
+                    editor2.putBoolean("isLoggedIn", true)
+                    editor2.apply()
+                    couroutineScope.launch {
+                        SnackbarManager.showMessage(context.getString(R.string.Create_user_successfull), R.drawable.success)
+                    }
+                    navController.navigate(NavRoutes.Home.route) {
+                        popUpTo(NavRoutes.UserMoreInformation.route) {
+                            inclusive = true
+                        }
+                    }
                 }
-            }
+                .addOnFailureListener {
+                    couroutineScope.launch {
+                        SnackbarManager.showMessage(context.getString(R.string.Register_error_message), R.drawable.error)
+                    }
+                }
         }
-        .addOnFailureListener {
-            couroutineScope.launch {
-                SnackbarManager.showMessage(context.getString(R.string.Register_error_message), R.drawable.error)
-            }
-        }
+    }
 }
 
 @Composable
@@ -200,7 +222,6 @@ fun MoreInformations (navController: NavController) {
     var email = editor.getString("email", "unknow email")
     var fullName = editor.getString("displayName", "unknow user")
     var photoUrl = editor.getString("photoUrl", "unknow photoUrl")
-
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -264,7 +285,8 @@ fun MoreInformations (navController: NavController) {
                 OutlinedTextField(
                     modifier = Modifier
                         .padding(bottom = 8.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .clip(RoundedCornerShape(8.dp))
+                        .height(100.dp),
                     value = bio,
                     onValueChange = { bio = it },
                     placeholder = {

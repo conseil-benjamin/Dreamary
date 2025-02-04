@@ -18,6 +18,8 @@ val LightOnBackground = Color(0xFF111827)    // Gray-900
 val LightOnSurface = Color(0xFF1F2937)       // Gray-800
 val LightOnSurfaceVariant = Color(0xFF4B5563) // Gray-600
 val LightOutline = Color(0xFFD1D5DB)         // Gray-300
+val LightSelectElement = Color(0xeff2fe)
+val LightSelectElementColor = Color(0x514cbf)
 
 // Couleurs du thème sombre
 val DarkBackground = Color(0xFF030712)      // Gray-950

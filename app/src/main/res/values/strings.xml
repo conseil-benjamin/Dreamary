@@ -49,4 +49,5 @@
     <string name="Social_Research_input">Rechercher des groupes ou des amis...</string>
     <string name="Add_Dream_Screen_Type_Of_Dream">Type de Rêve</string>
     <string name="Add_dream_share_with">Partager avec</string>
+    <string name="More_Informations_username_already_taken">Nom d\'utilisateur déjà pris, veuillez en choisir un autre</string>
 </resources>

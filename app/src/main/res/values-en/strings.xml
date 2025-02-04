@@ -47,4 +47,5 @@
     <string name="Social_Research_input">Search for groups or friends...</string>
     <string name="Add_Dream_Screen_Type_Of_Dream">Type of dream</string>
     <string name="Add_dream_share_with">Share with</string>
+    <string name="More_Informations_username_already_taken">Username already taken, please take a another</string>
 </resources>
