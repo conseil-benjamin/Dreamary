@@ -192,8 +192,8 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clickable {
-                                    isPasswordVisible = !isPasswordVisible
-                                }
+                                        isPasswordVisible = !isPasswordVisible
+                                    }
                             )
                         } else {
                             Icon(
@@ -201,8 +201,8 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clickable {
-                                    isPasswordVisible = !isPasswordVisible
-                                }
+                                        isPasswordVisible = !isPasswordVisible
+                                    }
                             )
                         }
                     },
@@ -278,7 +278,8 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                             password,
                             confirmPassword,
                             navController,
-                            isRulesAccepted
+                            isRulesAccepted,
+                            name
                         )
                             .onEach { response: Any ->
                                 if (response is AuthResponse.Success) {

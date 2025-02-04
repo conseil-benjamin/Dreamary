@@ -1,362 +1,277 @@
-package com.example.dreamary.views.components
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.dreamary.R
 import com.example.dreamary.ui.theme.DreamaryTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-
-@Preview(showBackground = true)
-@Composable
-fun MenuBurgerPreview() {
-    MenuBurger(navController = NavController(LocalContext.current))
-}
-
-@Composable
-fun SimpleDivider() {
-    Divider(
-        color = Color.LightGray,
-        thickness = 1.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    )
-}
-
-@Composable
-fun Divider2 () {
-    Divider(
-        color = Color.LightGray,
-        thickness = 1.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-    )
-}
+import com.example.dreamary.R
 
 @Composable
 fun MenuBurger(navController: NavController) {
     val auth = Firebase.auth
     val context = LocalContext.current
 
+    val user = auth.currentUser
+    if (user == null) {
+        navController.navigate("login") {
+            popUpTo("home") { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
+    val userLevel = context.getSharedPreferences("user", 0).getInt("level", 1)
+    val rank = context.getSharedPreferences("user", 0).getString("rank", "Débutant(e)")
+
     DreamaryTheme {
-    Column (
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.background)
-            .fillMaxWidth()
-            .padding(8.dp),
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            // Profile Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Avatar
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.lune_selected),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            text = user?.displayName ?: "",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "Niveau $userLevel - $rank",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Settings Section
+            MenuSection(
+                title = stringResource(id = R.string.Burger_text_compte),
+                items = listOf(
+                    MenuItem(
+                        icon = { Icon(painterResource(id = R.drawable.settings), null) },
+                        title = stringResource(id = R.string.Burger_Settings),
+                        subtitle = stringResource(id = R.string.Burger_account_manage),
+                        onClick = { navController.navigate("settings") }
+                    ),
+                    MenuItem(
+                        icon = { Icon(painterResource(id = R.drawable.premium), null) },
+                        title = stringResource(id = R.string.Burger_Premium),
+                        subtitle = stringResource(id = R.string.Burger_got_all_features),
+                        onClick = { /* TODO: Navigate to premium */ }
+                    )
+                )
+            )
+
+            // Navigation Section
+            MenuSection(
+                title = "Navigation",
+                items = listOf(
+                    MenuItem(
+                        icon = { Icon(painterResource(id = R.drawable.lune), null) },
+                        title = stringResource(id = R.string.Burger_Dream_diary),
+                        subtitle = stringResource(id = R.string.Burger_all_your_dreams),
+                        onClick = { /* TODO: Navigate to dream diary */ }
+                    ),
+                    MenuItem(
+                        icon = { Icon(painterResource(id = R.drawable.book2), null) },
+                        title = stringResource(id = R.string.Burger_onirique),
+                        subtitle = stringResource(id = R.string.Burger_dream_lucid),
+                        onClick = { /* TODO: Navigate to guide */ }
+                    )
+                )
+            )
+
+            // Support Section
+            MenuSection(
+                title = "Support",
+                items = listOf(
+                    MenuItem(
+                        icon = { Icon(painterResource(id = R.drawable.help), null) },
+                        title = stringResource(id = R.string.Burger_help_and_support),
+                        onClick = { /* TODO: Navigate to help */ }
+                    )
+                )
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Logout Button
+            Button(
+                onClick = {
+                    auth.signOut()
+                    context.getSharedPreferences("isLoggedIn", 0).edit()
+                        .putBoolean("isLoggedIn", false).apply()
+                    navController.navigate("login") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                ),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text(stringResource(id = R.string.Burger_btn_logout))
+            }
+        }
+    }
+}
+
+@Composable
+private fun MenuSection(
+    title: String,
+    items: List<MenuItem>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        ) {
+            Column {
+                items.forEachIndexed { index, item ->
+                    if (index > 0) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    }
+                    MenuItemRow(item)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MenuItemRow(item: MenuItem) {
+    Surface(
+        onClick = item.onClick,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surface),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-        ) {
-            Icon(
-                tint = MaterialTheme.colorScheme.onSurface,
-                painter = painterResource(id = R.drawable.lune_selected),
-                contentDescription = "Menu",
-                modifier = Modifier
-                    .weight(1f)
-                    .size(24.dp)
-            )
-            Column(
-                modifier = Modifier
-                    .weight(4f)
-            ) {
-                Text(
-                    style = MaterialTheme.typography.labelLarge,
-                    text = "Marie petit",
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "Niveau 12 - Rêveuse Expérimentée",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-        SimpleDivider()
-        Column {
-            Text(
-                text = stringResource(id = R.string.Burger_text_compte),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Column (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .background(MaterialTheme.colorScheme.surface)
-                    .clip(RoundedCornerShape(8.dp)),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                ) {
-                    Icon(
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        painter = painterResource(id = R.drawable.settings),
-                        contentDescription = "Settings",
-                        modifier = Modifier
-                            .weight(0.5f)
-                            .size(24.dp)
-                    )
-                    Column(
-                        modifier = Modifier
-                            .weight(3f)
-                    ) {
-                        Text(
-                            text= stringResource(id = R.string.Burger_Settings),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(id = R.string.Burger_account_manage),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    Icon(
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        imageVector = Icons.Default.KeyboardArrowRight,
-                        contentDescription = "Premium",
-                        modifier = Modifier
-                            .size(24.dp)
-                            .weight(0.5f)
-                    )
-                }
-                Divider2()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                ) {
-                    Icon(
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        painter = painterResource(id = R.drawable.premium),
-                        contentDescription = "Premium",
-                        modifier = Modifier
-                            .weight(0.5f)
-                            .size(24.dp)
-                    )
-                    Column(
-                        modifier = Modifier
-                            .weight(3f)
-                    ) {
-                        Text(
-                           text = stringResource(id = R.string.Burger_Premium),
-                           style = MaterialTheme.typography.labelLarge,
-                           color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(id = R.string.Burger_got_all_features),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    Icon(
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        imageVector = Icons.Default.KeyboardArrowRight,
-                        contentDescription = "Premium",
-                        modifier = Modifier
-                            .size(24.dp)
-                            .weight(0.5f)
-                    )
-                }
-            }
-        }
-        Column {
-            Text(
-                text = "Navigation",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surface),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-            ) {
-                Icon(
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    painter = painterResource(id = R.drawable.lune),
-                    contentDescription = "Menu",
-                    modifier = Modifier
-                        .weight(0.5f)
-                        .size(24.dp)
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(4f)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.Burger_Dream_diary),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.Burger_all_your_dreams),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surface),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-            ) {
-                Icon(
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    painter = painterResource(id = R.drawable.book2),
-                    contentDescription = "Menu",
-                    modifier = Modifier
-                        .weight(0.5f)
-                        .size(24.dp)
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(4f)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.Burger_onirique),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.Burger_dream_lucid),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-        ) {
-            Text(
-                text = "Support",
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.labelLarge
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surface),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-            ) {
-                Icon(
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    painter = painterResource(id = R.drawable.help),
-                    contentDescription = "Menu",
-                    modifier = Modifier
-                        .weight(0.5f)
-                        .size(24.dp)
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(4f)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.Burger_help_and_support),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }
-        SimpleDivider()
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-                .background(MaterialTheme.colorScheme.error)
-                .clip(RoundedCornerShape(8.dp)),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Box(
-                contentAlignment = androidx.compose.ui.Alignment.Center,
                 modifier = Modifier
-                    .weight(1f)
-                    .size(50.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                .clickable(
-                        onClick = {
-                            auth.signOut()
-                            context.getSharedPreferences("isLoggedIn", 0).edit()
-                                .putBoolean("isLoggedIn", false).apply()
-                            navController.navigate("login") {
-                                popUpTo("home") {
-                                    inclusive = true
-                                }
-                            }
-                        }
+                    .size(40.dp)
+                    .background(
+                        MaterialTheme.colorScheme.secondaryContainer,
+                        CircleShape
                     ),
+                contentAlignment = Alignment.Center
             ) {
-                Row (
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                ){
-                    Icon(
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        imageVector = Icons.Default.ExitToApp,
-                        contentDescription = "Menu",
-                        modifier = Modifier
-                            .size(24.dp)
-                            .padding(end = 8.dp)
-                    )
+                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.secondary) {
+                    item.icon()
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = item.title)
+                if (item.subtitle != null) {
                     Text(
-                        text = stringResource(id = R.string.Burger_btn_logout),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = item.subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
-    }
 }
+
+private data class MenuItem(
+    val icon: @Composable () -> Unit,
+    val title: String,
+    val subtitle: String? = null,
+    val onClick: () -> Unit
+)

@@ -19,11 +19,18 @@ import java.security.MessageDigest
 import java.util.UUID
 import com.example.dreamary.R
 import com.example.dreamary.models.routes.NavRoutes
+import com.google.firebase.auth.userProfileChangeRequest
 
 class AuthRepository(private val context: Context) {
     private val auth = Firebase.auth
 
-    fun createAccountWithEmail(context: Context, email: String, password: String, navController: NavController): Flow<AuthResponse> = callbackFlow {
+    fun createAccountWithEmail(
+        context: Context,
+        email: String,
+        password: String,
+        navController: NavController,
+        name: String
+    ): Flow<AuthResponse> = callbackFlow {
         if (email.isEmpty() || password.isEmpty()) {
             trySend(AuthResponse.Error(message = "Error"))
             return@callbackFlow
@@ -31,8 +38,18 @@ class AuthRepository(private val context: Context) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    trySend(AuthResponse.Success)
-                    saveUserData(context, navController, true)
+                    val user = auth.currentUser
+                    val profileUpdates = userProfileChangeRequest {
+                        this.displayName = name
+                    }
+                    user?.updateProfile(profileUpdates)?.addOnCompleteListener { updateTask ->
+                        if (updateTask.isSuccessful) {
+                            trySend(AuthResponse.Success)
+                            saveUserData(context, navController, true)
+                        } else {
+                            trySend(AuthResponse.Error(message = updateTask.exception?.message ?: ""))
+                        }
+                    }
                 } else {
                     trySend(AuthResponse.Error(message = task.exception?.message ?: ""))
                 }
@@ -155,7 +172,8 @@ class AuthRepository(private val context: Context) {
 
             val editor3 = context.getSharedPreferences("userInCreation", Context.MODE_PRIVATE).edit()
             editor3.putBoolean("userInCreation", true)
-            editor2.putBoolean("isLoggedIn", true)
+            editor3.apply()
+            editor2.putBoolean("isLoggedIn", false)
             editor2.apply()
             navController.navigate(NavRoutes.UserMoreInformation.route) {
                 popUpTo(NavRoutes.Register.route) {inclusive = true}

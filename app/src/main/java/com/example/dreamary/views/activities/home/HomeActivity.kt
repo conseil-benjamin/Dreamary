@@ -12,6 +12,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ListItemDefaults.contentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -23,10 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.dreamary.ui.theme.DreamaryTheme
 import com.example.dreamary.utils.SnackbarManager
 import com.example.dreamary.views.components.BottomNavigation
+import com.example.dreamary.views.components.CustomSnackbarHost
 import com.example.dreamary.views.components.TopNavigation
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -41,12 +44,14 @@ private fun PreviewHomeActivity() {
 fun HomeActivity(navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Ecoute des messages du SnackbarManager
-    LaunchedEffect(Unit) { // unit veut dire que l'effet sera lancé une seule fois
+    // Modification du LaunchedEffect
+    LaunchedEffect(Unit) {
         SnackbarManager.snackbarMessages.collect { snackbarMessage ->
             snackbarHostState.showSnackbar(
                 message = snackbarMessage.message,
-                actionLabel = snackbarMessage.actionLabel
+                actionLabel = snackbarMessage.actionLabel,
+                withDismissAction = true,
+                duration = SnackbarDuration.Short
             )
         }
     }
@@ -57,14 +62,14 @@ fun HomeActivity(navController: NavController) {
                 .background(MaterialTheme.colorScheme.onSurface),
             bottomBar = { BottomNavigation(navController = navController) },
             topBar = { TopNavigation(navController = navController) },
-            snackbarHost = { SnackbarHost(snackbarHostState) }
+            snackbarHost = { CustomSnackbarHost(snackbarHostState) },
         ) { paddingValues ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
+                    .padding(paddingValues),
             ) {
             }
         }

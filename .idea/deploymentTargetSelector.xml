@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-01-22T09:43:00.952619549Z">
+        <DropdownSelection timestamp="2025-01-23T19:01:34.666525875Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=RZCW92N085T" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/benjamin/.android/avd/Medium_Phone.avd" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -20,9 +20,6 @@
             </Target>
           </targets>
         </DialogSelection>
-      </SelectionState>
-      <SelectionState runConfigName="PreviewRegisterActivity">
-        <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="TopNavigationPreview">
         <option name="selectionMode" value="DROPDOWN" />
@@ -58,6 +55,9 @@
         <DialogSelection />
       </SelectionState>
       <SelectionState runConfigName="MoreInformationsPreview">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="HomePageSocialPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

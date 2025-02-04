@@ -48,14 +48,16 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("androidx.compose.runtime:runtime-livedata:1.0.5")
 
-    implementation("com.google.android.gms:play-services-auth:21.0.0")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
-    //implementation(libs.firebase.firestore)
     val credentialManagerVersion = "1.5.0-alpha05"
     implementation("androidx.credentials:credentials:$credentialManagerVersion")
     implementation("androidx.credentials:credentials-play-services-auth:$credentialManagerVersion")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    implementation("androidx.media:media:1.7.0")
+    implementation("androidx.core:core-ktx:1.12.0")
 
     implementation("io.coil-kt:coil-compose:2.1.0")
     implementation(libs.androidx.core.ktx)

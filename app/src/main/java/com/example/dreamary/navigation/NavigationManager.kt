@@ -1,6 +1,11 @@
 package com.example.dreamary.navigation
 
+import MenuBurger
+import SettingsScreen
 import android.content.Context
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -19,24 +24,26 @@ import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
 import com.example.dreamary.views.activities.Dreams.AddDreamActivity
+import com.example.dreamary.views.activities.Social.HomePageSocialActivity
 import com.example.dreamary.views.activities.auth.LoginActivity
 import com.example.dreamary.views.activities.auth.MoreInformations
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
-import com.example.dreamary.views.components.MenuBurger
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavigationManager() {
     val context = LocalContext.current
     val isLoggedIn = context.getSharedPreferences("isLoggedIn", Context.MODE_PRIVATE)
     val isUserInCreation = context.getSharedPreferences("userInCreation", Context.MODE_PRIVATE)
 
-    val startDestination = if (isUserInCreation.getBoolean("userInCreation", true)) {
-        NavRoutes.UserMoreInformation.route
-    } else if (isLoggedIn.getBoolean("isLoggedIn", true)) {
-        NavRoutes.Home.route
-    } else {
-        NavRoutes.Login.route
+    Log.i("logNavigation", isLoggedIn.getBoolean("isLoggedIn", false).toString())
+    Log.i("logNavigation", isUserInCreation.getBoolean("userInCreation", false).toString())
+
+    val startDestination = when {
+        isLoggedIn.getBoolean("isLoggedIn", true) -> NavRoutes.Home.route
+        isUserInCreation.getBoolean("userInCreation", true) -> NavRoutes.UserMoreInformation.route
+        else -> NavRoutes.Login.route
     }
 
     val navController = rememberNavController()
@@ -124,6 +131,11 @@ fun NavigationManager() {
         composable(NavRoutes.UserMoreInformation.route) {
             MoreInformations(navController = navController)
         }
-
+        composable(NavRoutes.HomeSocial.route) {
+            HomePageSocialActivity(navController = navController)
+        }
+        composable(NavRoutes.Settings.route) {
+             SettingsScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToSection = { navController.navigate(it) })
+        }
     }
 }

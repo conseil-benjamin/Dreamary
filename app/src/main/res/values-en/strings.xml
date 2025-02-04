@@ -41,4 +41,10 @@
     <string name="Burger_btn_logout">Logout</string>
     <string name="Create_user_successfull">Account created with success !</string>
     <string name="Error_Creating_new_user">Error creating a user : verify your informations</string>
+    <string name="MoreInformations_text_pseudo">Username</string>
+    <string name="MoreInformations_error_bio">Bio too long or empty: max 100 characters</string>
+    <string name="MoreInformations_error_username">Name too long or empty: max 20 characters</string>
+    <string name="Social_Research_input">Search for groups or friends...</string>
+    <string name="Add_Dream_Screen_Type_Of_Dream">Type of dream</string>
+    <string name="Add_dream_share_with">Share with</string>
 </resources>

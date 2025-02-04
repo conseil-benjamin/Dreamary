@@ -12,7 +12,20 @@
           "package_name": "com.example.dreamary"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "521876673392-g3d7bvbakt1ndrgahgngudp0u3trsqg9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.dreamary",
+            "certificate_hash": "08a054cc3d6df208c6fbde609a0351dbab70ea98"
+          }
+        },
+        {
+          "client_id": "521876673392-q8johr89m576ncgp8uv9ujgj2iudj8q1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyClY0jEigoGZShFOLBDM7C85MaHhI6cwTE"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "521876673392-q8johr89m576ncgp8uv9ujgj2iudj8q1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

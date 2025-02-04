@@ -56,7 +56,8 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
         password: String,
         confirmPassword: String,
         navController: NavController,
-        isRulesAccepted: Boolean
+        isRulesAccepted: Boolean,
+        name: String
     ): Flow<Any> {
         viewModelScope.launch {
             if (checkValidForm(email, password, confirmPassword, isRulesAccepted) != true) {
@@ -64,7 +65,7 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
                 return@launch
             }
 
-            repository.createAccountWithEmail(context, email, password, navController)
+            repository.createAccountWithEmail(context, email, password, navController, name)
                 .collect { response ->
                     _authState.value = when(response) {
                         is AuthResponse.Success -> {
@@ -73,7 +74,10 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
                             // Retourner l'état authentifié
                             AuthState.Authenticated
                         }
-                        is AuthResponse.Error -> AuthState.Error(response.message)
+                        is AuthResponse.Error -> {
+                            SnackbarManager.showMessage(response.message, R.drawable.error)
+                            AuthState.Error(response.message)
+                        }
                         else -> AuthState.Initial
                     }
                 }

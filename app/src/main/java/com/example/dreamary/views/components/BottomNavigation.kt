@@ -118,7 +118,7 @@ fun BottomNavigation(navController: NavController) {
                     .weight(1f)
                     .clickable {
                         selected = 3
-                        navController.navigate("home")
+                        navController.navigate("homeSocial")
                     },
                 horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
