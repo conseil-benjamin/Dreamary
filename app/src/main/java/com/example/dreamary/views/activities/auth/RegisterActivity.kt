@@ -14,13 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.MailOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -48,6 +45,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -153,6 +151,7 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                         )
                     },
                     shape = RoundedCornerShape(16.dp),
+                    textStyle = TextStyle(color = Color.White),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 5.dp, end = 5.dp, top = 5.dp)
@@ -169,6 +168,7 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                         )
                     },
                     shape = RoundedCornerShape(16.dp),
+                    textStyle = TextStyle(color = Color.White),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 5.dp, end = 5.dp, top = 5.dp)
@@ -184,6 +184,7 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                             fontSize = 13.sp
                         )
                     },
+                    textStyle = TextStyle(color = Color.White),
                     trailingIcon = {
                         if(isPasswordVisible) {
                             // icone pour rendre le mot de passe invisible
@@ -223,6 +224,7 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                             fontSize = 13.sp
                         )
                     },
+                    textStyle = TextStyle(color = Color.White),
                     visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
@@ -279,7 +281,8 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                             confirmPassword,
                             navController,
                             isRulesAccepted,
-                            name
+                            name,
+                            "register"
                         )
                             .onEach { response: Any ->
                                 if (response is AuthResponse.Success) {
@@ -333,7 +336,7 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                         contentColor = Color(0xFFFFFFFF),
                     ),
                     onClick = {
-                        viewModel.signUpWithGoogle(navController)
+                        viewModel.signUpWithGoogle(navController, "register")
                             .onEach { response ->
                                 if (response is AuthResponse.Success) {
                                     println("Success")

@@ -57,7 +57,8 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
         confirmPassword: String,
         navController: NavController,
         isRulesAccepted: Boolean,
-        name: String
+        name: String,
+        screen: String
     ): Flow<Any> {
         viewModelScope.launch {
             if (checkValidForm(email, password, confirmPassword, isRulesAccepted) != true) {
@@ -65,7 +66,7 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
                 return@launch
             }
 
-            repository.createAccountWithEmail(context, email, password, navController, name)
+            repository.createAccountWithEmail(context, email, password, navController, name, screen)
                 .collect { response ->
                     _authState.value = when(response) {
                         is AuthResponse.Success -> {
@@ -88,9 +89,9 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
         }
     }
 
-    fun signUpWithGoogle(navController: NavController): Flow<Any> {
+    fun signUpWithGoogle(navController: NavController, screen: String): Flow<Any> {
         viewModelScope.launch {
-            repository.signInWithGoogle(navController, true)
+            repository.signInWithGoogle(navController, screen)
                 .collect { response ->
                     _authState.value = when(response) {
                         is AuthResponse.Success -> AuthState.Authenticated

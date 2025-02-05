@@ -1,10 +1,8 @@
 package com.example.dreamary.views.activities.Social
 
-import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,10 +28,10 @@ import androidx.compose.ui.unit.dp
 import com.example.dreamary.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -42,7 +40,6 @@ import com.example.dreamary.viewmodels.Social.SocialViewModel
 import com.example.dreamary.views.components.BottomNavigation
 import com.example.dreamary.views.components.Divider
 import com.google.firebase.auth.FirebaseAuth
-import kotlin.math.log
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
@@ -197,7 +194,7 @@ fun HomePageSocialActivity(navController: NavController, viewModel: SocialViewMo
                                 Row (
                                     modifier = Modifier
                                         .fillMaxWidth(),
-                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (true) {
                                         Text(

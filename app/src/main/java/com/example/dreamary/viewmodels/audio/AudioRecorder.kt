@@ -2,9 +2,7 @@ package com.example.dreamary.viewmodels.audio
 
 import android.content.Context
 import android.media.MediaRecorder
-import android.net.Uri
 import android.util.Log
-import androidx.core.net.toUri
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.storage.storage

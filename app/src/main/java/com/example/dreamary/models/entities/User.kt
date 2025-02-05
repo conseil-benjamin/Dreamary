@@ -1,14 +1,15 @@
 package com.example.dreamary.models.entities
 
 import java.util.Date
+import java.util.UUID
 
 data class User(
-    val uid: String,
-    val email: String,
-    val username: String,
-    val fullName: String,
-    val bio: String,
-    val profilePictureUrl: String,
+    val uid: String = UUID.randomUUID().toString(),
+    val email: String = "",
+    val username: String = "",
+    val fullName: String = "",
+    val bio: String = "",
+    val profilePictureUrl: String = "",
     val metadata: Map<String, Any> = mapOf(
         "accountStatus" to "",
         "lastDreamDate" to Date(),

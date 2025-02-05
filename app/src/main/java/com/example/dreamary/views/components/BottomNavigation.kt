@@ -2,20 +2,20 @@ package com.example.dreamary.views.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,7 +44,7 @@ fun BottomNavigation(navController: NavController) {
 
     DreamaryTheme {
         Row(
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(76.dp),
@@ -56,8 +56,8 @@ fun BottomNavigation(navController: NavController) {
                         selected = 0
                         navController.navigate("home")
                     },
-                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
                     tint = if (selected == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
@@ -77,8 +77,8 @@ fun BottomNavigation(navController: NavController) {
                         selected = 1
                         navController.navigate("home")
                     },
-                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
                     tint = if (selected == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
@@ -100,8 +100,8 @@ fun BottomNavigation(navController: NavController) {
                         selected = 2
                         navController.navigate("addDream")
                     },
-                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
                     tint = if (selected == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
@@ -109,7 +109,7 @@ fun BottomNavigation(navController: NavController) {
                     contentDescription = "Home",
                     modifier = Modifier
                         .size(24.dp)
-                        .clip(shape = androidx.compose.foundation.shape.CircleShape)
+                        .clip(shape = CircleShape)
                         .background(Color(0xFF3F51B5))
                 )
             }
@@ -120,8 +120,8 @@ fun BottomNavigation(navController: NavController) {
                         selected = 3
                         navController.navigate("homeSocial")
                     },
-                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
                     tint = if (selected == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
@@ -141,8 +141,8 @@ fun BottomNavigation(navController: NavController) {
                         selected = 4
                         navController.navigate("home")
                     },
-                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
                     tint = if (selected == 4) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,

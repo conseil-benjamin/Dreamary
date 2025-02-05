@@ -19,7 +19,9 @@ import java.security.MessageDigest
 import java.util.UUID
 import com.example.dreamary.R
 import com.example.dreamary.models.routes.NavRoutes
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.userProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
 
 class AuthRepository(private val context: Context) {
     private val auth = Firebase.auth
@@ -29,7 +31,8 @@ class AuthRepository(private val context: Context) {
         email: String,
         password: String,
         navController: NavController,
-        name: String
+        name: String,
+        screen: String
     ): Flow<AuthResponse> = callbackFlow {
         if (email.isEmpty() || password.isEmpty()) {
             trySend(AuthResponse.Error(message = "Error"))
@@ -45,7 +48,7 @@ class AuthRepository(private val context: Context) {
                     user?.updateProfile(profileUpdates)?.addOnCompleteListener { updateTask ->
                         if (updateTask.isSuccessful) {
                             trySend(AuthResponse.Success)
-                            saveUserData(context, navController, true)
+                            saveUserData(context, navController, true, screen)
                         } else {
                             trySend(AuthResponse.Error(message = updateTask.exception?.message ?: ""))
                         }
@@ -57,12 +60,12 @@ class AuthRepository(private val context: Context) {
         awaitClose()
     }
 
-    fun signInWithEmail(context: Context, email: String, password: String, navController: NavController): Flow<AuthResponse> = callbackFlow {
+    fun signInWithEmail(context: Context, email: String, password: String, navController: NavController, screen: String): Flow<AuthResponse> = callbackFlow {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     trySend(AuthResponse.Success)
-                    saveUserData(context, navController, false)
+                    saveUserData(context, navController, false, screen)
                 } else {
                     trySend(AuthResponse.Error(message = task.exception?.message ?: ""))
                 }
@@ -81,7 +84,19 @@ class AuthRepository(private val context: Context) {
         }
     }
 
-    fun signInWithGoogle(navController: NavController, newMember: Boolean): Flow<AuthResponse> = callbackFlow {
+    fun checkIfEmailIsAlreadyUsed(email: String, callback: (Boolean) -> Unit): Boolean {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("users").whereEqualTo("email", email).get()
+            .addOnSuccessListener { documents ->
+                callback(documents.size() > 0)
+            }
+            .addOnFailureListener {
+                callback(false)
+            }
+        return false
+    }
+
+    fun signInWithGoogle(navController: NavController, screen: String): Flow<AuthResponse> = callbackFlow {
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(context.getString(R.string.default_web_client_id))
@@ -117,8 +132,13 @@ class AuthRepository(private val context: Context) {
                         auth.signInWithCredential(firebaseCredential)
                             .addOnCompleteListener {
                                 if (it.isSuccessful) {
-                                    trySend(AuthResponse.Success)
-                                    saveUserData(context, navController, newMember)
+                                    checkIfEmailIsAlreadyUsed(email = auth.currentUser?.email ?: "") { isAlreadyUsed ->
+                                        Log.i("newMember", isAlreadyUsed.toString())
+                                            val newMember = !isAlreadyUsed
+                                            Log.i("newMember2", newMember.toString())
+                                            trySend(AuthResponse.Success)
+                                            saveUserData(context, navController, newMember, screen)
+                                        }
                                 } else {
                                     trySend(AuthResponse.Error(message = it.exception?.message ?: ""))
                                 }
@@ -139,9 +159,8 @@ class AuthRepository(private val context: Context) {
         awaitClose()
     }
 
-
     @SuppressLint("CommitPrefEdits")
-    fun saveUserData (context: Context, navController: NavController, newMember: Boolean){
+    fun saveUserData (context: Context, navController: NavController, newMember: Boolean, screen: String){
         val user = auth.currentUser
         user?.let {
             val displayName = it.displayName
@@ -175,8 +194,15 @@ class AuthRepository(private val context: Context) {
             editor3.apply()
             editor2.putBoolean("isLoggedIn", false)
             editor2.apply()
-            navController.navigate(NavRoutes.UserMoreInformation.route) {
-                popUpTo(NavRoutes.Register.route) {inclusive = true}
+            if (screen == "login"){
+                navController.navigate(NavRoutes.UserMoreInformation.route) {
+                    popUpTo(NavRoutes.Login.route) {inclusive = true}
+                }
+            }
+            else {
+                navController.navigate(NavRoutes.UserMoreInformation.route) {
+                    popUpTo(NavRoutes.Register.route) {inclusive = true}
+                }
             }
         } else{
             editor2.putBoolean("isLoggedIn", true)

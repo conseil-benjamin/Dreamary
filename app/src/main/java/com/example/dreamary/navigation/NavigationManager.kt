@@ -1,6 +1,6 @@
 package com.example.dreamary.navigation
 
-import MenuBurger
+import MenuBurgerScreen
 import SettingsScreen
 import android.content.Context
 import android.os.Build
@@ -24,6 +24,7 @@ import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
 import com.example.dreamary.views.activities.Dreams.AddDreamActivity
+import com.example.dreamary.views.activities.profile.ProfileActivity
 import com.example.dreamary.views.activities.Social.HomePageSocialActivity
 import com.example.dreamary.views.activities.auth.LoginActivity
 import com.example.dreamary.views.activities.auth.MoreInformations
@@ -41,8 +42,8 @@ fun NavigationManager() {
     Log.i("logNavigation", isUserInCreation.getBoolean("userInCreation", false).toString())
 
     val startDestination = when {
-        isLoggedIn.getBoolean("isLoggedIn", true) -> NavRoutes.Home.route
-        isUserInCreation.getBoolean("userInCreation", true) -> NavRoutes.UserMoreInformation.route
+        isLoggedIn.getBoolean("isLoggedIn", false) -> NavRoutes.Home.route
+        isUserInCreation.getBoolean("userInCreation", false) -> NavRoutes.UserMoreInformation.route
         else -> NavRoutes.Login.route
     }
 
@@ -120,13 +121,18 @@ fun NavigationManager() {
             RegisterActivity(navController = navController)
         }
         composable(NavRoutes.Profile.route) {
-            // ProfileActivity(navController = navController)
+            ProfileActivity(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         composable(NavRoutes.AddDream.route) {
             AddDreamActivity(navController = navController)
         }
         composable(NavRoutes.BurgerMenu.route) {
-            MenuBurger(navController = navController)
+            MenuBurgerScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToSection = { navController.navigate(it) }
+            )
         }
         composable(NavRoutes.UserMoreInformation.route) {
             MoreInformations(navController = navController)

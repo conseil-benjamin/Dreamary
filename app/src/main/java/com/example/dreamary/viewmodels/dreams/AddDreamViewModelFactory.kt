@@ -2,9 +2,7 @@ package com.example.dreamary.viewmodels.dreams
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.repositories.DreamRepository
-import com.example.dreamary.viewmodels.auth.RegisterViewModel
 
 class AddDreamViewModelFactory(
     private val repository: DreamRepository

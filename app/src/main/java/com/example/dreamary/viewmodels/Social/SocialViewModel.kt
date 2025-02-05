@@ -3,8 +3,6 @@ package com.example.dreamary.viewmodels.Social
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.vector.Group
 import androidx.lifecycle.ViewModel
 import com.example.dreamary.models.entities.Group
 import com.google.firebase.firestore.FirebaseFirestore

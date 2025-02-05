@@ -1,7 +1,6 @@
 package com.example.dreamary.viewmodels.auth
 
 import android.content.Context
-import androidx.compose.ui.res.stringResource
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.repositories.AuthResponse
 import com.example.dreamary.models.states.AuthState
@@ -20,9 +19,9 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
     val authState = _authState.asStateFlow()
 
-    fun signInWithGoogle(navController: NavController): Flow<Any> {
+    fun signInWithGoogle(navController: NavController, screen: String): Flow<Any> {
         viewModelScope.launch {
-            repository.signInWithGoogle(navController, false)
+            repository.signInWithGoogle(navController, screen)
                 .collect { response ->
                     _authState.value = when(response) {
                         is AuthResponse.Success -> AuthState.Authenticated
@@ -37,7 +36,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    fun signInWithEmail(context: Context, email: String, password: String, navController: NavController): Flow<Any> {
+    fun signInWithEmail(context: Context, email: String, password: String, navController: NavController, screen: String): Flow<Any> {
         viewModelScope.launch {
             if (email.isEmpty() || password.isEmpty()) {
                 _authState.value = AuthState.Error("Error")
@@ -45,7 +44,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
                 SnackbarManager.showMessage(errorMessage, R.drawable.error)
                 return@launch
             }
-            repository.signInWithEmail(context, email, password, navController)
+            repository.signInWithEmail(context, email, password, navController, screen)
                 .collect { response ->
                     _authState.value = when(response) {
                         is AuthResponse.Success -> {

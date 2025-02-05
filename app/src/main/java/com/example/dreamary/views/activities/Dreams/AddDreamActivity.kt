@@ -306,7 +306,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 @Composable
 fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutineScope: CoroutineScope, dream: Dream) {
     Row (
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .height(76.dp)
@@ -315,13 +315,13 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
     ) {
         Text(
             "Annuler",
-            modifier = androidx.compose.ui.Modifier
+            modifier = Modifier
                 .weight(1f)
                 .clickable { navController.popBackStack() }
         )
         Text(
             "Brouillon",
-            modifier = androidx.compose.ui.Modifier.weight(2f)
+            modifier = Modifier.weight(2f)
         )
         Button(
             onClick = {
@@ -422,8 +422,11 @@ fun ContextSleep (
                         time = "$hour:$minute"
                     } },
                     modifier = Modifier
-                        .weight(1f)
-                        .background(Color.White)
+                        .weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    )
                 ) {
                     if (time.isEmpty()) {
                         Text("Heure de coucher")

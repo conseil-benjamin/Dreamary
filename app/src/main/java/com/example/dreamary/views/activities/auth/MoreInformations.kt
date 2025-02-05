@@ -1,7 +1,6 @@
 package com.example.dreamary.views.activities.auth
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,6 +35,7 @@ import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -47,9 +47,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlin.apply
-import kotlin.text.get
-import kotlin.toString
 
 @Preview(showBackground = true)
 @Composable
@@ -274,6 +271,7 @@ fun MoreInformations (navController: NavController) {
                         .clip(RoundedCornerShape(8.dp)),
                     value = pseudo,
                     onValueChange = { pseudo = it },
+                    textStyle = TextStyle(color = Color.White),
                     placeholder = {
                         Text(
                             text = stringResource(id = R.string.MoreInformations_text_pseudo),
@@ -289,6 +287,7 @@ fun MoreInformations (navController: NavController) {
                         .height(100.dp),
                     value = bio,
                     onValueChange = { bio = it },
+                    textStyle = TextStyle(color = Color.White),
                     placeholder = {
                         Text(
                             text = stringResource(id = R.string.MoreInformation_text_bio),

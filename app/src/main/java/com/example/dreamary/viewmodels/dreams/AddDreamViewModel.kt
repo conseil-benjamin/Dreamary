@@ -1,10 +1,6 @@
 package com.example.dreamary.viewmodels.dreams
 
-import android.content.Context
-import android.media.MediaRecorder
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController

@@ -202,7 +202,7 @@ private fun VersionInfo(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SettingsSection(
+public fun SettingsSection(
     title: String,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
@@ -228,7 +228,7 @@ private fun SettingsSection(
 }
 
 @Composable
-private fun SettingItem(
+public fun SettingItem(
     icon: ImageVector,
     title: String,
     subtitle: String? = null,
@@ -270,7 +270,7 @@ private fun SettingItem(
 }
 
 @Composable
-private fun UserInfoCard(
+public fun UserInfoCard(
     name: String,
     email: String,
     onClick: () -> Unit

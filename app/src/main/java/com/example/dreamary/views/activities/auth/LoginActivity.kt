@@ -186,7 +186,7 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
 
                 Button(
                     onClick = {
-                        viewModel.signInWithEmail(context, email, password, navController)
+                        viewModel.signInWithEmail(context, email, password, navController, "login")
                             .onEach { response: Any ->
                                 if (response is AuthResponse.Success) {
                                     println("Success")
@@ -239,7 +239,7 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                         contentColor = Color(0xFFFFFFFF),
                     ),
                     onClick = {
-                        viewModel.signInWithGoogle(navController)
+                        viewModel.signInWithGoogle(navController, "login")
                             .onEach { response ->
                                 if (response is AuthResponse.Success) {
                                     println("Success")
