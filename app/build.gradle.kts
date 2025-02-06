@@ -60,6 +60,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
 
     implementation("com.google.accompanist:accompanist-flowlayout:0.30.0")
+    implementation("com.github.bumptech.glide:compose:1.0.0-alpha.1")
 
     implementation("io.coil-kt:coil-compose:2.1.0")
     implementation(libs.androidx.core.ktx)

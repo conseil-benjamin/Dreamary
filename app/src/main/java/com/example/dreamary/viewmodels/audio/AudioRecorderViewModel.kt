@@ -1,6 +1,7 @@
 package com.example.dreamary.viewmodels.audio
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,10 +26,12 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
 
     private var durationJob: Job? = null
 
+    fun isMediaPlayerReleased() = audioRecorder.isMediaPlayerReleased()
+
     fun startRecording() {
         viewModelScope.launch {
             try {
-                _audioFilePath.value = audioRecorder.startRecording()
+                audioRecorder.startRecording()
                 _isRecording.value = true
                 startDurationCounter()
             } catch (e: Exception) {
@@ -40,11 +43,32 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
     fun stopRecording() {
         viewModelScope.launch {
             try {
-                _audioFilePath.value = audioRecorder.stopRecording().toString()
+                _audioFilePath.value = audioRecorder.stopRecording()
                 _isRecording.value = false
                 stopDurationCounter()
             } catch (e: Exception) {
-                // Gérer l'erreur
+                Log.e("AudioRecorderViewModel", "Error stopping recording", e)
+            }
+        }
+    }
+
+    fun playAudio() {
+        viewModelScope.launch {
+            try {
+                audioRecorder.playAudio()
+            } catch (e: Exception) {
+                Log.e("AudioRecorderViewModel", "Error playing audio", e)
+            }
+        }
+    }
+
+    fun deleteAudio() {
+        viewModelScope.launch {
+            try {
+                audioRecorder.deleteAudio()
+                _audioFilePath.value = null
+            } catch (e: Exception) {
+                Log.e("AudioRecorderViewModel", "Error deleting audio", e)
             }
         }
     }
@@ -56,6 +80,7 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
                 audioRecorder.pauseRecording()
                 // Arrêter le compteur de durée
                 durationJob?.cancel()
+                _isRecording.value = false
             } catch (e: Exception) {
                 // Gérer l'erreur
             }
@@ -69,6 +94,7 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
                 audioRecorder.resumeRecording()
                 // Redémarrer le compteur de durée
                 startDurationCounter()
+                _isRecording.value = true
             } catch (e: Exception) {
                 // Gérer l'erreur
             }

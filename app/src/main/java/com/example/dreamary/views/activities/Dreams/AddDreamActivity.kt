@@ -66,9 +66,15 @@ import kotlinx.coroutines.launch
 import android.Manifest
 import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.zIndex
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModel
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.views.components.CustomDropdown
@@ -173,6 +179,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showOverlay by remember { mutableStateOf(false) }
 
     // Ecoute des messages du SnackbarManager
     LaunchedEffect(Unit) { // unit veut dire que l'effet sera lancé une seule fois
@@ -185,13 +192,19 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     }
 
     val context = LocalContext.current
-    var hasAudioPermission by remember { mutableStateOf(false) }
+    val hasAudioPermission = remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        hasAudioPermission = isGranted
         if (isGranted) {
-            // Permission accordée - vous pouvez démarrer l'enregistrement
+            //
         } else {
             // Permission refusée - afficher un message
             coroutineScope.launch {
@@ -210,7 +223,6 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
             },
             onDismiss = {
                 showPermissionDialog = false
-                hasAudioPermission = false
             },
             text = "Cette application a besoin de la permission d'accès au microphone et de stockage pour enregistrer l'audio."
         )
@@ -223,7 +235,6 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                 context,
                 Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
-                hasAudioPermission = true
             }
 
             (context as? Activity)?.shouldShowRequestPermissionRationale(
@@ -239,64 +250,96 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     }
 
     DreamaryTheme {
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-                    modifier = Modifier
-                .background(MaterialTheme.colorScheme.background),
-            topBar = {
-                Topbar(navController, viewModel, coroutineScope, dream)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                snackbarHost = { SnackbarHost(snackbarHostState) },
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background),
+                topBar = {
+                    Topbar(navController, viewModel, coroutineScope, dream)
+                }
+            ) { paddingValues ->
+                LazyColumn(
+                    contentPadding = paddingValues,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    item {
+                        ContextSleep(
+                            contextSleep = dream.sleepContext as MutableMap<String, Any>,
+                            onContextSleepChanged = { dream.sleepContext = it }
+                        )
+                    }
+
+                    item {
+                        DreamType(
+                            dreamTypeChoose = dreamTypeChoose
+                        )
+                    }
+
+                    item {
+                        DescribeDream(
+                            title = title,
+                            content = content,
+                            onValueChangeTitle = { title = it },
+                            onValueChangeContent = { content = it },
+                            hasAudioPermission = hasAudioPermission,
+                            checkAudioPermission = checkAudioPermission(),
+                            onChangeShowOverlay = { showOverlay = it }
+                        )
+                    }
+
+                    item {
+                        Emotions(
+                            pickedEmotions = pickedEmotions
+                        )
+                    }
+
+                    item {
+                        Tags()
+                    }
+
+                    item {
+                        Features()
+                    }
+                    item {
+                        Environment(
+                            environment = dream.environment as MutableMap<String, Any>,
+                            onEnvironmentChanged = { dream.environment = it }
+                        )
+                    }
+                    item {
+                        Share()
+                    }
+                }
             }
-        ) { paddingValues ->
-            LazyColumn (
-                contentPadding = paddingValues,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ){
-                item {
-                    ContextSleep(
-                        contextSleep = dream.sleepContext as MutableMap<String, Any>,
-                        onContextSleepChanged = { dream.sleepContext = it }
-                    )
-                }
-                
-                item{
-                    DreamType(
-                        dreamTypeChoose = dreamTypeChoose
-                    )
-                }
-
-                item{
-                    DescribeDream(
-                        title = title,
-                        content = content,
-                        onValueChangeTitle = { title = it },
-                        onValueChangeContent = { content = it },
-                        hasAudioPermission = hasAudioPermission,
-                        checkAudioPermission = checkAudioPermission(),
-                        dreamAudio = dream.audio
-                    )
-                }
-
-                item{
-                    Emotions(
-                        pickedEmotions = pickedEmotions
-                    )
-                }
-
-                item{
-                    Tags()
-                }
-
-                item{
-                    Features()
-                }
-                item{
-                    Environment(
-                        environment = dream.environment as MutableMap<String, Any>,
-                        onEnvironmentChanged = { dream.environment = it }
-                    )
-                }
-                item{
-                    Share()
+            if (showOverlay) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        .zIndex(10f)
+                        .clickable { showOverlay = false },
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                MaterialTheme.colorScheme.surface,
+                                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                            )
+                            .padding(16.dp)
+                            .clickable {}
+                    ) {
+                        OverlayAudioPlayer(
+                            viewModel = viewModel(
+                                factory = AudioRecorderViewModelFactory(LocalContext.current)
+                            ),
+                            onChangeShowOverlay = { showOverlay = it },
+                            showOverlay = showOverlay,
+                            dreamAudio = dream.audio
+                        )
+                    }
                 }
             }
         }
@@ -564,27 +607,95 @@ fun ItemDreamType (
     }
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
+@Composable
+fun OverlayAudioPlayer (
+    viewModel: AudioRecorderViewModel = viewModel(
+    factory = AudioRecorderViewModelFactory(LocalContext.current)
+),
+    showOverlay : Boolean,
+    onChangeShowOverlay: (Boolean) -> Unit,
+    dreamAudio: Map<String, Any>,
+    )
+{
+
+    val audioFilePath by viewModel.audioFilePath.collectAsState()
+    val isRecording by viewModel.isRecording.collectAsState()
+    val duration by viewModel.recordingDuration.collectAsState()
+
+    Column (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Enregistrement en cours : $duration s",
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(16.dp)
+        )
+
+        Row (
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(
+                onClick = {
+                    viewModel.stopRecording()
+                    onChangeShowOverlay(false)
+                    (dreamAudio as MutableMap<String, Any>)["path"] = audioFilePath.toString()
+                }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.save),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                )
+            }
+
+            Button(
+                onClick = {
+                    if (isRecording) {
+                        viewModel.pauseRecording()
+                    } else {
+                        viewModel.resumeRecording()
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(id = if (isRecording) R.drawable.pause else R.drawable.play),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun DescribeDream(
     title: String,
     content: String,
     onValueChangeTitle: (String) -> Unit = {},
     onValueChangeContent: (String) -> Unit = {},
-    hasAudioPermission: Boolean = false,
+    hasAudioPermission: MutableState<Boolean> = mutableStateOf(false),
     checkAudioPermission: () -> Unit = {},
-    dreamAudio: Map<String, Any>,
     viewModel: AudioRecorderViewModel = viewModel(
         factory = AudioRecorderViewModelFactory(LocalContext.current)
-    )) {
+    ),
+    onChangeShowOverlay: (Boolean) -> Unit
+    ) {
 
     var storage = Firebase.storage
     var storageRef = storage.reference
     var imageRef = storageRef.child(R.drawable.lune.toString())
 
-    val isRecording by viewModel.isRecording.collectAsState()
-    val duration by viewModel.recordingDuration.collectAsState()
-
     val audioFilePath by viewModel.audioFilePath.collectAsState()
+    var isListening by remember { mutableStateOf(false) }
+    val isRecording by viewModel.isRecording.collectAsState()
 
     TextField(
         value = title,
@@ -617,30 +728,77 @@ fun DescribeDream(
                     modifier = Modifier
                         .padding(16.dp)
                         .size(24.dp)
+                        .clickable {
+                            onChangeShowOverlay(true)
+                        }
                 )
                 Icon(
-                    painter = painterResource(id = if (isRecording) R.drawable.stop else R.drawable.microphone),
+                    painter = painterResource(id = R.drawable.microphone),
                     contentDescription = null,
                     modifier = Modifier
                         .padding(16.dp)
                         .size(24.dp)
                         .clickable {
-                            if (!hasAudioPermission) {
-                                checkAudioPermission()
+                            Log.d("Audio", hasAudioPermission.toString())
+                            if (hasAudioPermission.value) {
+                                viewModel.startRecording()
+                                onChangeShowOverlay(true)
                             } else {
-                                if (isRecording) {
-                                    viewModel.stopRecording()
-                                    (dreamAudio as MutableMap<String, Any>).put("path", audioFilePath.toString())
-                                } else {
-                                    viewModel.startRecording()
-                                }
+                                checkAudioPermission()
                             }
                         }
                 )
             }
-            Text(text = duration.toString())
         }
     )
+
+    // TODO uniquement garder le bouton supprimer l'audio sur l'UI principale
+    // TODO : et donc dans l'overlay afficher les boutons pour faire pause, play, stop, supprimer
+
+    if (audioFilePath != null) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(MaterialTheme.colorScheme.surface)
+        ) {
+            Button(
+                onClick = {
+                    viewModel.deleteAudio()
+                }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.delete),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                )
+            }
+        }
+        Button(
+            onClick = {
+                viewModel.playAudio()
+                isListening = !isListening
+            }
+        ) {
+            if (!viewModel.isMediaPlayerReleased()){
+                GlideImage(
+                    model = R.drawable.ecouteurs,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Log.d("Audio", viewModel.isMediaPlayerReleased().toString())
+                Icon(
+                    painter = painterResource(id = R.drawable.play),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                )
+            }
+            Text("Ecouter l'enregistrement")
+        }
+    }
 }
 
 

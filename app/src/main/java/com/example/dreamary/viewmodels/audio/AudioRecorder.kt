@@ -1,8 +1,10 @@
 package com.example.dreamary.viewmodels.audio
 
 import android.content.Context
+import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.storage.storage
@@ -10,8 +12,14 @@ import java.io.File
 
 class AudioRecorder(private val context: Context) {
     private var mediaRecorder: MediaRecorder? = null
-    val fileName = "audio_${System.currentTimeMillis()}.mp3"
-    val currentFilePath = "${context.filesDir.absolutePath}/$fileName"
+    private var mediaPlayer: MediaPlayer? = null
+    private val fileName = "audio_${System.currentTimeMillis()}.mp3"
+    private var currentFilePath = "${context.filesDir.absolutePath}/$fileName"
+
+
+    fun isMediaPlayerReleased(): Boolean {
+        return mediaPlayer == null
+    }
 
     fun startRecording(): String {
         mediaRecorder = MediaRecorder().apply {
@@ -46,9 +54,6 @@ class AudioRecorder(private val context: Context) {
     fun stopRecording(): String {
         val filePath = currentFilePath
         var storage = Firebase.storage
-        val storageRef = storage.reference
-        val currentUser = Firebase.auth.currentUser
-        val file = File(filePath)
 
         mediaRecorder?.apply {
             stop()
@@ -79,6 +84,25 @@ class AudioRecorder(private val context: Context) {
         mediaRecorder?.apply {
             stop()
             release()
+        }
+    }
+
+    fun playAudio() {
+       mediaPlayer = MediaPlayer().apply {
+            setDataSource(currentFilePath)
+            prepare()
+            start()
+        }
+        mediaPlayer?.setOnCompletionListener {
+            mediaPlayer?.release()
+            mediaPlayer = null
+        }
+    }
+
+    fun deleteAudio() {
+        val file = File(currentFilePath)
+        if (file.exists()) {
+            file.delete()
         }
     }
 

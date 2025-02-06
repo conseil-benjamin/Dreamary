@@ -15,11 +15,18 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dreamary.models.entities.User
 import com.google.firebase.auth.FirebaseAuth
 import com.example.dreamary.viewmodels.profile.ProfileViewModel
+
+@Preview
+@Composable
+fun ProfilePreview() {
+    ProfileActivity(onNavigateBack = {})
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

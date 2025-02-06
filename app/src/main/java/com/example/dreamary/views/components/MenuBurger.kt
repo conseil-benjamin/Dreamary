@@ -8,15 +8,33 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.dreamary.R
+import com.example.dreamary.ui.theme.DreamaryTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+
+@Preview
+@Composable
+fun MenuBurgerScreenPreview() {
+    DreamaryTheme { // Assurez-vous d'utiliser votre thème personnalisé
+        CompositionLocalProvider(
+            LocalContext provides LocalContext.current
+        ) {
+            MenuBurgerScreen(
+                onNavigateBack = {},
+                onNavigateToSection = {}
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
