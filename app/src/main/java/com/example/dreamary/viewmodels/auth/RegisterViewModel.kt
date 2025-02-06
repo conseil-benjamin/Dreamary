@@ -22,7 +22,6 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
 
 
     // TODO : Renvoyer un message d'erreur personnalisé dans la snackbar
-    // TODO : vérifier si la checkbox est cochée
     fun checkValidForm(email: String, password: String, confirmPassword: String, cguAccepted: Boolean): Boolean {
         if (password != confirmPassword) {
             _authState.value = AuthState.Error("Passwords do not match")

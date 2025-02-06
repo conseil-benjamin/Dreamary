@@ -53,30 +53,13 @@ class AudioRecorder(private val context: Context) {
 
     fun stopRecording(): String {
         val filePath = currentFilePath
-        var storage = Firebase.storage
+        Log.i("AudioRecorder", "Fichier audio enregistré à $filePath")
 
         mediaRecorder?.apply {
             stop()
             release()
         }
 
-//        val audioRef = storageRef.child("audio/${currentUser?.uid}/dream_${System.currentTimeMillis()}.mp3")
-//
-//        val uriFile = Uri.fromFile(file)
-//        val uploadTask = audioRef.putFile(uriFile)
-//
-//        uploadTask.addOnSuccessListener { taskSnapshot ->
-//            // Obtenir l'URL de téléchargement
-//            audioRef.downloadUrl.addOnSuccessListener { uri ->
-//                Log.d("AudioRecorder", "Fichier audio téléchargé avec succès à l'URL: $uri")
-//            }
-//        }.addOnFailureListener { exception ->
-//            // Gérer les erreurs
-//            Log.e("AudioRecorder", "Erreur lors du téléchargement du fichier audio", exception)
-//        }.addOnProgressListener { taskSnapshot ->
-//            val progress = (100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount
-//            // Mettre à jour la progression si nécessaire
-//        }
         return filePath
     }
 

@@ -31,7 +31,7 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
     fun startRecording() {
         viewModelScope.launch {
             try {
-                audioRecorder.startRecording()
+                _audioFilePath.value = audioRecorder.startRecording()
                 _isRecording.value = true
                 startDurationCounter()
             } catch (e: Exception) {

@@ -337,7 +337,9 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                             ),
                             onChangeShowOverlay = { showOverlay = it },
                             showOverlay = showOverlay,
-                            dreamAudio = dream.audio
+                            dreamAudio = dream.audio,
+                            audio = dream.audio as MutableMap<String, Any>,
+                            onAudioChanged = { dream.audio = it },
                         )
                     }
                 }
@@ -368,6 +370,7 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
         )
         Button(
             onClick = {
+                Log.d("test1232", dream.toString())
                 viewModel.addDream(
                     navController = navController,
                     dream = dream,
@@ -616,6 +619,8 @@ fun OverlayAudioPlayer (
     showOverlay : Boolean,
     onChangeShowOverlay: (Boolean) -> Unit,
     dreamAudio: Map<String, Any>,
+    audio: MutableMap<String, Any>,
+    onAudioChanged : (MutableMap<String, Any>) -> Unit
     )
 {
 
@@ -623,11 +628,25 @@ fun OverlayAudioPlayer (
     val isRecording by viewModel.isRecording.collectAsState()
     val duration by viewModel.recordingDuration.collectAsState()
 
+    var path by remember { mutableStateOf(audio["path"] as? String ?: "") }
+
+
     Column (
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
+        Icon(
+            painter = painterResource(id = R.drawable.delete),
+            contentDescription = null,
+            modifier = Modifier
+                .size(24.dp)
+                .clickable {
+                    viewModel.stopRecording()
+                    viewModel.deleteAudio()
+                    onChangeShowOverlay(false)
+                }
+        )
         Text(
             text = "Enregistrement en cours : $duration s",
             color = MaterialTheme.colorScheme.onSurface,
@@ -641,9 +660,11 @@ fun OverlayAudioPlayer (
         ) {
             Button(
                 onClick = {
+                    Log.d("Audio1223", audioFilePath.toString())
                     viewModel.stopRecording()
                     onChangeShowOverlay(false)
-                    (dreamAudio as MutableMap<String, Any>)["path"] = audioFilePath.toString()
+                    onAudioChanged(audio)
+                    audio["path"] = audioFilePath.toString()
                 }
             ) {
                 Icon(
@@ -704,11 +725,6 @@ fun DescribeDream(
         placeholder = { Text("Titre du rêve") },
         modifier = Modifier.fillMaxWidth()
     )
-
-    // TODO : Afficher l'audio enregistrée pour montrer que c'est bien enregistré
-    // TODO : possibilité de supprimer l'audio enregistrée et relancer l'enregistrement
-    // TODO : cela supprimerait l'ancien et enregistrera un nouveau
-    // TODO : possibilité également d'écouter l'audio directement depuis la page d'ajout de rêves
 
     TextField(
         value = content,

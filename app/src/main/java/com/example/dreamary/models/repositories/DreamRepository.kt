@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.flow
 import java.io.File
 
 class DreamRepository(private val context: Context) {
-    val db = Firebase.firestore
+    private val db = Firebase.firestore
 
     fun addDream(dream: Dream, onSuccess: () -> Unit, onFailure: (Exception) -> Unit): Flow<DreamResponse> = flow {
         try {
@@ -30,7 +30,7 @@ class DreamRepository(private val context: Context) {
                 val uploadTask = audioRef.putFile(uriFile)
                 Log.i("filePath", filePath)
 
-                uploadTask.addOnSuccessListener { taskSnapshot ->
+                uploadTask.addOnSuccessListener {
                     // Obtenir l'URL de téléchargement
                     audioRef.downloadUrl.addOnSuccessListener { uri ->
                         Log.d("AudioRecorder", "Fichier audio téléchargé avec succès à l'URL: $uri")

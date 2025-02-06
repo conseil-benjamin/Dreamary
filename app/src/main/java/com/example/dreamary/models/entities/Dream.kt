@@ -15,7 +15,7 @@ data class Dream(
     val emotions: SnapshotStateList<String> = mutableStateListOf(),
     val userId: String = "",
 
-    val audio: Map<String, Any> = mapOf(
+    var audio: Map<String, Any> = mapOf(
         "fileName" to "",
         "duration" to 0,
         "mimeType" to "",
