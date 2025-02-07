@@ -112,6 +112,29 @@ private fun ShowPermissionDialog(
 }
 
 @Composable
+private fun ConfirmDeleteAudio(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    text: String,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Supprimer l'enregistrement audio") },
+        text = { Text(text) },
+        confirmButton = {
+            Button(onClick = onConfirm ) {
+                Text("Confirmer")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss ) {
+                Text("Annuler")
+            }
+        }
+    )
+}
+
+@Composable
 fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel = viewModel(
     factory = AddDreamViewModelFactory (DreamRepository(LocalContext.current))
 )) {
@@ -329,15 +352,12 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                             )
                             .padding(16.dp)
-                            .clickable {}
                     ) {
                         OverlayAudioPlayer(
                             viewModel = viewModel(
                                 factory = AudioRecorderViewModelFactory(LocalContext.current)
                             ),
                             onChangeShowOverlay = { showOverlay = it },
-                            showOverlay = showOverlay,
-                            dreamAudio = dream.audio,
                             audio = dream.audio as MutableMap<String, Any>,
                             onAudioChanged = { dream.audio = it },
                         )
@@ -354,7 +374,7 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .height(76.dp)
+            .height(100.dp)
             .padding(16.dp)
             .background(MaterialTheme.colorScheme.surface)
     ) {
@@ -363,10 +383,6 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
             modifier = Modifier
                 .weight(1f)
                 .clickable { navController.popBackStack() }
-        )
-        Text(
-            "Brouillon",
-            modifier = Modifier.weight(2f)
         )
         Button(
             onClick = {
@@ -521,7 +537,7 @@ fun ContextSleep (
                         .padding(end = 8.dp),
                 )
                 CustomDropdown(
-                    options = listOf("Sur le dos", "Sur le ventre", "Sur le côté"),
+                    options = listOf("0 Réveils", "1 Réveils", "2 Réveils", "3 Réveils", "> 3 Réveils"),
                     selectedOption = position,
                     onOptionSelected = {
                         position = it
@@ -616,9 +632,7 @@ fun OverlayAudioPlayer (
     viewModel: AudioRecorderViewModel = viewModel(
     factory = AudioRecorderViewModelFactory(LocalContext.current)
 ),
-    showOverlay : Boolean,
     onChangeShowOverlay: (Boolean) -> Unit,
-    dreamAudio: Map<String, Any>,
     audio: MutableMap<String, Any>,
     onAudioChanged : (MutableMap<String, Any>) -> Unit
     )
@@ -629,6 +643,22 @@ fun OverlayAudioPlayer (
     val duration by viewModel.recordingDuration.collectAsState()
 
     var path by remember { mutableStateOf(audio["path"] as? String ?: "") }
+    var showConfirmLeaveOverlay by remember { mutableStateOf(false) }
+
+    if (showConfirmLeaveOverlay) {
+        ConfirmDeleteAudio(
+            onConfirm = {
+                showConfirmLeaveOverlay = false
+                viewModel.stopRecording()
+                viewModel.deleteAudio()
+                onChangeShowOverlay(false)
+            },
+            text = "Êtes-vous sûr de vouloir quitter l'enregistrement audio ?",
+            onDismiss = {
+                showConfirmLeaveOverlay = false
+            }
+        )
+    }
 
 
     Column (
@@ -638,13 +668,12 @@ fun OverlayAudioPlayer (
     ) {
         Icon(
             painter = painterResource(id = R.drawable.delete),
+            tint = MaterialTheme.colorScheme.onSurface,
             contentDescription = null,
             modifier = Modifier
                 .size(24.dp)
                 .clickable {
-                    viewModel.stopRecording()
-                    viewModel.deleteAudio()
-                    onChangeShowOverlay(false)
+                    showConfirmLeaveOverlay = true
                 }
         )
         Text(
@@ -717,6 +746,20 @@ fun DescribeDream(
     val audioFilePath by viewModel.audioFilePath.collectAsState()
     var isListening by remember { mutableStateOf(false) }
     val isRecording by viewModel.isRecording.collectAsState()
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    if (showConfirmDialog){
+        ConfirmDeleteAudio(
+            onConfirm = {
+                viewModel.deleteAudio()
+                showConfirmDialog = false
+            },
+            onDismiss = {
+                showConfirmDialog = false
+            },
+            text = "Êtes-vous sûr de vouloir supprimer l'enregistrement audio ?"
+        )
+    }
 
     TextField(
         value = title,
@@ -745,7 +788,7 @@ fun DescribeDream(
                         .padding(16.dp)
                         .size(24.dp)
                         .clickable {
-                            onChangeShowOverlay(true)
+                            // TODO
                         }
                 )
                 Icon(
@@ -772,15 +815,37 @@ fun DescribeDream(
     // TODO : et donc dans l'overlay afficher les boutons pour faire pause, play, stop, supprimer
 
     if (audioFilePath != null) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .background(MaterialTheme.colorScheme.surface)
-        ) {
+        Row (
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ){
             Button(
                 onClick = {
-                    viewModel.deleteAudio()
+                    viewModel.playAudio()
+                    isListening = !isListening
+                }
+            ) {
+                if (!viewModel.isMediaPlayerReleased()){
+                    GlideImage(
+                        model = R.drawable.ecouteurs,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Log.d("Audio", viewModel.isMediaPlayerReleased().toString())
+                    Icon(
+                        painter = painterResource(id = R.drawable.play),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
+                }
+                Text("Écouter l'enregistrement")
+            }
+            Button(
+                onClick = {
+                    showConfirmDialog = !showConfirmDialog
                 }
             ) {
                 Icon(
@@ -790,29 +855,6 @@ fun DescribeDream(
                         .size(24.dp)
                 )
             }
-        }
-        Button(
-            onClick = {
-                viewModel.playAudio()
-                isListening = !isListening
-            }
-        ) {
-            if (!viewModel.isMediaPlayerReleased()){
-                GlideImage(
-                    model = R.drawable.ecouteurs,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-            } else {
-                Log.d("Audio", viewModel.isMediaPlayerReleased().toString())
-                Icon(
-                    painter = painterResource(id = R.drawable.play),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                )
-            }
-            Text("Ecouter l'enregistrement")
         }
     }
 }
