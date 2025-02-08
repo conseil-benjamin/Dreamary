@@ -656,6 +656,7 @@ fun OverlayAudioPlayer (
             text = "Êtes-vous sûr de vouloir quitter l'enregistrement audio ?",
             onDismiss = {
                 showConfirmLeaveOverlay = false
+                viewModel.resumeRecording()
             }
         )
     }
@@ -673,6 +674,7 @@ fun OverlayAudioPlayer (
             modifier = Modifier
                 .size(24.dp)
                 .clickable {
+                    viewModel.pauseRecording()
                     showConfirmLeaveOverlay = true
                 }
         )
