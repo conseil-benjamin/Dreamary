@@ -233,7 +233,30 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         )
     }
 
+    var selectedType by remember {
+        mutableStateOf("")
+    }
+    var selectedSeason by remember {
+        mutableStateOf("")
+    }
+    var selectedWeather by remember {
+        mutableStateOf("")
+    }
+    var selectedColors by remember {
+        mutableStateOf("")
+    }
 
+    LaunchedEffect(selectedType, selectedSeason, selectedWeather, selectedColors) {
+        Log.d("Environment", "Type: $selectedType, Season: $selectedSeason, Weather: $selectedWeather, Colors: $selectedColors")
+        dream = dream.copy(
+            environment = mapOf(
+                "dominantColors" to selectedColors,
+                "season" to selectedSeason,
+                "type" to selectedType,
+                "weather" to selectedWeather
+            )
+        )
+    }
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -371,6 +394,14 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                     }
                     item {
                         Environment(
+                            selectedType = selectedType,
+                            selectedSeason = selectedSeason,
+                            selectedWeather = selectedWeather,
+                            selectedColors = selectedColors,
+                            onTypeChanged = { selectedType = it },
+                            onSeasonChanged = { selectedSeason = it },
+                            onWeatherChanged = { selectedWeather = it },
+                            onColorsChanged = { selectedColors = it },
                             environment = dream.environment as MutableMap<String, Any>,
                             onEnvironmentChanged = { dream.environment = it }
                         )
@@ -1264,17 +1295,21 @@ fun Features  () {
     }
 }
 
+
+// TODO : environnement dans dream n'est pas mis à jour correctement
 @Composable
 fun Environment(
+    selectedType: String,
+    selectedSeason: String,
+    selectedWeather: String,
+    selectedColors: String,
+    onTypeChanged: (String) -> Unit,
+    onSeasonChanged: (String) -> Unit,
+    onWeatherChanged: (String) -> Unit,
+    onColorsChanged: (String) -> Unit,
     environment: MutableMap<String, Any>,
     onEnvironmentChanged: (MutableMap<String, Any>) -> Unit
 ) {
-    var selectedType by remember { mutableStateOf(environment["type"] as? String ?: "Intérieur") }
-    var selectedSeason by remember { mutableStateOf(environment["season"] as? String ?: "Hiver") }
-    var selectedWeather by remember { mutableStateOf(environment["weather"] as? String ?: "Pluvieux") }
-    var selectedColors by remember { mutableStateOf(environment["dominantColors"] as? String ?: "Rouge") }
-
-    Log.i("environment", environment.toString())
 
     Row (
         modifier = Modifier
@@ -1298,42 +1333,28 @@ fun Environment(
     CustomDropdown(
         options = listOf("Intérieur", "Extérieur", "Les deux"),
         selectedOption = selectedType,
-        onOptionSelected = {
-            selectedType = it
-            onEnvironmentChanged(environment)
-            environment["type"] = it
-        },
+        onOptionSelected = { onTypeChanged(it) }
     )
 
     CustomDropdown(
         options = listOf("Hiver", "Printemps", "Été", "Automne"),
         selectedOption = selectedSeason,
-        onOptionSelected = {
-            selectedSeason = it
-            onEnvironmentChanged(environment)
-            environment["season"] = it
-        },
+        onOptionSelected = { onSeasonChanged(it) }
     )
 
     CustomDropdown(
         options = listOf("Pluvieux", "Ensoleillé", "Nuageux", "Neigeux"),
         selectedOption = selectedWeather,
-        onOptionSelected = {
-            selectedWeather = it
-            onEnvironmentChanged(environment)
-            environment["weather"] = it
-        },
+        onOptionSelected = { onWeatherChanged(it) }
     )
 
     // TODO : surement changer ca par un simple textfield pour les couleurs
     CustomDropdown(
         options = listOf("Rouge", "Bleu", "Vert", "Jaune"),
         selectedOption = selectedColors,
-        onOptionSelected = {
-            selectedColors = it
-            onEnvironmentChanged(environment)
-            environment["dominantColors"] = it
-        },
+        onOptionSelected = { onColorsChanged(it)
+            Log.d("Colors", environment.toString())
+        }
     )
 }
 
