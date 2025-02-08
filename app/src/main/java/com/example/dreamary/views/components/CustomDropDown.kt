@@ -35,7 +35,6 @@ fun CustomDropdown(
             Box(modifier = modifier) {
                 OutlinedButton(
                     onClick = { expanded = true },
-                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = selectedOption,
@@ -52,7 +51,6 @@ fun CustomDropdown(
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier.fillMaxWidth()
                 ) {
                     options.forEach { option ->
                         DropdownMenuItem(

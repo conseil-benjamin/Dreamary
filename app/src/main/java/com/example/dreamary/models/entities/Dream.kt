@@ -63,7 +63,7 @@ data class Dream(
         "similarDreams" to listOf<String>()
     ),
 
-    val tags: Map<String, Any> = mapOf(
+    var tags: Map<String, Any> = mapOf(
         "symbols" to listOf<String>(),
         "themes" to listOf<String>(),
         "characters" to listOf<String>(),

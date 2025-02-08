@@ -70,9 +70,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.zIndex
+import coil.request.Tags
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModel
@@ -144,6 +147,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     var date by remember { mutableStateOf("")}
     val currentUser = FirebaseAuth.getInstance().currentUser
     val pickedEmotions = remember { mutableStateListOf("") }
+    val pickedTags = remember { mutableStateListOf("") }
     var showPermissionDialog by remember { mutableStateOf(false) }
 
     var dream = Dream(
@@ -200,6 +204,37 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         ),
     )
 
+    /**
+      Mise à jour des tags
+     */
+
+    var tagsCharacters by remember {
+        mutableStateOf<List<String>>(emptyList())
+    }
+    var tagsPlaces by remember {
+        mutableStateOf<List<String>>(emptyList())
+    }
+    var tagsThemes by remember {
+        mutableStateOf<List<String>>(emptyList())
+    }
+    var tagsSymbols by remember {
+        mutableStateOf<List<String>>(emptyList())
+    }
+
+    // Mettre à jour dream.tags à chaque fois que les tags changent
+    LaunchedEffect(tagsCharacters, tagsPlaces, tagsThemes, tagsSymbols) {
+        dream = dream.copy(
+            tags = mapOf(
+                "characters" to tagsCharacters,
+                "places" to tagsPlaces,
+                "themes" to tagsThemes,
+                "symbols" to tagsSymbols
+            )
+        )
+    }
+
+
+
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showOverlay by remember { mutableStateOf(false) }
@@ -242,7 +277,6 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
             onConfirm = {
                 showPermissionDialog = false
                 permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
             },
             onDismiss = {
                 showPermissionDialog = false
@@ -251,13 +285,13 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         )
     }
 
-    // Vérification initiale de la permission
     fun checkAudioPermission(): () -> Unit = {
         when {
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
+                hasAudioPermission.value = true
             }
 
             (context as? Activity)?.shouldShowRequestPermissionRationale(
@@ -318,7 +352,18 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                     }
 
                     item {
-                        Tags()
+                        Tags(
+                            tagsCharacters = tagsCharacters,
+                            tagsPlaces = tagsPlaces,
+                            tagsThemes = tagsThemes,
+                            tagsSymbols = tagsSymbols,
+                            onTagsCharactersChanged = { tagsCharacters = it },
+                            onTagsPlacesChanged = { tagsPlaces = it },
+                            onTagsThemesChanged = { tagsThemes = it },
+                            onTagsSymbolsChanged = { tagsSymbols = it },
+                            tags = dream.tags as MutableMap<String, Any>,
+                            onTagsChanged = { dream.tags = it }
+                        )
                     }
 
                     item {
@@ -733,7 +778,7 @@ fun DescribeDream(
     content: String,
     onValueChangeTitle: (String) -> Unit = {},
     onValueChangeContent: (String) -> Unit = {},
-    hasAudioPermission: MutableState<Boolean> = mutableStateOf(false),
+    hasAudioPermission: MutableState<Boolean>,
     checkAudioPermission: () -> Unit = {},
     viewModel: AudioRecorderViewModel = viewModel(
         factory = AudioRecorderViewModelFactory(LocalContext.current)
@@ -868,7 +913,25 @@ fun DescribeDream(
 fun Emotions (
     pickedEmotions: SnapshotStateList<String>
 ) {
-    Text("Emotions ressenties")
+    Row (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.emotions),
+            contentDescription = null,
+            modifier = Modifier
+                .size(24.dp)
+        )
+        Text(
+            text = "Emotions ressenties",
+            modifier = Modifier
+                .padding(start = 16.dp)
+        )
+    }
     FlowRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -948,8 +1011,246 @@ fun ItemEmotion(
 }
 
 @Composable
-fun Tags () {
-    Text("Tags")
+fun Tags (
+    tagsCharacters: List<String>,
+    tagsPlaces: List<String>,
+    tagsThemes: List<String>,
+    tagsSymbols: List<String>,
+    onTagsCharactersChanged: (List<String>) -> Unit,
+    onTagsPlacesChanged: (List<String>) -> Unit,
+    onTagsThemesChanged: (List<String>) -> Unit,
+    onTagsSymbolsChanged: (List<String>) -> Unit,
+    tags: MutableMap<String, Any>,
+    onTagsChanged: (MutableMap<String, Any>) -> Unit,
+) {
+    var selectedOption by remember { mutableStateOf("Personnes") }
+    var tag by remember { mutableStateOf("") }
+
+    var tagsPersonnes = mutableMapOf<String, List<String>>(
+        "tags" to listOf("Famille", "Amis", "Inconnus", "Célébrités", "Amie", "Enfant", "Conjoint", "Collègue", "Voisin", "Inconnu")
+    )
+    var tagsLieux = mutableMapOf<String, List<String>>(
+        "tags" to listOf("Maison", "Travail", "École", "Nature", "Ville", "Campagne", "Mer", "Montagne", "Forêt", "Rue", "Chambre", "Cuisine", "Salle de bain", "Salon", "Jardin", "Parc", "Plage", "Montagne", "Forêt", "Rue", "Chambre", "Cuisine", "Salle de bain", "Salon", "Jardin", "Parc", "Plage")
+    )
+    var tagsActions = mutableMapOf<String, List<String>>(
+        "tags" to listOf("Courir", "Marcher", "Voler", "Nager", "Manger", "Boire", "Dormir", "Parler", "Écouter", "Regarder", "Lire", "Écrire", "Travailler", "Étudier", "Jouer", "Danser", "Chanter", "Rire", "Pleurer", "Aider", "Sauver", "Tuer", "Blesser", "Aimer", "Détester", "Crier", "Prier", "Méditer", "Rêver", "Voyager", "Conduire", "Voyager", "Conduire")
+    )
+    var tagsSymboles = mutableMapOf<String, List<String>>(
+        "tags" to listOf("Lumière", "Obscurité", "Feu", "Eau", "Terre", "Air", "Ciel", "Enfer", "Paradis", "Mort", "Vie", "Naissance", "Famille", "Amour", "Haine", "Paix", "Guerre", "Richesse", "Pauvreté", "Santé", "Maladie", "Bonheur", "Tristesse", "Joie", "Peur", "Colère", "Amour", "Haine", "Paix", "Guerre", "Richesse", "Pauvreté", "Santé", "Maladie", "Bonheur", "Tristesse", "Joie", "Peur", "Colère")
+    )
+
+    Column (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Row (
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.tags),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(24.dp)
+            )
+            Text(
+                text = "Tags",
+                modifier = Modifier
+                    .padding(start = 16.dp)
+            )
+        }
+        Row (
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row (
+                modifier = Modifier
+                    .weight(3f)
+            ) {
+                CustomDropdown(
+                    options = listOf("Personnes", "Lieux", "Actions", "Symboles", "Divers"),
+                    selectedOption = selectedOption,
+                    onOptionSelected = { selectedOption = it },
+                )
+            }
+            Row (
+                modifier = Modifier
+                    .weight(6f)
+            ) {
+                OutlinedTextField(
+                    value = tag,
+                    onValueChange = { tag = it },
+                    placeholder = { Text("Ajouter un tag personnalisé") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(12.dp)
+                        ),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+                Button(
+                    onClick = { /*TODO*/ },
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .weight(1f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.plus),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
+                }
+            }
+        }
+        Column {
+             when (selectedOption) {
+                "Personnes" -> {
+                    FlowRow (
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        mainAxisSpacing = 8.dp,
+                        crossAxisSpacing = 8.dp,
+                    ){
+                        tagsPersonnes["tags"]?.forEach {
+                            val number = generateRandomInt(0..5)
+                            Button(
+                                onClick = {
+                                    val newTagsList = if (tagsCharacters.contains(it)) {
+                                        tagsCharacters - it
+                                    } else {
+                                        tagsCharacters + it
+                                    }
+                                    onTagsCharactersChanged(newTagsList)
+                                    tags["characters"] = newTagsList
+                                    onTagsChanged(tags)
+                                    Log.d("Tags", tags.toString())
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (tagsCharacters.contains(it)) colorsBackground[number] else MaterialTheme.colorScheme.surface,
+                                    contentColor = if (tagsCharacters.contains(it)) colorsContent[number] else MaterialTheme.colorScheme.onSurface,
+                                ),
+                                modifier = Modifier
+                                    .padding(16.dp)
+                            )
+                            {
+                                Text(it)
+                            }
+                        }
+                }
+                }
+                "Lieux" -> {
+                    FlowRow(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        mainAxisSpacing = 8.dp,
+                        crossAxisSpacing = 8.dp,
+                    ) {
+                        tagsLieux["tags"]?.forEach {
+                            val number = generateRandomInt(0..5)
+                            Button(
+                                onClick = {
+                                    val newTagsList = if (tagsPlaces.contains(it)) {
+                                        tagsPlaces - it
+                                    } else {
+                                        tagsPlaces + it
+                                    }
+                                    onTagsPlacesChanged(newTagsList)
+                                    tags["places"] = newTagsList
+                                    onTagsChanged(tags)
+                                    Log.d("Tags", tags.toString())
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (tagsPlaces.contains(it)) colorsBackground[number] else MaterialTheme.colorScheme.surface,
+                                    contentColor = if (tagsPlaces.contains(it)) colorsContent[number] else MaterialTheme.colorScheme.onSurface,
+                                ),
+                                modifier = Modifier
+                                    .padding(16.dp)
+                            ) {
+                                Text(it)
+                            }
+                        }
+                    }
+                }
+                "Actions" -> {
+                    FlowRow(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        mainAxisSpacing = 8.dp,
+                        crossAxisSpacing = 8.dp,
+                    ) {
+                        tagsActions["tags"]?.forEach {
+                            val number = generateRandomInt(0..5)
+                            Button(
+                                onClick = {
+                                    val newTagsList = if (tagsThemes.contains(it)) {
+                                        tagsThemes - it
+                                    } else {
+                                        tagsThemes + it
+                                    }
+                                    onTagsThemesChanged(newTagsList)
+                                    tags["themes"] = newTagsList
+                                    onTagsChanged(tags)
+                                    Log.d("Tags", tags.toString())
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (tagsThemes.contains(it)) colorsBackground[number] else MaterialTheme.colorScheme.surface,
+                                    contentColor = if (tagsThemes.contains(it)) colorsContent[number] else MaterialTheme.colorScheme.onSurface,
+                                ),
+                                modifier = Modifier
+                                    .padding(16.dp)
+                            ) {
+                                Text(it)
+                            }
+                        }
+                    }
+                }
+                "Symboles" -> {
+                    FlowRow(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        mainAxisSpacing = 8.dp,
+                        crossAxisSpacing = 8.dp,
+                    ) {
+                        tagsSymboles["tags"]?.forEach {
+                            val number = generateRandomInt(0..5)
+                            Button(
+                                onClick = {
+                                    val newTagsList = if (tagsSymbols.contains(it)) {
+                                        tagsSymbols - it
+                                    } else {
+                                        tagsSymbols + it
+                                    }
+                                    onTagsSymbolsChanged(newTagsList)
+                                    tags["symbols"] = newTagsList
+                                    onTagsChanged(tags)
+                                    Log.d("Tags", tags.toString())
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (tagsSymbols.contains(it)) colorsBackground[number] else MaterialTheme.colorScheme.surface,
+                                    contentColor = if (tagsSymbols.contains(it)) colorsContent[number] else MaterialTheme.colorScheme.onSurface,
+                                ),
+                                modifier = Modifier
+                                    .padding(16.dp)
+                            ) {
+                                Text(it)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -975,7 +1276,25 @@ fun Environment(
 
     Log.i("environment", environment.toString())
 
-    Text("Environnement")
+    Row (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ){
+        Icon(
+            painter = painterResource(id = R.drawable.environnement),
+            contentDescription = null,
+            modifier = Modifier
+                .size(24.dp)
+        )
+        Text(
+            text = "Environnement",
+            modifier = Modifier
+                .padding(start = 16.dp)
+        )
+    }
     CustomDropdown(
         options = listOf("Intérieur", "Extérieur", "Les deux"),
         selectedOption = selectedType,
@@ -1047,3 +1366,25 @@ fun Share  () {
         }
     }
 }
+
+fun generateRandomInt(range: IntRange): Int {
+    return range.random()
+}
+
+val colorsBackground = listOf(
+    Color(0xFFfee3e1),
+    Color(0xFFfef9c2),
+    Color(0xFFf4e8ff),
+    Color(0xFFdcfce7),
+    Color(0xFFffeed5),
+    Color(0xFFdceaff)
+)
+
+val colorsContent = listOf(
+    Color(0xFF8f7036),
+    Color(0xFF8c4f54),
+    Color(0xFF5a347c),
+    Color(0xFF67a189),
+    Color(0xFF77412c),
+    Color(0xFF3f559e)
+)
