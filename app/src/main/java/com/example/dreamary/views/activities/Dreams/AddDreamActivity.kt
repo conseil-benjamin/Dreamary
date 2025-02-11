@@ -65,23 +65,34 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import android.Manifest
 import android.app.TimePickerDialog
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Slider
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.zIndex
 import coil.request.Tags
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.dreamary.models.entities.Tag
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModel
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.views.components.CustomDropdown
+import com.google.firebase.auth.auth
 import java.util.Calendar
+import java.util.Date
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.launchIn
 
 @Preview(showBackground = true)
 @Composable
@@ -149,6 +160,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     val pickedEmotions = remember { mutableStateListOf("") }
     val pickedTags = remember { mutableStateListOf("") }
     var showPermissionDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     var dream = Dream(
         title = title,
@@ -186,11 +198,11 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         ),
         sleepContext = mapOf(
             "noiseLevel" to "",
-            "position" to "",
+            "nbReveils" to "",
             "temperature" to 0,
             "time" to "",
             "quality" to 0,
-            "duration" to 0
+            "duration" to 0f
         ),
         social = mapOf(
             "likes" to 0,
@@ -200,7 +212,8 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
             "symbols" to listOf<String>(),
             "themes" to listOf<String>(),
             "characters" to listOf<String>(),
-            "places" to listOf<String>()
+            "places" to listOf<String>(),
+            "divers" to listOf<String>()
         ),
     )
 
@@ -220,15 +233,85 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     var tagsSymbols by remember {
         mutableStateOf<List<String>>(emptyList())
     }
+    var tagsDivers by remember {
+        mutableStateOf<List<String>>(emptyList())
+    }
 
     // Mettre à jour dream.tags à chaque fois que les tags changent
     LaunchedEffect(tagsCharacters, tagsPlaces, tagsThemes, tagsSymbols) {
+        Log.d("Tags2", "Updating dream.tags")
+        Log.d("Tags2", tagsPlaces.toString())
         dream = dream.copy(
             tags = mapOf(
                 "characters" to tagsCharacters,
                 "places" to tagsPlaces,
                 "themes" to tagsThemes,
-                "symbols" to tagsSymbols
+                "symbols" to tagsSymbols,
+                "divers" to tagsDivers
+            )
+        )
+    }
+
+    // TODO : mise à jour des tags à chaque fois qu'on en ajoute un à la base de données
+
+    LaunchedEffect(Unit) {
+        val sharedPrefs = context.getSharedPreferences("tags", Context.MODE_PRIVATE)
+        Log.d("TagsShared", "CurrentUser UID: ${currentUser?.uid}")
+        val storedSet = sharedPrefs.getStringSet(currentUser?.uid, setOf())
+        Log.d("TagsShared", "Retrieved Set: $storedSet")
+
+        val tags = storedSet?.map { tag ->
+            Log.d("TagsShared", "Processing tag string: $tag")
+            val parts = tag.split(",")
+            Log.d("TagsShared", "Split parts: $parts")
+            Tag(
+                id = parts.getOrNull(0) ?: "",
+                category = parts.getOrNull(1) ?: "",
+                isCustom = parts.getOrNull(2)?.toBoolean() == true,
+                name = parts.getOrNull(3) ?: "",
+                usageCount = parts.getOrNull(4)?.toIntOrNull() ?: 0,
+                userId = parts.getOrNull(5) ?: ""
+            )
+        } ?: emptyList()
+
+        tagsCharacters += tags.filter { it.category == "Personnes" }.map { it.name }
+        tagsPlaces += tags.filter { it.category == "Lieux" }.map { it.name }
+        tagsThemes += tags.filter { it.category == "Actions" }.map { it.name }
+        tagsSymbols += tags.filter { it.category == "Symboles" }.map { it.name }
+        tagsDivers += tags.filter { it.category == "Divers" }.map { it.name }
+
+        Log.d("Tags", tagsCharacters.toString())
+        Log.d("Tags", tagsPlaces.toString())
+        Log.d("Tags", tagsThemes.toString())
+        Log.d("Tags", tagsSymbols.toString())
+
+        /** Code utile quand on ajoutera des tags à la base de données pour mettrre à jour les tags dans SharedPreferences
+         * Vérifier si sharedPreferences est vide si oui faire un appel à la base de données pour récupérer les tags on sait jamais en cas de déconexiion de l'utilisateur
+         */
+    }
+
+    var noiseLevel by remember {
+        mutableStateOf("")
+    }
+    var nbReveils by remember {
+        mutableStateOf("")
+    }
+    var temperature by remember {
+        mutableIntStateOf(0)
+    }
+    var time by remember {
+        mutableStateOf("")
+    }
+
+    LaunchedEffect(noiseLevel, nbReveils, temperature, time) {
+        dream = dream.copy(
+            sleepContext = mapOf(
+                "noiseLevel" to noiseLevel,
+                "nbReveils" to nbReveils,
+                "temperature" to temperature,
+                "time" to time,
+                "quality" to 0,
+                "duration" to 0f
             )
         )
     }
@@ -272,7 +355,6 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         }
     }
 
-    val context = LocalContext.current
     val hasAudioPermission = remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -341,10 +423,19 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
             ) { paddingValues ->
                 LazyColumn(
                     contentPadding = paddingValues,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    userScrollEnabled = !showOverlay
                 ) {
                     item {
                         ContextSleep(
+                            noiseLevel = noiseLevel,
+                            nbReveils = nbReveils,
+                            temperature = temperature,
+                            time = time,
+                            onNoiseLevelChanged = { noiseLevel = it },
+                            onNbReveilsChanged = { nbReveils = it },
+                            onTemperatureChanged = { temperature = it },
+                            onTimeChanged = { time = it },
                             contextSleep = dream.sleepContext as MutableMap<String, Any>,
                             onContextSleepChanged = { dream.sleepContext = it }
                         )
@@ -385,7 +476,9 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                             onTagsThemesChanged = { tagsThemes = it },
                             onTagsSymbolsChanged = { tagsSymbols = it },
                             tags = dream.tags as MutableMap<String, Any>,
-                            onTagsChanged = { dream.tags = it }
+                            onTagsChanged = { dream.tags = it },
+                            coroutineScope = coroutineScope,
+                            context = context
                         )
                     }
 
@@ -416,13 +509,16 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                        .zIndex(10f)
-                        .clickable { showOverlay = false },
+                        .zIndex(9f)
+                        .pointerInput(Unit){
+                            detectTapGestures { }
+                        },
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .zIndex(10f)
                             .background(
                                 MaterialTheme.colorScheme.surface,
                                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
@@ -451,7 +547,6 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .padding(16.dp)
             .background(MaterialTheme.colorScheme.surface)
     ) {
         Text(
@@ -475,41 +570,6 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
     }
 }
 
-@Composable
-fun ItemsleepInfo(
-    icon: Int,
-    modifier: Modifier,
-    data: Array<String>
-) {
-    Row (
-        modifier
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            painter = painterResource(id = icon),
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-        )
-        DropdownMenu(
-            modifier = Modifier
-                .weight(1f),
-            expanded = false,
-            onDismissRequest = {false}
-        ) {
-            data.forEach {
-                Text(
-                    text = it,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { /*TODO*/ }
-                )
-            }
-        }
-    }
-}
-
 fun showTimePicker(context: Context, onTimeSelected: (Int, Int) -> Unit) {
     val calendar = Calendar.getInstance()
     val hour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -524,15 +584,19 @@ fun showTimePicker(context: Context, onTimeSelected: (Int, Int) -> Unit) {
 
 @Composable
 fun ContextSleep (
+    noiseLevel : String,
+    nbReveils : String,
+    temperature : Int,
+    time : String,
+    onNoiseLevelChanged: (String) -> Unit,
+    onNbReveilsChanged: (String) -> Unit,
+    onTemperatureChanged: (Int) -> Unit,
+    onTimeChanged: (String) -> Unit,
     contextSleep: MutableMap<String, Any>,
     onContextSleepChanged: (MutableMap<String, Any>) -> Unit
 ) {
-    var noiseLevel by remember { mutableStateOf(contextSleep["noiseLevel"] as? String ?: "Calme") }
-    var position by remember { mutableStateOf(contextSleep["position"] as? String ?: "Sur le dos") }
-    var temperature by remember { mutableStateOf(contextSleep["temperature"] as? String ?: "") }
 
     val context = LocalContext.current
-    var time by remember { mutableStateOf(contextSleep["time"] as? String ?: "") }
 
     Row(
         modifier = Modifier
@@ -555,9 +619,8 @@ fun ContextSleep (
                 )
                 Button(
                     onClick = { showTimePicker(context) { hour, minute ->
-                        contextSleep["time"] = "$hour:$minute"
+                        onTimeChanged("$hour:$minute")
                         onContextSleepChanged(contextSleep)
-                        time = "$hour:$minute"
                     } },
                     modifier = Modifier
                         .weight(1f),
@@ -583,18 +646,23 @@ fun ContextSleep (
                     modifier = Modifier
                         .size(24.dp)
                 )
-                TextField(
-                    value = temperature,
-                    onValueChange = {
-                        temperature = it
-                        onContextSleepChanged(contextSleep)
-                        contextSleep["temperature"] = it
-                                    },
-                    label = { Text("Température") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier
-                        .weight(1f)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Slider(
+                        value = temperature.toFloat(),
+                        onValueChange = { newTemp ->
+                            onTemperatureChanged(newTemp.toInt())
+                            contextSleep["temperature"] = newTemp.toInt()
+                            onContextSleepChanged(contextSleep)
+                        },
+                        valueRange = 15f..30f,
+                        steps = 15
+                    )
+                    Text(
+                        text = "${temperature}°C",
+                    )
+                }
             }
         }
         Column (
@@ -614,11 +682,10 @@ fun ContextSleep (
                 )
                 CustomDropdown(
                     options = listOf("0 Réveils", "1 Réveils", "2 Réveils", "3 Réveils", "> 3 Réveils"),
-                    selectedOption = position,
+                    selectedOption = nbReveils,
                     onOptionSelected = {
-                        position = it
+                        onNbReveilsChanged(it)
                         onContextSleepChanged(contextSleep)
-                        contextSleep["position"] = it
                                        },
                 )
             }
@@ -637,9 +704,9 @@ fun ContextSleep (
                     options = listOf("Calme", "Bruyant", "Normal"),
                     selectedOption = noiseLevel,
                     onOptionSelected = {
-                        noiseLevel = it
+                        onNoiseLevelChanged(it)
                         onContextSleepChanged(contextSleep)
-                        contextSleep["noiseLevel"] = it },
+                                       },
                 )
             }
         }
@@ -650,7 +717,25 @@ fun ContextSleep (
 fun DreamType (
     dreamTypeChoose: MutableState<String>
 ) {
-    Text(text = stringResource(id = R.string.Add_Dream_Screen_Type_Of_Dream))
+    Row (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.emotions),
+            contentDescription = null,
+            modifier = Modifier
+                .size(24.dp)
+        )
+        Text(
+            text = stringResource(id = R.string.Add_Dream_Screen_Type_Of_Dream),
+            modifier = Modifier
+                .padding(start = 16.dp)
+        )
+    }
     Row {
          ItemDreamType(
             icon = R.drawable.lune,
@@ -1053,16 +1138,33 @@ fun Tags (
     onTagsSymbolsChanged: (List<String>) -> Unit,
     tags: MutableMap<String, Any>,
     onTagsChanged: (MutableMap<String, Any>) -> Unit,
+    viewModel: AddDreamViewModel = viewModel(),
+    coroutineScope: CoroutineScope,
+    context: Context
 ) {
     var selectedOption by remember { mutableStateOf("Personnes") }
     var tag by remember { mutableStateOf("") }
 
+    var tagObject = Tag(
+        id = "${Date().time}",
+        name = tag,
+        category = selectedOption,
+        isCustom = true,
+        userId = Firebase.auth.currentUser?.uid ?: "",
+        usageCount = 0
+    )
+
+    // TODO : updapte la liste des tags avec ceux de la base de données
+
     var tagsPersonnes = mutableMapOf<String, List<String>>(
         "tags" to listOf("Famille", "Amis", "Inconnus", "Célébrités", "Amie", "Enfant", "Conjoint", "Collègue", "Voisin", "Inconnu")
     )
+    var tagsAllPersonnes = tagsCharacters + tagsPersonnes["tags"]!!
     var tagsLieux = mutableMapOf<String, List<String>>(
         "tags" to listOf("Maison", "Travail", "École", "Nature", "Ville", "Campagne", "Mer", "Montagne", "Forêt", "Rue", "Chambre", "Cuisine", "Salle de bain", "Salon", "Jardin", "Parc", "Plage", "Montagne", "Forêt", "Rue", "Chambre", "Cuisine", "Salle de bain", "Salon", "Jardin", "Parc", "Plage")
     )
+    var tagsAllLieux = tagsPlaces + tagsLieux["tags"]!!
+
     var tagsActions = mutableMapOf<String, List<String>>(
         "tags" to listOf("Courir", "Marcher", "Voler", "Nager", "Manger", "Boire", "Dormir", "Parler", "Écouter", "Regarder", "Lire", "Écrire", "Travailler", "Étudier", "Jouer", "Danser", "Chanter", "Rire", "Pleurer", "Aider", "Sauver", "Tuer", "Blesser", "Aimer", "Détester", "Crier", "Prier", "Méditer", "Rêver", "Voyager", "Conduire", "Voyager", "Conduire")
     )
@@ -1116,7 +1218,6 @@ fun Tags (
                     onValueChange = { tag = it },
                     placeholder = { Text("Ajouter un tag personnalisé") },
                     modifier = Modifier
-                        .fillMaxWidth()
                         .height(48.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
@@ -1130,7 +1231,54 @@ fun Tags (
                     singleLine = true
                 )
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        coroutineScope.launch {
+                            viewModel.addTag(tagObject, coroutineScope, context)
+                            val currentUser = Firebase.auth.currentUser
+                            viewModel.getCustomTag(currentUser?.uid ?: "", context)
+                                .collect { tagsList ->
+                                    when (selectedOption) {
+                                        "Personnes" -> {
+                                            val newPersonneTags = tagsList
+                                                .filter { it.category == "Personnes" }
+                                                .map { it.name }
+                                                .distinct()
+                                            Log.d("TagDebug", "Nouveaux tags personnes: $newPersonneTags")
+                                            onTagsCharactersChanged(newPersonneTags)
+                                        }
+                                        "Lieux" -> {
+                                            val newLieuxTags = tagsList
+                                                .filter { it.category == "Lieux" }
+                                                .map { it.name }
+                                            if (!tagsPlaces.contains(tag)) {
+                                                onTagsPlacesChanged(tagsPlaces + newLieuxTags)
+                                            }
+                                        }
+                                        "Actions" -> {
+                                            val newActionsTags = tagsList
+                                                .filter { it.category == "Actions" }
+                                                .map { it.name }
+                                            if (!tagsThemes.contains(tag)) {
+                                                onTagsThemesChanged(tagsThemes + newActionsTags)
+                                                tags["themes"] = tagsThemes + newActionsTags
+                                            }
+                                        }
+                                        "Symboles" -> {
+                                            val newSymbolesTags = tagsList
+                                                .filter { it.category == "Symboles" }
+                                                .map { it.name }
+                                            if (!tagsSymbols.contains(tag)) {
+                                                onTagsSymbolsChanged(tagsSymbols + newSymbolesTags)
+                                                tags["symbols"] = tagsSymbols + newSymbolesTags
+                                            }
+                                        }
+                                    }
+                                    onTagsChanged(tags)
+                                    // Réinitialiser le champ de saisie
+                                    tag = ""
+                                }
+                        }
+                    },
                     modifier = Modifier
                         .padding(start = 16.dp)
                         .weight(1f)
@@ -1153,29 +1301,27 @@ fun Tags (
                         mainAxisSpacing = 8.dp,
                         crossAxisSpacing = 8.dp,
                     ){
-                        tagsPersonnes["tags"]?.forEach {
+                        val allTags = (tagsPersonnes["tags"] ?: emptyList()) + tagsCharacters
+                        allTags.distinct().forEach { tag ->
                             val number = generateRandomInt(0..5)
                             Button(
                                 onClick = {
-                                    val newTagsList = if (tagsCharacters.contains(it)) {
-                                        tagsCharacters - it
+                                    val newTagsList = if (allTags.contains(tag)) {
+                                        allTags - tag
                                     } else {
-                                        tagsCharacters + it
+                                        allTags + tag
                                     }
                                     onTagsCharactersChanged(newTagsList)
                                     tags["characters"] = newTagsList
                                     onTagsChanged(tags)
-                                    Log.d("Tags", tags.toString())
                                 },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (tagsCharacters.contains(it)) colorsBackground[number] else MaterialTheme.colorScheme.surface,
-                                    contentColor = if (tagsCharacters.contains(it)) colorsContent[number] else MaterialTheme.colorScheme.onSurface,
+                                    containerColor = if (allTags.contains(tag)) colorsBackground[number] else MaterialTheme.colorScheme.surface,
+                                    contentColor = if (allTags.contains(tag)) colorsContent[number] else MaterialTheme.colorScheme.onSurface,
                                 ),
-                                modifier = Modifier
-                                    .padding(16.dp)
-                            )
-                            {
-                                Text(it)
+                                modifier = Modifier.padding(16.dp)
+                            ) {
+                                Text(tag)
                             }
                         }
                 }
@@ -1187,7 +1333,7 @@ fun Tags (
                         mainAxisSpacing = 8.dp,
                         crossAxisSpacing = 8.dp,
                     ) {
-                        tagsLieux["tags"]?.forEach {
+                        tagsAllLieux.forEach {
                             val number = generateRandomInt(0..5)
                             Button(
                                 onClick = {
@@ -1197,8 +1343,8 @@ fun Tags (
                                         tagsPlaces + it
                                     }
                                     onTagsPlacesChanged(newTagsList)
-                                    tags["places"] = newTagsList
                                     onTagsChanged(tags)
+                                    tagsAllLieux = tagsPlaces + tagsLieux["tags"]!!
                                     Log.d("Tags", tags.toString())
                                 },
                                 colors = ButtonDefaults.buttonColors(
@@ -1333,27 +1479,37 @@ fun Environment(
     CustomDropdown(
         options = listOf("Intérieur", "Extérieur", "Les deux"),
         selectedOption = selectedType,
-        onOptionSelected = { onTypeChanged(it) }
+        onOptionSelected = {
+            onTypeChanged(it)
+            onEnvironmentChanged(environment)
+        }
     )
 
     CustomDropdown(
         options = listOf("Hiver", "Printemps", "Été", "Automne"),
         selectedOption = selectedSeason,
-        onOptionSelected = { onSeasonChanged(it) }
+        onOptionSelected = {
+            onSeasonChanged(it)
+            onEnvironmentChanged(environment)
+        }
     )
 
     CustomDropdown(
         options = listOf("Pluvieux", "Ensoleillé", "Nuageux", "Neigeux"),
         selectedOption = selectedWeather,
-        onOptionSelected = { onWeatherChanged(it) }
+        onOptionSelected = {
+            onWeatherChanged(it)
+            onEnvironmentChanged(environment)
+        }
     )
 
     // TODO : surement changer ca par un simple textfield pour les couleurs
     CustomDropdown(
         options = listOf("Rouge", "Bleu", "Vert", "Jaune"),
         selectedOption = selectedColors,
-        onOptionSelected = { onColorsChanged(it)
-            Log.d("Colors", environment.toString())
+        onOptionSelected = {
+            onColorsChanged(it)
+            onEnvironmentChanged(environment)
         }
     )
 }

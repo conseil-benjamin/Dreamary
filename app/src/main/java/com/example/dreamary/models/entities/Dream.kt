@@ -49,7 +49,7 @@ data class Dream(
 
     var sleepContext: Map<String, Any> = mapOf(
         "noiseLevel" to "",
-        "position" to "",
+        "nbReveils" to "",
         "temperature" to 0,
         "time" to "",
         "quality" to 0,
@@ -67,6 +67,7 @@ data class Dream(
         "symbols" to listOf<String>(),
         "themes" to listOf<String>(),
         "characters" to listOf<String>(),
-        "places" to listOf<String>()
+        "places" to listOf<String>(),
+        "divers" to listOf<String>()
     ),
 )

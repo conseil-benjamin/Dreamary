@@ -49,6 +49,7 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.0.5")
 
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
     val credentialManagerVersion = "1.5.0-alpha05"
