@@ -48,4 +48,6 @@
     <string name="Add_Dream_Screen_Type_Of_Dream">Type of dream</string>
     <string name="Add_dream_share_with">Share with</string>
     <string name="More_Informations_username_already_taken">Username already taken, please take a another</string>
+    <string name="AddDream_characteristics_label">Characteristics</string>
+    <string name="AddDream_context_label">Context</string>
 </resources>

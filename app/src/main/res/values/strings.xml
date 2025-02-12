@@ -50,4 +50,6 @@
     <string name="Add_Dream_Screen_Type_Of_Dream">Type de Rêve</string>
     <string name="Add_dream_share_with">Partager avec</string>
     <string name="More_Informations_username_already_taken">Nom d\'utilisateur déjà pris, veuillez en choisir un autre</string>
+    <string name="AddDream_characteristics_label">Caractéristiques</string>
+    <string name="AddDream_context_label">Contexte</string>
 </resources>
