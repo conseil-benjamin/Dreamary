@@ -98,6 +98,7 @@ import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.views.components.CustomDropdown
 import java.util.Calendar
 import androidx.compose.ui.text.input.ImeAction
+import com.example.dreamary.views.components.Loading
 
 @Preview(showBackground = true)
 @Composable
@@ -486,6 +487,8 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         }
     }
 
+    val savingInProgress = remember { mutableStateOf(false) }
+
     DreamaryTheme {
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
@@ -493,9 +496,13 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background),
                 topBar = {
-                    Topbar(navController, viewModel, coroutineScope, dream)
+                    Topbar(navController, viewModel, coroutineScope, dream, savingInProgress)
                 }
             ) { paddingValues ->
+                if (savingInProgress.value) {
+                    Loading()
+                    return@Scaffold
+                }
                 LazyColumn(
                     contentPadding = paddingValues,
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -590,9 +597,18 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                                 val storedSet = sharedPrefs.getStringSet(currentUser?.uid, setOf()) ?: setOf()
                                 val updatedTags = (storedSet + "$tag,$category").toSet()
                                 sharedPrefs.edit().putStringSet(currentUser?.uid, updatedTags).apply()
+                                viewModel.addTag(
+                                    Tag(
+                                        name = tag,
+                                        category = category,
+                                        isCustom = true,
+                                        userId = currentUser?.uid ?: ""
+                                    ),
+                                    coroutineScope = coroutineScope,
+                                    context = context
+                                )
                             }
                         )
-
                     }
 
                     item {
@@ -662,7 +678,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 }
 
 @Composable
-fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutineScope: CoroutineScope, dream: Dream) {
+fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutineScope: CoroutineScope, dream: Dream, savingInProgress: MutableState<Boolean>) {
     var showConfirmLeave by remember { mutableStateOf(false) }
 
     Row (
@@ -684,10 +700,15 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
         Button(
             onClick = {
                 Log.d("test1232", dream.toString())
+                savingInProgress.value = true
                 viewModel.addDream(
                     navController = navController,
                     dream = dream,
-                    coroutineScope = coroutineScope
+                    coroutineScope = coroutineScope,
+                    onSaved = {
+                        savingInProgress.value = false
+                        navController.popBackStack()
+                    }
                 )
             }
         ) {

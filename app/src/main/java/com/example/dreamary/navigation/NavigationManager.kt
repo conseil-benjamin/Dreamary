@@ -30,6 +30,7 @@ import com.example.dreamary.views.activities.auth.LoginActivity
 import com.example.dreamary.views.activities.auth.MoreInformations
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
+import com.example.dreamary.views.activities.onboardingScreen.OnboardingScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -37,11 +38,14 @@ fun NavigationManager() {
     val context = LocalContext.current
     val isLoggedIn = context.getSharedPreferences("isLoggedIn", Context.MODE_PRIVATE)
     val isUserInCreation = context.getSharedPreferences("userInCreation", Context.MODE_PRIVATE)
+    val hasSeenOnboarding = context.getSharedPreferences("hasSeenOnboarding", Context.MODE_PRIVATE)
 
-    Log.i("logNavigation", isLoggedIn.getBoolean("isLoggedIn", false).toString())
-    Log.i("logNavigation", isUserInCreation.getBoolean("userInCreation", false).toString())
+    Log.i("logNavigation", "hasSeenOnboarding: ${hasSeenOnboarding.getBoolean("hasSeenOnboarding", false)}")
+    Log.i("logNavigation", "isLoggedIn: ${isLoggedIn.getBoolean("isLoggedIn", false)}")
+    Log.i("logNavigation", "userInCreation: ${isUserInCreation.getBoolean("userInCreation", false)}")
 
     val startDestination = when {
+        !hasSeenOnboarding.getBoolean("hasSeenOnboarding", false) -> NavRoutes.Onboarding.route
         isLoggedIn.getBoolean("isLoggedIn", false) -> NavRoutes.Home.route
         isUserInCreation.getBoolean("userInCreation", false) -> NavRoutes.UserMoreInformation.route
         else -> NavRoutes.Login.route
@@ -142,6 +146,14 @@ fun NavigationManager() {
         }
         composable(NavRoutes.Settings.route) {
              SettingsScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToSection = { navController.navigate(it) })
+        }
+        composable(NavRoutes.Onboarding.route) {
+            OnboardingScreen(
+                onFinish = {
+                    hasSeenOnboarding.edit().putBoolean("hasSeenOnboarding", true).apply()
+                    navController.navigate(NavRoutes.Login.route)
+                }
+            )
         }
     }
 }

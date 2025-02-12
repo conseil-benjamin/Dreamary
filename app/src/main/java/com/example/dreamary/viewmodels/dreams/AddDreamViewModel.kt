@@ -26,7 +26,7 @@ class AddDreamViewModel(private val repository: DreamRepository) : ViewModel() {
     private val _tags = MutableLiveData<Tag>()
     val tag: MutableLiveData<Tag> = _tags
 
-    fun addDream (navController: NavController, dream: Dream, coroutineScope: CoroutineScope) {
+    fun addDream (navController: NavController, dream: Dream, coroutineScope: CoroutineScope, onSaved: () -> Unit) {
 
         if (dream.title.isEmpty() || dream.content.isEmpty()) {
             Log.d("title", dream.title)
@@ -46,11 +46,13 @@ class AddDreamViewModel(private val repository: DreamRepository) : ViewModel() {
                     coroutineScope.launch {
                         SnackbarManager.showMessage("Rêve ajouté avec succès", R.drawable.success)
                     }
+                    onSaved()
                 },
                 onFailure = { e ->
                     coroutineScope.launch {
                         SnackbarManager.showMessage("Erreur lors de l'ajout du rêve", R.drawable.error)
                     }
+                    onSaved()
                 }
             )
                 .collect { response ->
