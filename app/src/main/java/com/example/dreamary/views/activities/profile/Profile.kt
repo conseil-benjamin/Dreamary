@@ -13,14 +13,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dreamary.models.entities.User
 import com.google.firebase.auth.FirebaseAuth
 import com.example.dreamary.viewmodels.profile.ProfileViewModel
+import com.example.dreamary.R
+import com.example.dreamary.views.components.Loading
 
 @Preview
 @Composable
@@ -50,6 +54,7 @@ fun ProfileActivity(
     Log.d("ProfileActivity", "User data: $user")
 
     val currentUser = FirebaseAuth.getInstance().currentUser
+    val isVisitor = currentUser?.uid != user?.uid
 
     LaunchedEffect(Unit) {
         viewModel.getProfileData(currentUser?.uid ?: "")
@@ -81,7 +86,7 @@ fun ProfileActivity(
         ) {
             // Header avec dégradé
             item {
-                Header(profileData = profileData, user = user)
+                Header(profileData = profileData, user = user, isVisitor = isVisitor)
             }
 
             item {
@@ -107,20 +112,11 @@ fun ProfileActivity(
 }
 
 @Composable
-private fun Loading(){
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
 private fun Header(
     profileData: ProfileData,
     modifier: Modifier = Modifier,
-    user: User?
+    user: User?,
+    isVisitor: Boolean
 ) {
     Box(
         modifier = modifier
@@ -199,7 +195,7 @@ private fun Header(
                     }
                 }
 
-                if (!profileData.isFriend) {
+                if (isVisitor) {
                     Button(
                         onClick = { /* TODO */ },
                         colors = ButtonDefaults.buttonColors(
@@ -256,7 +252,7 @@ private fun DreamStatsSection(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 StatCard(
-                    icon = Icons.Default.Star,
+                    icon = R.drawable.badge,
                     title = "Total des rêves",
                     value = user?.dreamStats?.get("totalDreams").toString(),
                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
@@ -264,7 +260,7 @@ private fun DreamStatsSection(
                 )
 
                 StatCard(
-                    icon = Icons.Default.Star,
+                    icon = R.drawable.badge,
                     title = "Rêves lucides",
                     value = user?.dreamStats?.get("lucidDreams").toString(),
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
@@ -272,15 +268,15 @@ private fun DreamStatsSection(
                 )
 
                 StatCard(
-                    icon = Icons.Default.Star,
+                    icon = R.drawable.trophy,
                     title = "Meilleure série",
-                    value = "${user?.dreamStats?.get("bestStreak")} jours",
+                    value = "${user?.dreamStats?.get("longestStreak")} jours",
                     containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
                     contentColor = MaterialTheme.colorScheme.secondary
                 )
 
                 StatCard(
-                    icon = Icons.Default.Star,
+                    icon = R.drawable.badge,
                     title = "Série actuelle",
                     value = "${user?.dreamStats?.get("currentStreak")} jours",
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
@@ -334,7 +330,7 @@ private fun Grid(
 }
 @Composable
 private fun StatCard(
-    icon: ImageVector,
+    icon: Int,
     title: String,
     value: String,
     containerColor: Color,
@@ -354,7 +350,7 @@ private fun StatCard(
             horizontalAlignment = Alignment.Start
         ) {
             Icon(
-                imageVector = icon,
+                painter = painterResource(id = icon),
                 contentDescription = null,
                 tint = contentColor,
                 modifier = Modifier.size(24.dp)

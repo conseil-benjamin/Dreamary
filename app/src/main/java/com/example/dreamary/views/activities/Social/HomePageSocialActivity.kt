@@ -18,6 +18,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import com.example.dreamary.ui.theme.DreamaryTheme
 import com.example.dreamary.viewmodels.Social.SocialViewModel
 import com.example.dreamary.views.components.BottomNavigation
 import com.example.dreamary.views.components.Divider
+import com.example.dreamary.views.components.Loading
 import com.google.firebase.auth.FirebaseAuth
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -60,11 +62,19 @@ fun HomePageSocialActivity(navController: NavController, viewModel: SocialViewMo
     val currentUser = auth.currentUser
     Log.i("uid", currentUser!!.uid)
 
+    LaunchedEffect(Unit) {
+        viewModel.getGroupsForCurrentUser(currentUser.uid)
+    }
+
     DreamaryTheme {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = { BottomNavigation(navController = navController) }
         ) { paddingValues ->
+            if (groups.isEmpty()) {
+                Loading()
+                return@Scaffold
+            }
             Column(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -163,15 +173,7 @@ fun HomePageSocialActivity(navController: NavController, viewModel: SocialViewMo
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
-                Button(
-                    onClick = { viewModel.getGroupsForCurrentUser("12") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(text = "Get groups")
-                }
-                if (groups != null) {
+                if (groups.isNotEmpty()) {
                     for (group in groups) {
                         Row(
                             modifier = Modifier
