@@ -65,6 +65,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import android.Manifest
 import android.app.TimePickerDialog
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -72,14 +74,20 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.request.Tags
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -88,12 +96,8 @@ import com.example.dreamary.models.entities.Tag
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModel
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.views.components.CustomDropdown
-import com.google.firebase.auth.auth
 import java.util.Calendar
-import java.util.Date
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.launchIn
+import androidx.compose.ui.text.input.ImeAction
 
 @Preview(showBackground = true)
 @Composable
@@ -259,6 +263,12 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 
     LaunchedEffect(title, content) {
         dream = dream.copy(title = title, content = content)
+    }
+
+    var analysisText by remember { mutableStateOf("") }
+
+    LaunchedEffect(analysisText) {
+        dream = dream.copy(analysis = analysisText)
     }
 
     // TODO : mise à jour des tags à chaque fois qu'on en ajoute un à la base de données
@@ -603,6 +613,12 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                         )
                     }
                     item {
+                        AutoAnalyse(
+                            analysisText = analysisText,
+                            onTextChange = { analysisText = it }
+                        )
+                    }
+                    item {
                         Share()
                     }
                 }
@@ -722,25 +738,10 @@ fun ContextSleep (
 
     val context = LocalContext.current
 
-    Row (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.context),
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-        )
-        Text(
-            text = stringResource(id = R.string.AddDream_context_label),
-            modifier = Modifier
-                .padding(start = 16.dp)
-        )
-    }
+    TitleSection(
+        text = stringResource(id = R.string.AddDream_context_label),
+        icon = R.drawable.context
+    )
 
     Row(
         modifier = Modifier
@@ -861,25 +862,12 @@ fun ContextSleep (
 fun DreamType (
     dreamTypeChoose: MutableState<String>
 ) {
-    Row (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.emotions),
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-        )
-        Text(
-            text = stringResource(id = R.string.Add_Dream_Screen_Type_Of_Dream),
-            modifier = Modifier
-                .padding(start = 16.dp)
-        )
-    }
+
+    TitleSection(
+        text = stringResource(id = R.string.AddDream_label_typeOfDream),
+        icon = R.drawable.lune
+    )
+
     Row {
          ItemDreamType(
             icon = R.drawable.lune,
@@ -1177,25 +1165,8 @@ fun DescribeDream(
 fun Emotions (
     pickedEmotions: SnapshotStateList<String>
 ) {
-    Row (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.emotions),
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-        )
-        Text(
-            text = "Emotions ressenties",
-            modifier = Modifier
-                .padding(start = 16.dp)
-        )
-    }
+    TitleSection(stringResource(id = R.string.AddDream_label_emotions), R.drawable.emotions)
+
     FlowRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -1291,22 +1262,8 @@ fun Tags(
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp)
     ) {
-        // Titre "Tags"
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.tags),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = "Tags",
-                modifier = Modifier.padding(start = 16.dp),
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
+
+        TitleSection(stringResource(id = R.string.AddDream_label_tags), R.drawable.tags)
 
         // Dropdown pour choisir la catégorie
         CustomDropdown(
@@ -1382,26 +1339,7 @@ fun Tags(
 
 @Composable
 fun Features  () {
-
-    Row (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
-    ){
-        Icon(
-            painter = painterResource(id = R.drawable.features),
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-        )
-        Text(
-            text = stringResource(id = R.string.AddDream_characteristics_label),
-            modifier = Modifier
-                .padding(start = 16.dp)
-        )
-    }
+    TitleSection(stringResource(id = R.string.AddDream_characteristics_label), R.drawable.features)
 
     Row {
         Text(
@@ -1426,25 +1364,8 @@ fun Environment(
     onEnvironmentChanged: (MutableMap<String, Any>) -> Unit
 ) {
 
-    Row (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
-    ){
-        Icon(
-            painter = painterResource(id = R.drawable.environnement),
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-        )
-        Text(
-            text = "Environnement",
-            modifier = Modifier
-                .padding(start = 16.dp)
-        )
-    }
+    TitleSection(stringResource(id = R.string.AddDream_label_environment), R.drawable.environnement)
+
     CustomDropdown(
         options = listOf("Intérieur", "Extérieur", "Les deux"),
         selectedOption = selectedType,
@@ -1484,6 +1405,73 @@ fun Environment(
 }
 
 @Composable
+fun AutoAnalyse (
+    analysisText: String,
+    onTextChange: (String) -> Unit = {}
+) {
+    TitleSection("Auto analyse", R.drawable.brain)
+
+    DreamAnalysisTextField(
+        analysisText = analysisText,
+        onTextChange = { onTextChange(it) }
+    )
+}
+
+@Composable
+fun DreamAnalysisTextField(
+    analysisText: String,
+    onTextChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        OutlinedTextField(
+            value = analysisText,
+            onValueChange = { newText: String ->
+                if (newText.length <= 500) onTextChange(newText)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 100.dp, max = 250.dp),
+            textStyle = TextStyle(
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            placeholder = { Text("Écris ton ressenti et ton analyse ici...") },
+            shape = MaterialTheme.shapes.medium,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = Color.Gray,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            maxLines = 5,
+            singleLine = false,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = { /* Fermer le clavier si nécessaire */ }
+            )
+        )
+
+        Text(
+            text = "${analysisText.length} / 500",
+            style = MaterialTheme.typography.bodySmall,
+            color = if (analysisText.length >= 500) Color.Red else Color.Gray,
+            modifier = Modifier
+                .align(Alignment.End)
+                .padding(top = 4.dp)
+        )
+    }
+}
+
+
+
+@Composable
 fun Share  () {
     Button(
         modifier = Modifier
@@ -1513,8 +1501,27 @@ fun Share  () {
     }
 }
 
-fun generateRandomInt(range: IntRange): Int {
-    return range.random()
+@Composable
+fun TitleSection(text: String, icon: Int) {
+    Row (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ){
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = null,
+            modifier = Modifier
+                .size(24.dp)
+        )
+        Text(
+            text = text,
+            modifier = Modifier
+                .padding(start = 16.dp)
+        )
+    }
 }
 
 val colorsBackground = listOf(

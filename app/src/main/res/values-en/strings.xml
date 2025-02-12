@@ -50,4 +50,7 @@
     <string name="More_Informations_username_already_taken">Username already taken, please take a another</string>
     <string name="AddDream_characteristics_label">Characteristics</string>
     <string name="AddDream_context_label">Context</string>
+    <string name="AddDream_label_environment">Environment</string>
+    <string name="AddDream_label_emotions">"Emotions felt "</string>
+    <string name="AddDream_label_typeOfDream">Type of dream</string>
 </resources>

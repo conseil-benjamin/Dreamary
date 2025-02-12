@@ -52,4 +52,8 @@
     <string name="More_Informations_username_already_taken">Nom d\'utilisateur déjà pris, veuillez en choisir un autre</string>
     <string name="AddDream_characteristics_label">Caractéristiques</string>
     <string name="AddDream_context_label">Contexte</string>
+    <string name="AddDream_label_environment">Environnement</string>
+    <string name="AddDream_label_tags" translatable="false">Tags</string>
+    <string name="AddDream_label_emotions">Emotions ressenties</string>
+    <string name="AddDream_label_typeOfDream">Type de rêve</string>
 </resources>
