@@ -12,7 +12,7 @@ data class Dream(
     val isLucid: Boolean = false,
     val isShared: Boolean = false,
     val analysis: String = "",
-    val emotions: SnapshotStateList<String> = mutableStateListOf(),
+    val emotions: List<String> = emptyList(),
     val userId: String = "",
 
     var audio: Map<String, Any> = mapOf(

@@ -694,8 +694,7 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
                 .weight(1f)
                 .clickable {
                     showConfirmLeave = true
-//                        navController.popBackStack()
-                        }
+                }
         )
         Button(
             onClick = {

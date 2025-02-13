@@ -1,6 +1,8 @@
 package com.example.dreamary.views.activities.profile
 
 import android.util.Log
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,18 +40,6 @@ fun ProfileActivity(
     onNavigateBack: () -> Unit,
     viewModel: ProfileViewModel = viewModel()
 ) {
-    val profileData = remember {
-        ProfileData(
-            name = "Marie Petit",
-            level = 15,
-            title = "Rêveuse Expérimentée",
-            memberSince = "Jan 2024",
-            dreamCount = 147,
-            lucidDreams = 24,
-            totalGroups = 3,
-            isFriend = false
-        )
-    }
     val user by viewModel.userData.collectAsState()
     Log.d("ProfileActivity", "User data: $user")
 
@@ -86,7 +76,13 @@ fun ProfileActivity(
         ) {
             // Header avec dégradé
             item {
-                Header(profileData = profileData, user = user, isVisitor = isVisitor)
+                Header(user = user, isVisitor = isVisitor)
+            }
+
+            item {
+                Progression(
+                    user = user
+                )
             }
 
             item {
@@ -95,7 +91,9 @@ fun ProfileActivity(
 
             // Section Badges
             item {
-                BadgesSection()
+                BadgesSection(
+                    user = user
+                )
             }
 
             // Section Succès
@@ -113,7 +111,6 @@ fun ProfileActivity(
 
 @Composable
 private fun Header(
-    profileData: ProfileData,
     modifier: Modifier = Modifier,
     user: User?,
     isVisitor: Boolean
@@ -217,9 +214,59 @@ private fun Header(
             ) {
                 StatItem(value = user?.dreamStats?.get("totalDreams").toString(), label = "Rêves")
                 StatItem(value = user?.dreamStats?.get("lucidDreams").toString(), label = "Lucides")
-                StatItem(value = user?.social?.get("groups").toString(), label = "Groupes")
+                StatItem(value = user?.social?.get("followers").toString(), label = "Abonnés")
+                StatItem(value = (user?.social?.get("groups") as List<*>).toString().length.toString(), label = "Groupes")
             }
         }
+    }
+}
+
+@Composable
+private fun Progression(
+    user: User?
+){
+    val xp: Long = user?.progression?.get("xp") as Long
+    val xpNeeded: Long = user?.progression?.get("xpNeeded") as Long
+    val progess = xp.toFloat() / xpNeeded.toFloat()
+    Log.d("Progression", "XP: $xp / $xpNeeded")
+
+    Column(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Text(
+            text = "Progression",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Niveau ${user?.progression?.get("level")}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = "${user?.progression?.get("rank")}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+        LinearProgressIndicator(
+            progress = progess,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+        Text(
+            text = "XP: ${user?.progression?.get("xp")} / ${user?.progression?.get("xpNeeded")}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp)
+        )
     }
 }
 
@@ -347,7 +394,8 @@ private fun StatCard(
         Column(
             modifier = Modifier
                 .padding(16.dp),
-            horizontalAlignment = Alignment.Start
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Icon(
                 painter = painterResource(id = icon),
@@ -393,8 +441,11 @@ private fun StatItem(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BadgesSection() {
+private fun BadgesSection(
+    user: User?,
+    ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -411,31 +462,26 @@ private fun BadgesSection() {
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-            Row(
+            FlowRow (
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                BadgeItem(
-                    icon = Icons.Default.Star,
-                    name = "Première Lucidité",
-                    rarity = "rare",
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
-                BadgeItem(
-                    icon = Icons.Default.Star,
-                    name = "30 Jours Consécutifs",
-                    rarity = "légendaire",
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.tertiary
-                )
-                BadgeItem(
-                    icon = Icons.Default.Star,
-                    name = "100 Rêves",
-                    rarity = "épique",
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.secondary
-                )
+                (user?.achievements?.get("unlockedBadges") as? List<*>)?.forEach { badge ->
+                    Log.d("BadgesSection", "Badge: $badge")
+                    BadgeItem(
+                        icon = Icons.Default.Star,
+                        name = badge.toString(),
+                        rarity = "Rare",
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                } ?: run {
+                    Text(
+                        text = "Aucun badge débloqué",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
@@ -451,7 +497,7 @@ private fun BadgeItem(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier.padding(bottom = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Surface(

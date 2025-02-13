@@ -1,10 +1,12 @@
 package com.example.dreamary.views.activities.onboardingScreen
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,8 +20,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 data class OnboardingPage(
     val title: String,
@@ -30,12 +34,11 @@ data class OnboardingPage(
     val features: List<String>
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
     onFinish: () -> Unit
 ) {
-    var currentPage by remember { mutableStateOf(0) }
-
     val pages = listOf(
         OnboardingPage(
             title = "Donnez vie à vos rêves",
@@ -62,7 +65,7 @@ fun OnboardingScreen(
             )
         ),
         OnboardingPage(
-            title = "Une communauté qui comprend vos rêves",
+            title = "Une communauté qui comprend",
             subtitle = "Partagez, interprétez, grandissez ensemble",
             description = "Rejoignez des milliers de rêveurs passionnés. Échangez vos expériences et découvrez de nouvelles perspectives sur vos aventures oniriques.",
             icon = Icons.Default.Star,
@@ -74,7 +77,7 @@ fun OnboardingScreen(
             )
         ),
         OnboardingPage(
-            title = "Révélez les secrets de vos rêves",
+            title = "Révélez les secrets",
             subtitle = "Une analyse profonde et personnalisée",
             description = "Découvrez les patterns cachés de vos rêves grâce à notre intelligence artificielle. Obtenez des insights uniques sur votre monde onirique.",
             icon = Icons.Default.Star,
@@ -87,55 +90,32 @@ fun OnboardingScreen(
         )
     )
 
-    Column(
+    val pagerState = rememberPagerState(pageCount = { pages.size })
+    val coroutineScope = rememberCoroutineScope()
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF9FAFB))
     ) {
-        // Contenu principal
-        Box(
+        HorizontalPager(
+            state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-        ) {
-            // Page courante
+                .fillMaxHeight(0.9f)
+        ) { page ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(pages[currentPage].gradientColors)
-                    )
+                    .background(Brush.verticalGradient(pages[page].gradientColors))
+                    .padding(24.dp)
             ) {
-                // Points de navigation
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    pages.forEachIndexed { index, _ ->
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    if (currentPage == index) Color.White
-                                    else Color.White.copy(alpha = 0.5f)
-                                )
-                                .width(if (currentPage == index) 24.dp else 8.dp)
-                                .height(8.dp)
-                                .clickable { currentPage = index }
-                        )
-                    }
-                }
-
-                // Contenu de la page
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
-                        .align(Alignment.Center),
+                    modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Spacer(modifier = Modifier.height(48.dp))
+
                     // Icône avec animation
                     val infiniteTransition = rememberInfiniteTransition()
                     val scale by infiniteTransition.animateFloat(
@@ -154,7 +134,7 @@ fun OnboardingScreen(
                             .padding(24.dp)
                     ) {
                         Icon(
-                            imageVector = pages[currentPage].icon,
+                            imageVector = pages[page].icon,
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(72.dp)
@@ -164,72 +144,110 @@ fun OnboardingScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Text(
-                        text = pages[currentPage].title,
+                        text = pages[page].title,
                         color = Color.White,
                         fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = pages[currentPage].subtitle,
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 20.sp
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = pages[currentPage].description,
+                        text = pages[page].subtitle,
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = pages[page].description,
                         color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
+
+                    Spacer(modifier = Modifier.height(48.dp))
+
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        pages[page].features.forEach { feature ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = feature,
+                                    color = Color.White,
+                                    fontSize = 16.sp
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        // Features
-        Column(
+        // Points de navigation
+        Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(24.dp)
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 80.dp),
+            horizontalArrangement = Arrangement.Center
         ) {
-            pages[currentPage].features.forEach { feature ->
-                Row(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = pages[currentPage].gradientColors[0],
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(text = feature, color = Color.Gray)
-                }
+            repeat(pages.size) { iteration ->
+                val width by animateDpAsState(
+                    targetValue = if (pagerState.currentPage == iteration) 24.dp else 8.dp
+                )
+
+                Box(
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .width(width)
+                        .height(8.dp)
+                        .clickable {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(iteration)
+                            }
+                        }
+                )
             }
         }
 
-        // Boutons de navigation
+        // Navigation buttons
         Box(
             modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .background(Color.White)
-                .padding(24.dp)
+                .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
-            if (currentPage == pages.size - 1) {
+            if (pagerState.currentPage == pages.lastIndex) {
                 Button(
                     onClick = onFinish,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = pages[currentPage].gradientColors[0]
+                        containerColor = pages[pagerState.currentPage].gradientColors[0]
                     )
                 ) {
                     Text(
-                        "Commencer mon voyage onirique",
+                        "Commencer l'aventure",
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
@@ -239,16 +257,28 @@ fun OnboardingScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = { currentPage = pages.size - 1 }) {
-                        Text("Passer l'introduction", color = Color.Gray)
+                    if (pagerState.currentPage > 0) {
+                        TextButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                }
+                            }
+                        ) {
+                            Text("Précédent", color = Color.Gray)
+                        }
                     }
                     Button(
-                        onClick = { currentPage++ },
+                        onClick = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = pages[currentPage].gradientColors[0]
+                            containerColor = pages[pagerState.currentPage].gradientColors[0]
                         )
                     ) {
-                        Text("Suivant", modifier = Modifier.padding(horizontal = 16.dp))
+                        Text("Suivant")
                     }
                 }
             }

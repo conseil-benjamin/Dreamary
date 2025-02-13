@@ -18,7 +18,11 @@ import java.io.File
 class DreamRepository(private val context: Context) {
     private val db = Firebase.firestore
 
-    fun addDream(dream: Dream, onSuccess: () -> Unit, onFailure: (Exception) -> Unit): Flow<DreamResponse> = flow {
+    fun addDream(
+        dream: Dream,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ): Flow<DreamResponse> = flow {
         try {
             if (dream.audio["path"] != "") {
                 Log.i("filePath", dream.audio.toString())
@@ -27,7 +31,8 @@ class DreamRepository(private val context: Context) {
                 val storageRef = storage.reference
                 val currentUser = Firebase.auth.currentUser
                 val file = File(filePath)
-                val audioRef = storageRef.child("audio/${currentUser?.uid}/dream_${System.currentTimeMillis()}.mp3")
+                val audioRef =
+                    storageRef.child("audio/${currentUser?.uid}/dream_${System.currentTimeMillis()}.mp3")
 
                 val uriFile = Uri.fromFile(file)
 
@@ -62,7 +67,11 @@ class DreamRepository(private val context: Context) {
         }
     }
 
-    fun addTag(tag: Tag, onSuccess: () -> Unit, onFailure: (Exception) -> Unit): Flow<DreamResponse> = flow {
+    fun addTag(
+        tag: Tag,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ): Flow<DreamResponse> = flow {
         try {
             db.collection("tags")
                 .add(tag)
@@ -99,6 +108,33 @@ class DreamRepository(private val context: Context) {
 
         } catch (e: Exception) {
             Log.e("DreamRepository", "Error retrieving tags", e)
+            emit(emptyList())
+        }
+    }
+
+    fun getDreamsForCurrentUser(
+        userId: String,
+        onFailure: (Exception) -> Unit
+    ): Flow<List<Dream>> = flow {
+        try {
+            val dreams = db.collection("dreams")
+                .whereEqualTo("userId", userId)
+                .limit(2)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { document ->
+                    document.toObject(Dream::class.java)?.copy(id = document.id)
+                }
+
+            Log.d("DreamRepository", "Dreams retrieved successfully")
+            Log.d("DreamRepository", dreams.toString())
+
+            emit(dreams)
+
+        } catch (e: Exception) {
+            Log.e("DreamRepository", "Error retrieving dreams", e)
+            onFailure(e)
             emit(emptyList())
         }
     }
