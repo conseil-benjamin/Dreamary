@@ -1,30 +1,23 @@
 package com.example.dreamary.viewmodels.profile
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.dreamary.models.entities.User
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.dreamary.models.repositories.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class ProfileViewModel : ViewModel() {
-    val db = FirebaseFirestore.getInstance()
+class ProfileViewModel(private val repository: AuthRepository): ViewModel() {
     private var _userData = MutableStateFlow<User?>(null)
     var userData = _userData.asStateFlow()
 
-    fun getProfileData(idUSer : String): StateFlow<User?> {
-        db.collection("users")
-            .document(idUSer)
-            .get()
-            .addOnSuccessListener { document ->
-                val user = document.toObject(User::class.java)
+    fun getProfileData(idUSer : String) {
+        viewModelScope.launch{
+            repository.getProfileData(idUSer).collect { user ->
                 _userData.value = user
-                Log.d("ProfileViewModel", "User data retrieved: $user")
             }
-            .addOnFailureListener { exception ->
-                println("Error getting documents: $exception")
-            }
-        return userData
+        }
     }
 }

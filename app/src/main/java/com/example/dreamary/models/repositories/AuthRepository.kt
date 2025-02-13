@@ -18,13 +18,20 @@ import kotlinx.coroutines.flow.callbackFlow
 import java.security.MessageDigest
 import java.util.UUID
 import com.example.dreamary.R
+import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.routes.NavRoutes
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class AuthRepository(private val context: Context) {
     private val auth = Firebase.auth
+    private val db = FirebaseFirestore.getInstance()
+    private val _userData = MutableStateFlow<User?>(null)
+    var userData = _userData.asStateFlow()
 
     fun createAccountWithEmail(
         context: Context,
@@ -213,7 +220,23 @@ class AuthRepository(private val context: Context) {
         }
     }
 
+    fun getProfileData(idUSer : String): StateFlow<User?> {
+        db.collection("users")
+            .document(idUSer)
+            .get()
+            .addOnSuccessListener { document ->
+                val user = document.toObject(User::class.java)
+                _userData.value = user
+                Log.d("ProfileViewModel", "User data retrieved: $user")
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting documents: $exception")
+            }
+        return userData
+    }
+
 }
+
 
 interface AuthResponse {
     data object Success: AuthResponse

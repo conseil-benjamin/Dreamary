@@ -173,7 +173,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         title = title,
         content = content,
         dreamType = dreamTypeChoose.value,
-        isLucid = dreamTypeChoose.value == "Lucide",
+        lucid = dreamTypeChoose.value == "Lucide",
         isShared = false,
         analysis = "",
         emotions = pickedEmotions,
@@ -1136,9 +1136,6 @@ fun DescribeDream(
         )
     }
 
-    // TODO uniquement garder le bouton supprimer l'audio sur l'UI principale
-    // TODO : et donc dans l'overlay afficher les boutons pour faire pause, play, stop, supprimer
-
     if (audioFilePath != null) {
         Row (
             verticalAlignment = Alignment.CenterVertically,
@@ -1375,7 +1372,6 @@ fun Features  () {
 }
 
 
-// TODO : environnement dans dream n'est pas mis à jour correctement
 @Composable
 fun Environment(
     selectedType: String,

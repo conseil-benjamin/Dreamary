@@ -31,6 +31,7 @@ import com.example.dreamary.views.activities.auth.MoreInformations
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
 import com.example.dreamary.views.activities.onboardingScreen.OnboardingScreen
+import com.example.dreamary.views.activities.splashscreen.SplashScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -52,7 +53,7 @@ fun NavigationManager() {
     }
 
     val navController = rememberNavController()
-    NavHost(navController, startDestination = startDestination) {
+    NavHost(navController, startDestination = "splashScreen") {
         composable(
             route = NavRoutes.Login.route,
             enterTransition = {
@@ -154,6 +155,9 @@ fun NavigationManager() {
                     navController.navigate(NavRoutes.Login.route)
                 }
             )
+        }
+        composable(NavRoutes.SplashScreen.route) {
+            SplashScreen()
         }
     }
 }

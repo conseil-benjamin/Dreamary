@@ -1,5 +1,6 @@
 package com.example.dreamary.views.activities.home
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -22,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -43,10 +47,11 @@ import com.example.dreamary.views.components.CustomSnackbarHost
 import com.example.dreamary.views.components.TopNavigation
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import java.util.Calendar
 import com.example.dreamary.R
+import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.views.components.Loading
+import com.example.dreamary.models.entities.User
 
 @Preview(showBackground = true)
 @Composable
@@ -54,15 +59,17 @@ private fun PreviewHomeActivity() {
     HomeActivity(navController = NavController(LocalContext.current))
 }
 
+@SuppressLint("RestrictedApi")
 @Composable
 fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewModel(
-    factory = HomeViewModelFactory(DreamRepository(LocalContext.current))
+    factory = HomeViewModelFactory(DreamRepository(LocalContext.current), AuthRepository(LocalContext.current))
 )) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val dreams = viewModel.dreams.value
     val user = FirebaseAuth.getInstance().currentUser
-    //val isLoading by viewModel.isLoading.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val userState by viewModel.userData.collectAsState()
 
     // Modification du LaunchedEffect
     LaunchedEffect(Unit) {
@@ -79,6 +86,7 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
     LaunchedEffect(Unit) {
         Log.i("HomeActivity", "Récupération des rêves")
         viewModel.getTwoDreams(FirebaseAuth.getInstance().currentUser!!.uid, coroutineScope)
+        viewModel.getProfileData(FirebaseAuth.getInstance().currentUser!!.uid)
     }
 
     DreamaryTheme {
@@ -89,10 +97,10 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
             topBar = { TopNavigation(navController = navController) },
             snackbarHost = { CustomSnackbarHost(snackbarHostState) },
         ) { paddingValues ->
-//            if (isLoading) {
-//                Loading()
-//                return@Scaffold
-//            }
+            if (isLoading) {
+                Loading()
+                return@Scaffold
+            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -104,7 +112,7 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
                 ){
                     item {
                         Stats(
-                            user
+                            userState =  userState
                         )
                     }
                     item{
@@ -118,11 +126,66 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
     }
 }
 
+@SuppressLint("RestrictedApi")
 @Composable
 private fun Stats(
-    user: FirebaseUser?
+    userState: User?
 ) {
-
+    Card (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ){
+        Column (
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier
+                .padding(16.dp),
+        ) {
+            Row (
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row {
+                    Text(
+                        text = "Niveau ${userState?.progression?.get("level")}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                Row (
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (userState?.dreamStats?.get("currentStreak") != 0){
+                        Icon(
+                            painter = painterResource(id = R.drawable.fire),
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = "Streak icon",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Text(
+                            text = "${userState?.dreamStats?.get("currentStreak")} jours de suite",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(id = R.drawable.fire),
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = "Streak icon",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Text(
+                            text = "Pas de suite",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -194,18 +257,41 @@ private fun LastTwoDreams(dreams: List<Dream>?){
                         .padding(16.dp)
                 ) {
                     Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .padding(16.dp)
                     ) {
                         Text(
                             text = dream.title,
-                            style = MaterialTheme.typography.titleLarge
+                            style = MaterialTheme.typography.titleMedium,
                         )
-                        if (dream.isLucid) {
-                            Text(
-                                text = "Lucide",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                        if (dream.lucid) {
+                            Card (
+                                modifier = Modifier
+                                    .padding(8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                            ){
+                                Row (
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                ){
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = "Lucide",
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .padding(8.dp)
+                                    )
+                                    Text(
+                                        text = "Lucide",
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                            }
                         }
                     }
                     Row {
@@ -216,24 +302,43 @@ private fun LastTwoDreams(dreams: List<Dream>?){
                         )
                     }
                     Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-//                    dream.emotions.forEach( emotion ->
-//                        Surface {
-//                            Text(
-//                                text = it,
-//                                style = MaterialTheme.typography.bodySmall
-//                            )
-//                        }
-//                    )
-                        Text(
-                            text = if (cal1.get(Calendar.DAY_OF_MONTH) == Calendar.getInstance()
-                                    .get(Calendar.DAY_OF_MONTH)
-                            ) "Aujourd'hui" else if (cal1.get(Calendar.DAY_OF_MONTH) == Calendar.getInstance()
-                                    .get(Calendar.DAY_OF_MONTH) - 1
-                            ) "Hier" else dateJourMoisAnnee,
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        Row (
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            dream.emotions.forEach { emotion ->
+                                if (emotion != ""){
+                                    Card (
+                                        modifier = Modifier
+                                            .padding(8.dp),
+                                        shape = RoundedCornerShape(8.dp),
+                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                    ) {
+                                        Text(
+                                            text = emotion,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.padding(8.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Row (
+                            verticalAlignment = Alignment.CenterVertically
+                        ){
+                            Text(
+                                text = if (cal1.get(Calendar.DAY_OF_MONTH) == Calendar.getInstance()
+                                        .get(Calendar.DAY_OF_MONTH)
+                                ) "Aujourd'hui" else if (cal1.get(Calendar.DAY_OF_MONTH) == Calendar.getInstance()
+                                        .get(Calendar.DAY_OF_MONTH) - 1
+                                ) "Hier" else dateJourMoisAnnee,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
             }
