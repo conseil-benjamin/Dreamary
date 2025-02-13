@@ -21,6 +21,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -45,6 +46,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import java.util.Calendar
 import com.example.dreamary.R
+import com.example.dreamary.views.components.Loading
 
 @Preview(showBackground = true)
 @Composable
@@ -60,6 +62,7 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
     val coroutineScope = rememberCoroutineScope()
     val dreams = viewModel.dreams.value
     val user = FirebaseAuth.getInstance().currentUser
+    //val isLoading by viewModel.isLoading.collectAsState()
 
     // Modification du LaunchedEffect
     LaunchedEffect(Unit) {
@@ -86,6 +89,10 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
             topBar = { TopNavigation(navController = navController) },
             snackbarHost = { CustomSnackbarHost(snackbarHostState) },
         ) { paddingValues ->
+//            if (isLoading) {
+//                Loading()
+//                return@Scaffold
+//            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -167,7 +174,6 @@ private fun LastTwoDreams(dreams: List<Dream>?){
                         .padding(start = 8.dp)
                 )
             }
-
         }
         dreams.forEach { dream ->
             val timestamp = dream.metadata["createdAt"] as Timestamp;
@@ -178,8 +184,7 @@ private fun LastTwoDreams(dreams: List<Dream>?){
             Card(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),

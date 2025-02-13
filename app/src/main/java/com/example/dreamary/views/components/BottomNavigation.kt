@@ -1,5 +1,6 @@
 package com.example.dreamary.views.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +42,7 @@ fun BottomNavigationPreview() {
 
 @Composable
 fun BottomNavigation(navController: NavController) {
-    var selected by remember { mutableIntStateOf(0) }
+    val currentRoute = navController.currentBackStackEntry?.destination?.route
 
     DreamaryTheme {
         Row(
@@ -53,14 +55,13 @@ fun BottomNavigation(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        selected = 0
                         navController.navigate("home")
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    tint = if (selected == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    tint = if (currentRoute == "home") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                     painter = painterResource(id = R.drawable.lune),
                     contentDescription = "Home",
                     modifier = Modifier.size(24.dp)
@@ -74,15 +75,14 @@ fun BottomNavigation(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        selected = 1
                         navController.navigate("home")
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    tint = if (selected == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    painter = painterResource(id = if (selected == 1) R.drawable.progress_selected else R.drawable.progress),
+                    tint = if (currentRoute == "stats") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    painter = painterResource(id = R.drawable.progress),
                     contentDescription = "Home",
                     modifier = Modifier.size(24.dp)
                 )
@@ -97,15 +97,14 @@ fun BottomNavigation(navController: NavController) {
                     .fillMaxWidth()
                     .wrapContentSize(Alignment.TopCenter)
                     .clickable {
-                        selected = 2
                         navController.navigate("addDream")
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    tint = if (selected == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    painter = painterResource(id = if (selected == 2) R.drawable.plus else R.drawable.plus),
+                    tint = if (currentRoute == "addDream") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    painter = painterResource(id = R.drawable.plus),
                     contentDescription = "Home",
                     modifier = Modifier
                         .size(24.dp)
@@ -117,15 +116,14 @@ fun BottomNavigation(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        selected = 3
                         navController.navigate("homeSocial")
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    tint = if (selected == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    painter = painterResource(id = if (selected == 3) R.drawable.users_selected else R.drawable.users),
+                    tint = if (currentRoute == "homeSocial") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    painter = painterResource(id = R.drawable.users),
                     contentDescription = "Home",
                     modifier = Modifier.size(24.dp)
                 )
@@ -138,15 +136,14 @@ fun BottomNavigation(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        selected = 4
                         navController.navigate("home")
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    tint = if (selected == 4) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    painter = painterResource(id = if (selected == 4) R.drawable.book_selected else R.drawable.book),
+                    tint = if (currentRoute == "guide") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    painter = painterResource(id = R.drawable.book),
                     contentDescription = "Home",
                     modifier = Modifier.size(24.dp)
                 )

@@ -13,10 +13,13 @@ class SocialViewModel : ViewModel() {
     private var _groupsList = MutableStateFlow<List<Group>>(emptyList())
     var groups = _groupsList.asStateFlow()
     val db = FirebaseFirestore.getInstance()
+    private var _isLoading = MutableStateFlow(false)
+    var isLoading = _isLoading.asStateFlow()
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getGroupsForCurrentUser(userId: String): Boolean {
         return try {
+            _isLoading.value = true
             db.collection("group")
                 .whereArrayContains("members", userId)
                 .get()
@@ -27,9 +30,11 @@ class SocialViewModel : ViewModel() {
                     }.filterNotNull()
                     _groupsList.value = groups
                     Log.i("group", groups.toString())
+                    _isLoading.value = false
                 }
             true
         } catch (e: Exception) {
+            _isLoading.value = false
             println("Erreur lors de l'ajout du rêve : $e")
             false
         }

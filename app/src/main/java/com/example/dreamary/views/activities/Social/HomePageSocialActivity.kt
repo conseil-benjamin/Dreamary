@@ -54,6 +54,7 @@ fun HomePageSocialPreview() {
 @Composable
 fun HomePageSocialActivity(navController: NavController, viewModel: SocialViewModel = viewModel()) {
     val groups by viewModel.groups.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     Log.i("c", groups.toString())
 
     var research by remember { mutableStateOf("") }
@@ -71,7 +72,7 @@ fun HomePageSocialActivity(navController: NavController, viewModel: SocialViewMo
             modifier = Modifier.fillMaxSize(),
             bottomBar = { BottomNavigation(navController = navController) }
         ) { paddingValues ->
-            if (groups.isEmpty()) {
+            if (isLoading) {
                 Loading()
                 return@Scaffold
             }

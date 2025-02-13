@@ -1080,55 +1080,61 @@ fun DescribeDream(
         )
     }
 
-    TextField(
-        value = title,
-        onValueChange = { onValueChangeTitle(it) },
-        //label = { Text("Titre du rêve") },
-        placeholder = { Text("Titre du rêve") },
-        modifier = Modifier.fillMaxWidth()
+    DreamTextFieldCustom(
+        analysisText = title,
+        onTextChange = { onValueChangeTitle(it) },
+        modifier = Modifier
+            .fillMaxWidth(),
+        placeHolder = "Titre du rêve",
+        maxCharacters = 30,
+        maxLine = 1,
+        height = 100,
+        maxHeight = 100
     )
 
-    TextField(
-        value = content,
-        onValueChange = { onValueChangeContent(it) },
-        placeholder = { Text("Contenu du rêve") },
+    DreamTextFieldCustom(
+        analysisText = content,
+        onTextChange = { onValueChangeContent(it) },
         modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp),
-        trailingIcon = {
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.camera),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .size(24.dp)
-                        .clickable {
-                            // TODO
-                        }
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.microphone),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .size(24.dp)
-                        .clickable {
-                            Log.d("Audio", hasAudioPermission.toString())
-                            if (hasAudioPermission.value) {
-                                viewModel.startRecording()
-                                onChangeShowOverlay(true)
-                            } else {
-                                checkAudioPermission()
-                            }
-                        }
-                )
-            }
-        }
+            .fillMaxWidth(),
+        placeHolder = "Contenu du rêve...",
+        maxCharacters = 500,
+        maxLine = 5,
+        height = 150,
+        maxHeight = 300
     )
+
+    Row (
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.camera),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(16.dp)
+                .size(24.dp)
+                .clickable {
+                    // TODO
+                }
+        )
+        Icon(
+            painter = painterResource(id = R.drawable.microphone),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(16.dp)
+                .size(24.dp)
+                .clickable {
+                    Log.d("Audio", hasAudioPermission.toString())
+                    if (hasAudioPermission.value) {
+                        viewModel.startRecording()
+                        onChangeShowOverlay(true)
+                    } else {
+                        checkAudioPermission()
+                    }
+                }
+        )
+    }
 
     // TODO uniquement garder le bouton supprimer l'audio sur l'UI principale
     // TODO : et donc dans l'overlay afficher les boutons pour faire pause, play, stop, supprimer
@@ -1431,17 +1437,27 @@ fun AutoAnalyse (
 ) {
     TitleSection("Auto analyse", R.drawable.brain)
 
-    DreamAnalysisTextField(
+    DreamTextFieldCustom(
         analysisText = analysisText,
-        onTextChange = { onTextChange(it) }
+        onTextChange = { onTextChange(it) },
+        placeHolder = "Écris ton ressenti et ton analyse ici...",
+        maxCharacters = 1000,
+        maxLine = 5,
+        height = 100,
+        maxHeight = 200
     )
 }
 
 @Composable
-fun DreamAnalysisTextField(
+fun DreamTextFieldCustom(
     analysisText: String,
     onTextChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    placeHolder: String,
+    maxCharacters: Int,
+    maxLine: Int,
+    height: Int,
+    maxHeight: Int
 ) {
     Column(
         modifier = modifier
@@ -1451,23 +1467,23 @@ fun DreamAnalysisTextField(
         OutlinedTextField(
             value = analysisText,
             onValueChange = { newText: String ->
-                if (newText.length <= 500) onTextChange(newText)
+                if (newText.length <= maxCharacters) onTextChange(newText)
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 100.dp, max = 250.dp),
+                .heightIn(min = height.dp, max = maxHeight.dp),
             textStyle = TextStyle(
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurface
             ),
-            placeholder = { Text("Écris ton ressenti et ton analyse ici...") },
+            placeholder = { Text(placeHolder) },
             shape = MaterialTheme.shapes.medium,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = Color.Gray,
                 cursorColor = MaterialTheme.colorScheme.primary
             ),
-            maxLines = 5,
+            maxLines = maxLine,
             singleLine = false,
             keyboardOptions = KeyboardOptions.Default.copy(
                 capitalization = KeyboardCapitalization.Sentences,
@@ -1479,9 +1495,9 @@ fun DreamAnalysisTextField(
         )
 
         Text(
-            text = "${analysisText.length} / 500",
+            text = "${analysisText.length} / $maxCharacters",
             style = MaterialTheme.typography.bodySmall,
-            color = if (analysisText.length >= 500) Color.Red else Color.Gray,
+            color = if (analysisText.length >= maxCharacters) Color.Red else Color.Gray,
             modifier = Modifier
                 .align(Alignment.End)
                 .padding(top = 4.dp)
