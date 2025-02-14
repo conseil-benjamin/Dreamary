@@ -12,12 +12,13 @@ import com.example.dreamary.R
 import com.example.dreamary.models.entities.Dream
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.AuthRepository
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class HomeViewModel(private val dreamRepository: DreamRepository, private val authRepository: AuthRepository): ViewModel() {
-    private val _dreams = MutableLiveData<List<Dream>>()
-    val dreams: MutableLiveData<List<Dream>> = _dreams
+    private val _dreams = MutableStateFlow<List<Dream>>(emptyList())
+    val dreams = _dreams.asStateFlow()
     private var _isLoading = MutableStateFlow(false)
     var isLoading = _isLoading.asStateFlow()
 
@@ -33,7 +34,6 @@ class HomeViewModel(private val dreamRepository: DreamRepository, private val au
                     SnackbarManager.showMessage("Erreur lors de la récupération des rêves : $e", R.drawable.error)
                 }
             }).collect { dreams ->
-                _isLoading.value = false
                 _dreams.value = dreams
                 Log.d("Dreams", "Rêves récupérés: $dreams")
             }
@@ -43,7 +43,28 @@ class HomeViewModel(private val dreamRepository: DreamRepository, private val au
 
     fun getProfileData(idUSer : String) {
         viewModelScope.launch{
+            _isLoading.value = true
             authRepository.getProfileData(idUSer).collect { user ->
+                _userData.value = user
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun updateUserStats(userId: String, field: String, value: Int, coroutineScope: CoroutineScope) {
+        viewModelScope.launch {
+            authRepository.updateUserStats(
+                userId, field, value,
+                onSuccess = {
+//                    coroutineScope.launch {
+//                        SnackbarManager.showMessage("Vous avez perdu votre chaîne", R.drawable.success)
+//                    }
+                },
+                onFailure = {
+                    coroutineScope.launch {
+                        SnackbarManager.showMessage("Erreur", R.drawable.success)
+                    }                }
+            ).collect { user ->
                 _userData.value = user
             }
         }

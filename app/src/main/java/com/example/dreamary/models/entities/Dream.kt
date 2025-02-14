@@ -2,6 +2,7 @@ package com.example.dreamary.models.entities
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import com.google.firebase.Timestamp
 import java.util.Date
 
 data class Dream(
@@ -14,6 +15,7 @@ data class Dream(
     val analysis: String = "",
     val emotions: List<String> = emptyList(),
     val userId: String = "",
+    val createdAt: Timestamp = Timestamp.now(),
 
     var audio: Map<String, Any> = mapOf(
         "fileName" to "",

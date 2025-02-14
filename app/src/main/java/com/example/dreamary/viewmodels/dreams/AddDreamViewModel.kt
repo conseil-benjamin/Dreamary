@@ -42,10 +42,6 @@ class AddDreamViewModel(private val repository: DreamRepository) : ViewModel() {
             repository.addDream(
                 dream,
                 onSuccess = {
-                    // Gérer le succès
-                    coroutineScope.launch {
-                        SnackbarManager.showMessage("Rêve ajouté avec succès", R.drawable.success)
-                    }
                     onSaved()
                 },
                 onFailure = { e ->
@@ -53,7 +49,8 @@ class AddDreamViewModel(private val repository: DreamRepository) : ViewModel() {
                         SnackbarManager.showMessage("Erreur lors de l'ajout du rêve", R.drawable.error)
                     }
                     onSaved()
-                }
+                },
+                navController = navController
             )
                 .collect { response ->
                     _dreamState.value = when(response) {

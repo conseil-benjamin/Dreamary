@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,10 @@ import com.example.dreamary.models.entities.User
 import com.google.firebase.auth.FirebaseAuth
 import com.example.dreamary.viewmodels.profile.ProfileViewModel
 import com.example.dreamary.R
+import com.example.dreamary.models.repositories.AuthRepository
+import com.example.dreamary.models.repositories.DreamRepository
+import com.example.dreamary.viewmodels.Profile.ProfileViewModelFactory
+import com.example.dreamary.viewmodels.home.HomeViewModelFactory
 import com.example.dreamary.views.components.Loading
 
 @Preview
@@ -38,7 +43,9 @@ fun ProfilePreview() {
 @Composable
 fun ProfileActivity(
     onNavigateBack: () -> Unit,
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModelFactory (AuthRepository(LocalContext.current))
+    )
 ) {
     val user by viewModel.userData.collectAsState()
     Log.d("ProfileActivity", "User data: $user")

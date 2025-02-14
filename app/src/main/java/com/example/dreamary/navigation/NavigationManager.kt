@@ -24,6 +24,7 @@ import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
 import com.example.dreamary.views.activities.Dreams.AddDreamActivity
+import com.example.dreamary.views.activities.Dreams.SuccessAddDream
 import com.example.dreamary.views.activities.profile.ProfileActivity
 import com.example.dreamary.views.activities.Social.HomePageSocialActivity
 import com.example.dreamary.views.activities.auth.LoginActivity
@@ -31,7 +32,6 @@ import com.example.dreamary.views.activities.auth.MoreInformations
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
 import com.example.dreamary.views.activities.onboardingScreen.OnboardingScreen
-import com.example.dreamary.views.activities.splashscreen.SplashScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -53,7 +53,7 @@ fun NavigationManager() {
     }
 
     val navController = rememberNavController()
-    NavHost(navController, startDestination = "splashScreen") {
+    NavHost(navController, startDestination = startDestination) {
         composable(
             route = NavRoutes.Login.route,
             enterTransition = {
@@ -156,8 +156,13 @@ fun NavigationManager() {
                 }
             )
         }
-        composable(NavRoutes.SplashScreen.route) {
-            SplashScreen()
+        composable(NavRoutes.SucessAddDream.route){
+            SuccessAddDream(
+                navController = navController,
+            )
         }
+//        composable(NavRoutes.SplashScreen.route) {
+//            SplashScreen()
+//        }
     }
 }

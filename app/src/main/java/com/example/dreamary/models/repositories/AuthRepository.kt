@@ -220,7 +220,7 @@ class AuthRepository(private val context: Context) {
         }
     }
 
-    fun getProfileData(idUSer : String): StateFlow<User?> {
+    public fun getProfileData(idUSer : String): StateFlow<User?> {
         db.collection("users")
             .document(idUSer)
             .get()
@@ -232,6 +232,36 @@ class AuthRepository(private val context: Context) {
             .addOnFailureListener { exception ->
                 println("Error getting documents: $exception")
             }
+        return userData
+    }
+
+    fun updateUserStats(userId: String, field: String, value: Int, onSuccess: () -> Unit, onFailure: () -> Unit): StateFlow<User?> {
+        val fieldPath = "dreamStats.$field"
+
+        db.collection("users").document(userId)
+            .update(fieldPath, value)
+            .addOnSuccessListener {
+                db.collection("users").document(userId)
+                    .get()
+                    .addOnSuccessListener { document ->
+                        if (document.exists()) {
+                            val user = document.toObject(User::class.java)
+                            _userData.value = user
+                            Log.d("ProfileViewModel", "User data retrieved: $user")
+                        } else {
+                            Log.d("ProfileViewModel", "User document does not exist")
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.w("ProfileViewModel", "Error retrieving updated user data", e)
+                    }
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                Log.w("HomeViewModel", "Error updating document", e)
+                onFailure()
+            }
+
         return userData
     }
 

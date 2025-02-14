@@ -1,6 +1,7 @@
 package com.example.dreamary.views.activities.home
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -66,10 +67,11 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
 )) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    val dreams = viewModel.dreams.value
+    val dreams by viewModel.dreams.collectAsState()
     val user = FirebaseAuth.getInstance().currentUser
     val isLoading by viewModel.isLoading.collectAsState()
     val userState by viewModel.userData.collectAsState()
+    val context = LocalContext.current
 
     // Modification du LaunchedEffect
     LaunchedEffect(Unit) {
@@ -83,10 +85,29 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
         }
     }
 
+    LaunchedEffect(userState) {
+        Log.i("HomeActivity", "Sauvegarde de l'utilisateur")
+        context.getSharedPreferences("user", Context.MODE_PRIVATE).edit().putString("user", userState.toString()).apply()
+    }
+
     LaunchedEffect(Unit) {
         Log.i("HomeActivity", "Récupération des rêves")
+        Log.i("dreamssss", dreams.toString())
         viewModel.getTwoDreams(FirebaseAuth.getInstance().currentUser!!.uid, coroutineScope)
         viewModel.getProfileData(FirebaseAuth.getInstance().currentUser!!.uid)
+    }
+
+    LaunchedEffect(dreams) {
+        Log.i("dreamss", dreams.toString())
+
+        if (!dreams.isNullOrEmpty()) {
+            if (!isUserHasAcurrentStreak(userState, dreams) && userState?.dreamStats?.get("currentStreak") != 0) {
+                Log.i("HomeActivity", "L'utilisateur perd sa streak")
+                viewModel.updateUserStats(user?.uid.toString(), "currentStreak", 0, coroutineScope)
+            }
+        } else {
+            Log.i("HomeActivity", "Les rêves ne sont pas encore chargés.")
+        }
     }
 
     DreamaryTheme {
@@ -160,7 +181,6 @@ private fun Stats(
                     if (userState?.dreamStats?.get("currentStreak") != 0){
                         Icon(
                             painter = painterResource(id = R.drawable.fire),
-                            tint = MaterialTheme.colorScheme.primary,
                             contentDescription = "Streak icon",
                             modifier = Modifier.size(24.dp)
                         )
@@ -186,6 +206,37 @@ private fun Stats(
             }
         }
     }
+}
+
+fun isUserHasAcurrentStreak(user: User?, dreams: List<Dream>?): Boolean {
+    Log.i("HomeActivity", "Vérification de la suite")
+    Log.i("dreamsss", dreams.toString())
+    if (user?.dreamStats["currentStreak"] == 0) {
+        return false
+    } else {
+        Log.i("HomeActivity", "L'utilisateur a une suite")
+        Log.i("HomeActivity", dreams?.isNotEmpty().toString())
+        Log.i("HomeActivity", dreams?.get(0).toString())
+        if (dreams?.size != 0) {
+            Log.i("HomeActivity", "L'utilisateur a des rêves")
+            Log.i("dreamList", dreams.toString())
+            val lastDream = dreams?.firstOrNull()
+            Log.i("lastdream", lastDream.toString())
+            val timestamp = lastDream?.metadata["createdAt"] as Timestamp
+            val date = timestamp.toDate()
+            val cal1 = Calendar.getInstance().apply { time = date }
+            val cal2 = Calendar.getInstance()
+            if (cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH) - 1) {
+                Log.i("HomeActivity", "L'utilisateur a un rêve d'hier")
+                return true
+            } else {
+                Log.i("HomeActivity", "date incorrecte")
+                return false
+            }
+        }
+    }
+    Log.i("HomeActivity", "L'utilisateur n'a pas de suiteeeeeee")
+    return false
 }
 
 @Composable

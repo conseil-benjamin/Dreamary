@@ -98,6 +98,7 @@ import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.views.components.CustomDropdown
 import java.util.Calendar
 import androidx.compose.ui.text.input.ImeAction
+import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.views.components.Loading
 
 @Preview(showBackground = true)
@@ -178,6 +179,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         analysis = "",
         emotions = pickedEmotions,
         userId = currentUser?.uid ?: "",
+        createdAt = Timestamp.now(),
         audio = mutableMapOf(
             "fileName" to "",
             "duration" to 0,
@@ -706,7 +708,7 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
                     coroutineScope = coroutineScope,
                     onSaved = {
                         savingInProgress.value = false
-                        navController.popBackStack()
+                        navController.navigate(NavRoutes.SucessAddDream.route)
                     }
                 )
             }

@@ -14,4 +14,5 @@ sealed class NavRoutes(val route: String) {
     data object DreamDetail : NavRoutes("dreamDetail")
     data object EditDream : NavRoutes("editDream")
     data object SplashScreen: NavRoutes("splashScreen")
+    data object SucessAddDream: NavRoutes("sucessAddDream")
 }
