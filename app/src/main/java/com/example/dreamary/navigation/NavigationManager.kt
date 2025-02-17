@@ -142,7 +142,30 @@ fun NavigationManager() {
         composable(NavRoutes.UserMoreInformation.route) {
             MoreInformations(navController = navController)
         }
-        composable(NavRoutes.HomeSocial.route) {
+        composable(
+            NavRoutes.HomeSocial.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 300 },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(
+                    initialAlpha = 0.3f,
+                    animationSpec = tween(150)
+                )
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -300 },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(150))
+            },
+        ) {
             HomePageSocialActivity(navController = navController)
         }
         composable(NavRoutes.Settings.route) {

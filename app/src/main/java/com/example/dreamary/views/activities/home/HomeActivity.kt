@@ -53,6 +53,7 @@ import com.example.dreamary.R
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.views.components.Loading
 import com.example.dreamary.models.entities.User
+import com.google.gson.Gson
 
 @Preview(showBackground = true)
 @Composable
@@ -87,10 +88,20 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
 
     LaunchedEffect(userState) {
         Log.i("HomeActivity", "Sauvegarde de l'utilisateur")
-        context.getSharedPreferences("user", Context.MODE_PRIVATE).edit().putString("user", userState.toString()).apply()
+        val gson = Gson()
+
+        val userJson = gson.toJson(userState)
+        context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE).edit().putString("userDatabase", userJson).apply()
+        Log.i("sharedPreferences", "Utilisateur sauvegardé en JSON : $userJson")
     }
 
     LaunchedEffect(Unit) {
+        // todo faire en sorte de faire les requêtes uniquement si nécessaire
+        // todo : donc par exemple si l'utilisateur a déjà chargé les rêves et qu'il en a pas ajouter de nouveau depuis on ne fait pas de requête
+        // todo : pareil pour les infos de l'utilisateur si par exemple on déclare une variable preferences profileHasBeenUpdated et on vérifie si elle est à true
+        // todo : si elle est à true ca veut dire que les infos en base de données on été changé et donc qu'on est plus à jour en local
+        // todo : donc on fait une requête pour mettre à jour les informations en local
+
         Log.i("HomeActivity", "Récupération des rêves")
         Log.i("dreamssss", dreams.toString())
         viewModel.getTwoDreams(FirebaseAuth.getInstance().currentUser!!.uid, coroutineScope)
@@ -166,6 +177,7 @@ private fun Stats(
                 .padding(16.dp),
         ) {
             Row (
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -226,8 +238,8 @@ fun isUserHasAcurrentStreak(user: User?, dreams: List<Dream>?): Boolean {
             val date = timestamp.toDate()
             val cal1 = Calendar.getInstance().apply { time = date }
             val cal2 = Calendar.getInstance()
-            if (cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH) - 1) {
-                Log.i("HomeActivity", "L'utilisateur a un rêve d'hier")
+            if (cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH) - 1 || cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)) {
+                Log.i("HomeActivity", "L'utilisateur a un rêve d'hier ou aujourd'hui")
                 return true
             } else {
                 Log.i("HomeActivity", "date incorrecte")

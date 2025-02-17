@@ -453,6 +453,10 @@ private fun StatItem(
 private fun BadgesSection(
     user: User?,
     ) {
+
+    // todo : dans la liste des badges gagnés par l'utilisateur remplacé
+    // todo : le nom du badge actuellement par un id d'un objet badge pour plus
+    // todo : personnalisé l'affichage des badges avec des raretés, couleurs et images différentes
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -464,11 +468,19 @@ private fun BadgesSection(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = "Badges",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            Row (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Badges",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                TextButton(onClick = { /* TODO */ }) {
+                    Text("Voir tout")
+                }
+            }
             FlowRow (
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -657,14 +669,3 @@ private fun CollectionsSection() {
         }
     }
 }
-
-private data class ProfileData(
-    val name: String,
-    val level: Int,
-    val title: String,
-    val memberSince: String,
-    val dreamCount: Int,
-    val lucidDreams: Int,
-    val totalGroups: Int,
-    val isFriend: Boolean
-)

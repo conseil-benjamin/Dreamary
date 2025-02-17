@@ -31,7 +31,7 @@ data class User(
         "currentStreak" to 0
     ),
     val achievements: Map<String, Any> = mapOf(
-        "unlockedBadges" to mapOf<String, String>(),
+        "unlockedBadges" to listOf<String>(),
         "totalBadges" to 0
     ),
     val progression: Map<String, Any> = mapOf(

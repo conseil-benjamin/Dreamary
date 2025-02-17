@@ -15,29 +15,38 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import com.google.gson.Gson
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 import java.io.File
+import java.util.Calendar
+import java.util.Date
 import kotlin.math.log
 
 class DreamRepository(private val context: Context) {
     private val db = Firebase.firestore
 
-    fun updateUser(): Flow<User> = flow {
-        val sharedPreferences = context.getSharedPreferences("user", Context.MODE_PRIVATE)
-        val savedUser = sharedPreferences.getString("user", null)  // 'null' si aucune valeur n'est trouvée
+    fun updateUser(): Flow<Map<String, Any>> = flow {
+        Log.i("UpdateUser", "est rentré dans updateUser")
+        val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
+        val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+        Log.i("sharedPreferences", sharedPreferences.toString())
+        Log.i("sharedPreferences", sharedPreferences.all.toString())
+        val savedUser = sharedPreferences.getString("userDatabase", "")
         Log.i("HomeActivity", "Utilisateur récupéré : $savedUser")
         val gson = Gson()
         var userObject = gson.fromJson(savedUser, User::class.java)
-        var level = userObject.progression["level"] as Int
-        var xp = userObject.progression["xp"] as Int
-        var xpNeeded = userObject.progression["xpNeeded"] as Int
+        var level = (userObject.progression["level"] as? Number)?.toInt() ?: 0
+        var xp = (userObject.progression["xp"] as? Number)?.toInt() ?: 0
+        var xpNeeded = (userObject.progression["xpNeeded"] as? Number)?.toInt() ?: 0
         var rank = userObject.progression["rank"] as String
-        val hasAstreak = userObject.dreamStats["currentStreak"] as Int
+        val actualStreak = userObject.dreamStats["currentStreak"] as Int
         var longestStreak = userObject.dreamStats["longestStreak"] as Int
 
-        if (hasAstreak >= 3) {
+        if (actualStreak >= 3) {
             xp += 100
         } else {
             xp += 50
@@ -48,42 +57,58 @@ class DreamRepository(private val context: Context) {
             xpNeeded += 200
         }
 
-        if (level == 2) {
-            rank = "Apprenti rêveur"
-        } else if (level == 3) {
-            rank = "Rêveur confirmé"
-        } else if (level == 4) {
-            rank = "Rêveur expert"
-        } else if (level == 5) {
-            rank = "Rêveur légendaire"
+        // Mise à jour du rang
+        rank = when (level) {
+            1 -> "Apprenti rêveur"
+            10 -> "Rêveur confirmé"
+            20 -> "Maître des rêves"
+            30 -> "Grand Sage des Songes"
+            50 -> "Légende Onirique"
+            else -> rank
         }
 
-        if (hasAstreak >= longestStreak) {
-            longestStreak = hasAstreak
+        val lastDreamDateMap = userObject.metadata["lastDreamDate"] as? Map<*, *>
+        val lastDreamDate = lastDreamDateMap?.let {
+            val seconds = (it["seconds"] as? Number)?.toLong() ?: 0L
+            Date(seconds * 1000) // Convertir les secondes en millisecondes
+        } ?: Date() // Valeur par défaut en cas d'erreur
+
+        val cal1 = Calendar.getInstance().apply { time = lastDreamDate }
+        val cal2 = Calendar.getInstance()
+        var currentStreak: Int = 0
+        Log.i("cal", cal1.toString())
+        Log.i("cal", cal2.toString())
+        if ((cal1.get(Calendar.DAY_OF_MONTH) != cal2.get(Calendar.DAY_OF_MONTH))) {
+            Log.i("cal", "oaduadad")
+            currentStreak = userObject.dreamStats["currentStreak"] as Int + 1
+        } else {
+            Log.i("cal", "dqzdqzpmdqzmdqz")
+            currentStreak = userObject.dreamStats["currentStreak"] as Int
         }
 
-        // todo faire les badges aussi
-        // todo : pourquoi pas faire un écran quand on vient d'ajouter un rêve
-        // todo : qui montrerait qu'il s'est bien ajouté déjà
-        // todo : et ensuite qui montre nos stats donc notre currentStreak si ont en a une
-        // todo : et qui montre notre avancement dans le niveau
-        // todo : donc rediriger vers cette écran et non vers le Home et envoyer les données user
-        // todo : mis à jour
+        if (actualStreak >= longestStreak) {
+            longestStreak = actualStreak
+        }
+        val listBadges = userObject.achievements["unlockedBadges"] as MutableList<String>
 
+        for (i in listBadges) {
+            if (currentStreak >= 30 && !listBadges.contains("30 jours consécutifs")) {
+                listBadges.add("30 jours consécutifs")
+            } else if (currentStreak >= 60 && !listBadges.contains("60 jours consécutifs")) {
+                listBadges.add("60 jours consécutifs")
+            } else if (currentStreak >= 90 && !listBadges.contains("90 jours consécutifs")) {
+                listBadges.add("90 jours consécutifs")
+            }
+        }
+
+        Log.i("userObject", userObject.toString())
         userObject = userObject.copy(
-            dreamStats = mapOf(
-                "nightmares" to (userObject.dreamStats["nightmares"] ?: 0),
-                "totalDreams" to (userObject.dreamStats["totalDreams"] ?: 0) + 1,
-                "lucidDreams" to (userObject.dreamStats["lucidDreams"] ?: 0),
-                "longestStreak" to longestStreak,
-                "currentStreak" to (userObject.dreamStats["currentStreak"] ?: 0) + 1
-            ),
-            progression = mapOf(
-                "level" to level,
-                "xp" to (userObject.progression["xp"] as? Int ?: 0),
-                "rank" to (userObject.progression["rank"] as? String ?: "Unranked"),
-                "xpNeeded" to (userObject.progression["xpNeeded"] as? Int ?: 100)
-            ),
+            uid = userFirebase.getString("uid", "").toString(),
+            email = userObject.email,
+            username = userObject.username,
+            fullName = userObject.fullName,
+            bio = userObject.bio,
+            profilePictureUrl = userObject.profilePictureUrl,
             metadata = mapOf(
                 "accountStatus" to (userObject.metadata["accountStatus"] as? String ?: "active"),
                 "lastDreamDate" to Timestamp.now(),
@@ -91,18 +116,57 @@ class DreamRepository(private val context: Context) {
                 "lastLogin" to (userObject.metadata["lastLogin"] as? Timestamp ?: Timestamp.now()),
                 "createdAt" to (userObject.metadata["createdAt"] as? Timestamp ?: Timestamp.now()
                         )
+            ),
+            preferences = mapOf(
+                "notifications" to (userObject.preferences["notifications"] as? Boolean ?: true),
+                "theme" to (userObject.preferences["theme"] as? String ?: "dark"),
+                "isPrivateProfile" to (userObject.preferences["isPrivateProfile"] as? Boolean ?: false),
+                "language" to (userObject.preferences["language"] as? String ?: "fr")
+            ),
+            dreamStats = mapOf(
+                "nightmares" to (userObject.dreamStats["nightmares"] ?: 0),
+                "totalDreams" to (userObject.dreamStats["totalDreams"] ?: 0) + 1,
+                "lucidDreams" to (userObject.dreamStats["lucidDreams"] ?: 0),
+                "longestStreak" to longestStreak,
+                "currentStreak" to currentStreak
+            ),
+            progression = mapOf(
+                "level" to level,
+                "xp" to xp,
+                "rank" to rank,
+                "xpNeeded" to xpNeeded
+            ),
+            achievements = mapOf(
+                "totalBadges" to (userObject.achievements["totalBadges"] ?: 0),
+                "unlockedBadges" to (userObject.achievements["unlockedBadges"] ?: listOf<String>())
+            ),
+            social = mapOf(
+                "followers" to (userObject.social["followers"] ?: 0),
+                "following" to (userObject.social["following"] ?: 0),
             )
         )
+
+        Log.i("userObject", userObject.toString())
 
         // todo : remettre à jour les sharedpreferences avant de rediriger vers la page de succès
         // todo : comme ca on récupère les données à jour
 
         val editor = sharedPreferences.edit()
         val json = gson.toJson(userObject)
-        editor.putString("user", json)
+        editor.putString("userDatabase", json)
         editor.apply()
         Log.i("userUpdated", "Utilisateur mis à jour : $userObject")
-        emit(gson.fromJson(json, Map::class.java) as Map<String, Any>)
+        val userMap = userToMap(userObject)
+        emit(userMap)
+    }
+
+    fun userToMap(user: User): Map<String, Any> {
+        return mapOf(
+            "uid" to user.uid,
+            "dreamStats" to user.dreamStats,
+            "progression" to user.progression,
+            "metadata" to user.metadata
+        )
     }
 
     fun addDream(
@@ -111,6 +175,8 @@ class DreamRepository(private val context: Context) {
         onFailure: (Exception) -> Unit,
         navController: NavController
     ): Flow<DreamResponse> = flow {
+        val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+
         try {
             if (dream.audio["path"] != "") {
                 Log.i("filePath", dream.audio.toString())
@@ -142,27 +208,36 @@ class DreamRepository(private val context: Context) {
                 .add(dream)
                 .addOnSuccessListener { documentReference ->
                     println("DocumentSnapshot added with ID: ${documentReference.id}")
-                    updateUser().collect { updatedUser ->
-                        db.collection("users")
-                            .document(updatedUser.uid)
-                            .update(updatedUser)
-                            .addOnSuccessListener {
-                                Log.d("DreamRepository", "DocumentSnapshot successfully updated!")
-                                onSuccess()
-                            }
-                            .addOnFailureListener { e ->
-                                Log.w("DreamRepository", "Error updating document", e)
-                            }
-                        // Une fois la mise à jour réussie, on appelle onSuccess() pour rediriger
-                    }
-
-
                 }
                 .addOnFailureListener { e ->
                     println("Error adding document: $e")
                     onFailure(e)
                 }
-            // TODO : Start implementing the logic to update the user's stats
+
+            coroutineScope {
+                Log.d("DreamRepository", "Updating user")
+                    try {
+                        updateUser()
+                            .collect { updatedUser ->
+                                Log.i("DreamRepository", updatedUser.toString())
+                                Log.d("DreamRepository", "Processing updated user")
+                                Log.d("DreamRepository", updatedUser.get("uid").toString())
+                                Log.d("firebase", userFirebase.getString("uid", "").toString())
+                                db.collection("users")
+                                    .document(userFirebase.getString("uid", "").toString())
+                                    .update(updatedUser)
+                                    .addOnSuccessListener {
+                                        Log.d("DreamRepository", "DocumentSnapshot successfully updated!")
+                                        onSuccess()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Log.w("DreamRepository", "Error updating document", e)
+                                    }
+                            }
+                    } catch (e: Exception) {
+                        Log.e("DreamRepository", "Error in updateUser process", e)
+                    }
+            }
         } catch (
             e: Exception
         ) {

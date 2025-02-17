@@ -46,6 +46,7 @@ class HomeViewModel(private val dreamRepository: DreamRepository, private val au
             _isLoading.value = true
             authRepository.getProfileData(idUSer).collect { user ->
                 _userData.value = user
+                Log.d("User", "Utilisateur récupéré: $user")
             }
             _isLoading.value = false
         }
