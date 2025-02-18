@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
@@ -23,31 +24,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import com.example.dreamary.models.entities.User
 import com.google.firebase.auth.FirebaseAuth
 import com.example.dreamary.viewmodels.profile.ProfileViewModel
 import com.example.dreamary.R
+import com.example.dreamary.models.entities.Badge
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.repositories.DreamRepository
+import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.Profile.ProfileViewModelFactory
 import com.example.dreamary.viewmodels.home.HomeViewModelFactory
 import com.example.dreamary.views.components.Loading
 
-@Preview
-@Composable
-fun ProfilePreview() {
-    ProfileActivity(onNavigateBack = {})
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileActivity(
-    onNavigateBack: () -> Unit,
     viewModel: ProfileViewModel = viewModel(
-        factory = ProfileViewModelFactory (AuthRepository(LocalContext.current))
-    )
+        factory = ProfileViewModelFactory (AuthRepository(LocalContext.current), DreamRepository(LocalContext.current))
+    ),
+    navController: NavController
 ) {
     val user by viewModel.userData.collectAsState()
+    val badges by viewModel.userBadges.collectAsState()
     Log.d("ProfileActivity", "User data: $user")
 
     val currentUser = FirebaseAuth.getInstance().currentUser
@@ -55,6 +56,7 @@ fun ProfileActivity(
 
     LaunchedEffect(Unit) {
         viewModel.getProfileData(currentUser?.uid ?: "")
+        viewModel.getUserBadges()
     }
 
     Scaffold(
@@ -62,7 +64,9 @@ fun ProfileActivity(
             TopAppBar(
                 title = { Text("Profil") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = {
+                        navController.popBackStack()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Retour"
@@ -99,7 +103,9 @@ fun ProfileActivity(
             // Section Badges
             item {
                 BadgesSection(
-                    user = user
+                    user = user,
+                    badges = badges,
+                    navController = navController
                 )
             }
 
@@ -452,6 +458,8 @@ private fun StatItem(
 @Composable
 private fun BadgesSection(
     user: User?,
+    badges : List<Badge>,
+    navController: NavController
     ) {
 
     // todo : dans la liste des badges gagnés par l'utilisateur remplacé
@@ -477,7 +485,7 @@ private fun BadgesSection(
                     text = "Badges",
                     style = MaterialTheme.typography.titleMedium,
                 )
-                TextButton(onClick = { /* TODO */ }) {
+                TextButton(onClick = { navController.navigate(NavRoutes.AllBadges.route) }) {
                     Text("Voir tout")
                 }
             }
@@ -485,20 +493,13 @@ private fun BadgesSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                (user?.achievements?.get("unlockedBadges") as? List<*>)?.forEach { badge ->
-                    Log.d("BadgesSection", "Badge: $badge")
+                badges.forEach { badge ->
                     BadgeItem(
-                        icon = Icons.Default.Star,
-                        name = badge.toString(),
-                        rarity = "Rare",
+                        icon = badge.iconUrl,
+                        name = badge.name,
+                        rarity = badge.rarity,
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.primary
-                    )
-                } ?: run {
-                    Text(
-                        text = "Aucun badge débloqué",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -508,7 +509,7 @@ private fun BadgesSection(
 
 @Composable
 private fun BadgeItem(
-    icon: ImageVector,
+    icon: String,
     name: String,
     rarity: String,
     containerColor: Color,
@@ -528,10 +529,10 @@ private fun BadgeItem(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = icon,
+                AsyncImage(
+                    model = icon,
                     contentDescription = null,
-                    tint = contentColor
+                    colorFilter = ColorFilter.tint(contentColor)
                 )
             }
         }

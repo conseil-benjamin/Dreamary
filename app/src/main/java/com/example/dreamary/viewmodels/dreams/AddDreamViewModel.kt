@@ -26,16 +26,14 @@ class AddDreamViewModel(private val repository: DreamRepository) : ViewModel() {
     private val _tags = MutableLiveData<Tag>()
     val tag: MutableLiveData<Tag> = _tags
 
-    fun addDream (navController: NavController, dream: Dream, coroutineScope: CoroutineScope, onSaved: () -> Unit) {
+    fun addDream (navController: NavController, dream: Dream, coroutineScope: CoroutineScope, onSaved: () -> Unit, onFailure: () -> Unit) {
 
-        if (dream.title.isEmpty() || dream.content.isEmpty()) {
-            Log.d("title", dream.title)
-            Log.d("title", dream.content)
-            Log.d("title", dream.emotions.toString())
-            _dreamState.value = DreamResponse.Error("Veuillez remplir tous les champs")
+        if (dream.title.isEmpty() || dream.content.isEmpty() || dream.emotions.isEmpty()) {
+            _dreamState.value = DreamResponse.Error("Veuillez renseigner au minimum un titre, un contenu et une émotion")
             coroutineScope.launch {
-                SnackbarManager.showMessage("Veuillez remplir tous les champs", R.drawable.error)
+                SnackbarManager.showMessage("Veuillez renseigner au minimum un titre, un contenu et une émotion", R.drawable.error)
             }
+            onFailure()
             return
         }
         viewModelScope.launch {
@@ -50,7 +48,6 @@ class AddDreamViewModel(private val repository: DreamRepository) : ViewModel() {
                     }
                     onSaved()
                 },
-                navController = navController
             )
                 .collect { response ->
                     _dreamState.value = when(response) {

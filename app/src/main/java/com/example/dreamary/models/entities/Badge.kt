@@ -8,6 +8,7 @@ data class Badge(
     val description: String = "",
     val iconUrl: String = "",
     val rarity: String = "",
-    val color: Color = Color.Unspecified,
+    val category: String = "",
+    val color: String = "",
     val unlockCriteria: Map<String, Any> = emptyMap()
 )

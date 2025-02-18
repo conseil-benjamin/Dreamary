@@ -71,7 +71,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
@@ -165,7 +164,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     var title by remember { mutableStateOf("")}
     var date by remember { mutableStateOf("")}
     val currentUser = FirebaseAuth.getInstance().currentUser
-    val pickedEmotions = remember { mutableStateListOf("") }
+    val pickedEmotions = remember { mutableStateListOf<String>() }
     val pickedTags = remember { mutableStateListOf("") }
     var showPermissionDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -709,6 +708,9 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
                     onSaved = {
                         savingInProgress.value = false
                         navController.navigate(NavRoutes.SucessAddDream.route)
+                    },
+                    onFailure = {
+                        savingInProgress.value = false
                     }
                 )
             }

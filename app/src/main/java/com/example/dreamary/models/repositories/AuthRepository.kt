@@ -220,7 +220,7 @@ class AuthRepository(private val context: Context) {
         }
     }
 
-    public fun getProfileData(idUSer : String): StateFlow<User?> {
+    fun getProfileData(idUSer : String): StateFlow<User?> {
         db.collection("users")
             .document(idUSer)
             .get()

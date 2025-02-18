@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.navigation.NavController
+import com.example.dreamary.models.entities.Badge
 import com.example.dreamary.models.entities.Dream
 import com.example.dreamary.models.entities.Tag
 import com.example.dreamary.models.entities.User
@@ -17,19 +18,199 @@ import com.google.firebase.storage.storage
 import com.google.gson.Gson
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.util.Calendar
 import java.util.Date
-import kotlin.math.log
+import kotlinx.coroutines.flow.asStateFlow
 
 class DreamRepository(private val context: Context) {
     private val db = Firebase.firestore
+    private val _userBadges = MutableStateFlow<List<Badge>>(emptyList())
+    var userBadges = _userBadges.asStateFlow()
 
-    fun updateUser(): Flow<Map<String, Any>> = flow {
+    suspend fun getUserBadgesViewModel(): StateFlow<List<Badge>> {
+        try {
+            Log.i("getUserBadges", "est rentré dans getUserBadges")
+            val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+            val userId = userFirebase.getString("uid", "").toString()
+            Log.i("userId", userId.toString())
+
+            val snapshot = db.collection("users")
+                .document(userId)
+                .collection("badges")
+                .get()
+                .await()
+
+            val badgeIds = snapshot.documents.mapNotNull { it.getString("badgeId") }
+            Log.i("badgeIds", badgeIds.toString())
+
+            if (badgeIds.isNotEmpty()) {
+                // Récupérer les détails des badges correspondants
+                val badgeSnapshot = db.collection("badges")
+                    .whereIn("badgeId", badgeIds)
+                    .get()
+                    .await() // ⚠️ Attendre le résultat
+
+                val badges = badgeSnapshot.documents.map { doc ->
+                    Badge(
+                        badgeId = doc.id,
+                        name = doc.getString("name") ?: "",
+                        description = doc.getString("description") ?: "",
+                        iconUrl = doc.getString("iconUrl") ?: "",
+                        rarity = doc.getString("rarity") ?: "",
+                        color = doc.getString("color") ?: "#FFFFFF",
+                        unlockCriteria = doc.get("unlockCriteria") as? Map<String, Any> ?: emptyMap()
+                    )
+                }
+                Log.d("badgesUser", "Badges retrieved successfully: $badges")
+                _userBadges.value = badges
+            } else {
+                Log.d("badgesUser", "No badges found for user")
+                _userBadges.value = emptyList()
+            }
+
+        } catch (e: Exception) {
+            Log.e("DreamRepository", "Error getting user badges", e)
+            _userBadges.value = emptyList()
+        }
+        return userBadges
+    }
+
+    /**
+     * todo : PROBLÈME LA FONCTION NE RECUPÈRE AUCUN BADGES MEME SI ON N'EN AS
+     */
+
+    fun getUserBadges(): Flow<List<Badge>> = flow {
+        try {
+            val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+            val userId = userFirebase.getString("uid", "").toString()
+
+            // Récupérer les IDs des badges de l'utilisateur
+            val snapshot = db.collection("users")
+                .document(userId)
+                .collection("badges")
+                .get()
+                .await() // ⚠️ Attendre le résultat
+
+            val badgeIds = snapshot.documents.mapNotNull { it.getString("badgeId") }
+
+            if (badgeIds.isNotEmpty()) {
+                // Récupérer les détails des badges correspondants
+                val badgeSnapshot = db.collection("badges")
+                    .whereIn("badgeId", badgeIds)
+                    .get()
+                    .await() // ⚠️ Attendre le résultat
+
+                val badges = badgeSnapshot.documents.map { doc ->
+                    Badge(
+                        badgeId = doc.id,
+                        name = doc.getString("name") ?: "",
+                        description = doc.getString("description") ?: "",
+                        iconUrl = doc.getString("iconUrl") ?: "",
+                        rarity = doc.getString("rarity") ?: "",
+                        color = doc.getString("color") ?: "#FFFFFF",
+                        unlockCriteria = doc.get("unlockCriteria") as? Map<String, Any> ?: emptyMap()
+                    )
+                }
+                Log.d("badgesUser", "Badges retrieved successfully: $badges")
+                emit(badges)
+            } else {
+                emit(emptyList())
+            }
+
+        } catch (e: Exception) {
+            Log.e("DreamRepository", "Error getting user badges", e)
+            emit(emptyList())
+        }
+    }
+
+    fun getAllBadges(): Flow<List<Badge>> = flow {
+        try {
+            val snapshot = db.collection("badges").get().await()
+            val badges = snapshot.documents.map {
+                Badge(
+                    badgeId = it.id,
+                    name = it.getString("name") ?: "",
+                    description = it.getString("description") ?: "",
+                    iconUrl = it.getString("iconUrl") ?: "",
+                    rarity = it.getString("rarity") ?: "",
+                    color = it.getString("color") ?: "#FFFFFF",
+                    category = it.getString("category") ?: "",
+                    unlockCriteria = it.get("unlockCriteria") as? Map<String, Any> ?: emptyMap()
+                )
+            }
+            Log.d("allbadges", "Badges retrieved successfully: $badges")
+            emit(badges)
+        } catch (e: Exception) {
+            Log.e("DreamRepository", "Error getting badges", e)
+            emit(emptyList())
+        }
+    }
+
+    fun checkIfUserHaveNewBadge(badges: List<Badge>, user: User): Flow<List<Badge>> = flow {
+        Log.i("badges", user.toString())
+        var listBadges: List<Badge> = emptyList()
+        Log.i("badgeAtttennnd", user.dreamStats["totalDreams"].toString())
+        for (i in badges.indices) {
+            val dreamsAdded = badges[i].unlockCriteria["dreamsAdded"] as? Int ?: 0
+            val totalDreamsAdded = user.dreamStats["totalDreams"] as? Int ?: 0
+
+            if ((dreamsAdded == totalDreamsAdded) || (dreamsAdded <= totalDreamsAdded) || (dreamsAdded >= totalDreamsAdded)) {
+                Log.i("badgeOuaissss", badges[i].unlockCriteria["dreamsAdded"].toString())
+                listBadges += badges[i]
+            } else {
+                Log.i("badgeOuaissss", badges[i].unlockCriteria["dreamsAdded"].toString())
+                Log.i("badgeNonnn", badges[i].toString())
+                Log.i("badgeNonnn", (badges[i].unlockCriteria["dreamsAdded"] == user.dreamStats["totalDreams"]).toString())
+            }
+        }
+        emit(listBadges)
+    }
+
+    fun updateUserBadges(badges: List<Badge>, badgesUser: List<Badge>): Flow<List<Badge>> = flow {
+        Log.i("badges", badges.toString())
+        val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
+        val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+
+        val badgesUpdated = badgesUser.toMutableList()
+        val newBadges = mutableListOf<Map<String, Any>>()
+
+        for (badge in badges) {
+            if (badge !in badgesUser) {
+                badgesUpdated.add(badge)
+                newBadges.add(
+                    mapOf(
+                        "badgeName" to badge.name,
+                        "createdAt" to Timestamp.now()
+                    )
+                )
+            }
+        }
+        Log.i("badgesUpdated", badgesUpdated.toString())
+
+
+        val editor = sharedPreferences.edit()
+        val json = Gson().toJson(badgesUpdated)
+        editor.putString("badges", json)
+        editor.apply()
+
+        val userId = userFirebase.getString("uid", "").toString()
+        val userRef = db.collection("users").document(userId).collection("badges")
+
+        newBadges.forEach { badgeData ->
+            userRef.add(badgeData)
+        }
+
+        emit(badgesUpdated)
+    }
+
+
+    fun updateUser(dream: Dream): Flow<Map<String, Any>> = flow {
         Log.i("UpdateUser", "est rentré dans updateUser")
         val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
         val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
@@ -45,6 +226,8 @@ class DreamRepository(private val context: Context) {
         var rank = userObject.progression["rank"] as String
         val actualStreak = userObject.dreamStats["currentStreak"] as Int
         var longestStreak = userObject.dreamStats["longestStreak"] as Int
+        val nbLucidDream = if (dream.lucid == true) userObject.dreamStats["lucidDreams"] as Int + 1 else userObject.dreamStats["lucidDreams"] as Int
+        Log.i("nbLucidDream", nbLucidDream.toString())
 
         if (actualStreak >= 3) {
             xp += 100
@@ -89,17 +272,6 @@ class DreamRepository(private val context: Context) {
         if (actualStreak >= longestStreak) {
             longestStreak = actualStreak
         }
-        val listBadges = userObject.achievements["unlockedBadges"] as MutableList<String>
-
-        for (i in listBadges) {
-            if (currentStreak >= 30 && !listBadges.contains("30 jours consécutifs")) {
-                listBadges.add("30 jours consécutifs")
-            } else if (currentStreak >= 60 && !listBadges.contains("60 jours consécutifs")) {
-                listBadges.add("60 jours consécutifs")
-            } else if (currentStreak >= 90 && !listBadges.contains("90 jours consécutifs")) {
-                listBadges.add("90 jours consécutifs")
-            }
-        }
 
         Log.i("userObject", userObject.toString())
         userObject = userObject.copy(
@@ -126,7 +298,7 @@ class DreamRepository(private val context: Context) {
             dreamStats = mapOf(
                 "nightmares" to (userObject.dreamStats["nightmares"] ?: 0),
                 "totalDreams" to (userObject.dreamStats["totalDreams"] ?: 0) + 1,
-                "lucidDreams" to (userObject.dreamStats["lucidDreams"] ?: 0),
+                "lucidDreams" to nbLucidDream,
                 "longestStreak" to longestStreak,
                 "currentStreak" to currentStreak
             ),
@@ -135,10 +307,6 @@ class DreamRepository(private val context: Context) {
                 "xp" to xp,
                 "rank" to rank,
                 "xpNeeded" to xpNeeded
-            ),
-            achievements = mapOf(
-                "totalBadges" to (userObject.achievements["totalBadges"] ?: 0),
-                "unlockedBadges" to (userObject.achievements["unlockedBadges"] ?: listOf<String>())
             ),
             social = mapOf(
                 "followers" to (userObject.social["followers"] ?: 0),
@@ -150,6 +318,25 @@ class DreamRepository(private val context: Context) {
 
         // todo : remettre à jour les sharedpreferences avant de rediriger vers la page de succès
         // todo : comme ca on récupère les données à jour
+
+        val allBadges: List<Badge> = getAllBadges().toList().flatten()
+        val badgesUser: List<Badge> = getUserBadges().toList().flatten()
+        Log.i("badges", allBadges.toString())
+        Log.i("badgesUser", badgesUser.toString())
+
+        val newBadges: List<Badge> = checkIfUserHaveNewBadge(allBadges, userObject).toList().flatten()
+        Log.i("newBadges", newBadges.toString())
+
+        val updatedBadges: List<Badge> = updateUserBadges(newBadges, badgesUser).toList().flatten()
+        Log.i("updatedBadges", updatedBadges.toString())
+
+        // todo : mettre à jour les badges de l'utilisateur si il en a débloquer de nouveau
+
+        // todo : je parcours tout les badges et je vérifie le critère d'obtention s'il est validé je
+        // todo : le garde de côté, ensuite une fois que j'ai la liste des badges qu'il possède je
+        // todo : vérifie si l'utilisateur a déjà ou non ces badges et si non je les ajoute
+        // todo : voir si on peut pas par exemple proposer plusieurs niveau pour le même badge
+        // todo : genre un badge rare 7 jours d'affilé et un épique 30 jours d'affilé et donc remplacer le 7 jours par le 30 jours (à voir plus tard)
 
         val editor = sharedPreferences.edit()
         val json = gson.toJson(userObject)
@@ -173,7 +360,6 @@ class DreamRepository(private val context: Context) {
         dream: Dream,
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit,
-        navController: NavController
     ): Flow<DreamResponse> = flow {
         val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
 
@@ -217,7 +403,7 @@ class DreamRepository(private val context: Context) {
             coroutineScope {
                 Log.d("DreamRepository", "Updating user")
                     try {
-                        updateUser()
+                        updateUser(dream)
                             .collect { updatedUser ->
                                 Log.i("DreamRepository", updatedUser.toString())
                                 Log.d("DreamRepository", "Processing updated user")

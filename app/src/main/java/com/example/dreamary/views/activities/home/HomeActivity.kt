@@ -372,7 +372,6 @@ private fun LastTwoDreams(dreams: List<Dream>?){
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             dream.emotions.forEach { emotion ->
-                                if (emotion != ""){
                                     Card (
                                         modifier = Modifier
                                             .padding(8.dp),
@@ -386,7 +385,6 @@ private fun LastTwoDreams(dreams: List<Dream>?){
                                             modifier = Modifier.padding(8.dp),
                                         )
                                     }
-                                }
                             }
                         }
 

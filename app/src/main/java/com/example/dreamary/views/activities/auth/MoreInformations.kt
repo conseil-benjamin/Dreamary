@@ -97,10 +97,6 @@ fun createUser(email: String, fullName: String, username: String, bio: String, n
             "longestStreak" to 0,
             "currentStreak" to 0
         ),
-        achievements = mapOf(
-            "unlockedBadges" to listOf<String>(),
-            "totalBadges" to 0
-        ),
         progression = mapOf(
             "xpNeeded" to 1000,
             "level" to 1,
@@ -166,8 +162,6 @@ fun createUser(email: String, fullName: String, username: String, bio: String, n
                         putInt("lucidDreams", user.dreamStats["lucidDreams"] as Int)
                         putInt("longestStreak", user.dreamStats["longestStreak"] as Int)
                         putInt("currentStreak", user.dreamStats["currentStreak"] as Int)
-                        putStringSet("unlockedBadges", (user.achievements["unlockedBadges"] as List<String>).toSet())
-                        putInt("totalBadges", user.achievements["totalBadges"] as Int)
                         putInt("xpNeeded", user.progression["xpNeeded"] as Int)
                         putInt("level", user.progression["level"] as Int)
                         putInt("xp", user.progression["xp"] as Int)

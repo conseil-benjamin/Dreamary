@@ -32,6 +32,7 @@ import com.example.dreamary.views.activities.auth.MoreInformations
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
 import com.example.dreamary.views.activities.onboardingScreen.OnboardingScreen
+import com.example.dreamary.views.activities.profile.AllBadges
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -126,9 +127,7 @@ fun NavigationManager() {
             RegisterActivity(navController = navController)
         }
         composable(NavRoutes.Profile.route) {
-            ProfileActivity(
-                onNavigateBack = { navController.popBackStack() }
-            )
+            ProfileActivity(navController = navController)
         }
         composable(NavRoutes.AddDream.route) {
             AddDreamActivity(navController = navController)
@@ -187,5 +186,8 @@ fun NavigationManager() {
 //        composable(NavRoutes.SplashScreen.route) {
 //            SplashScreen()
 //        }
+        composable(NavRoutes.AllBadges.route){
+            AllBadges()
+        }
     }
 }
