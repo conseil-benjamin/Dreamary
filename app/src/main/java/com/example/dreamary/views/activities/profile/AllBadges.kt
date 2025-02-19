@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -31,8 +32,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import java.util.Locale
 
 // Data classes
@@ -58,59 +61,84 @@ enum class Rarity(val color: Color, val textColor: Color) {
     LEGENDARY(Color.Yellow, Color.Yellow)
 }
 
+// todo : essayer pour le composant Rarity de le mettre en bottom du scaffold pour qu'il soit toujours visible
+
 @Composable
 fun HeaderPage(
     badges: Map<String, List<com.example.dreamary.views.activities.profile.Badge>>
 ) {
-    Text(
-        text = "Collection de Badges",
-        fontSize = 24.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(bottom = 16.dp)
-    )
-
-    // Total Progress
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(bottom = 24.dp)
+    Column (
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
     ) {
-        Icon(
-            imageVector = Icons.Default.Star,
-            contentDescription = null,
-            tint = Color.Yellow,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "${
-                badges.values.flatten().count { it.unlocked }
-            } / ${badges.values.flatten().size}",
-            fontSize = 18.sp
+            text = "Collection de Badges",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(bottom = 16.dp)
         )
+
+        // Total Progress
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .padding(bottom = 24.dp)
+                .fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = Color.Yellow,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "${
+                    badges.values.flatten().count { it.unlocked }
+                } / ${badges.values.flatten().size}",
+                fontSize = 18.sp
+            )
+        }
     }
+
 }
 
 @Composable
 fun GridBadges(
-    badges: Map<String, List<com.example.dreamary.views.activities.profile.Badge>> = mapOf(),
-    selectedCategory: String = "all"
-){
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 160.dp),
-        contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    badges: Map<String, List<Badge>>,
+    selectedCategory: String
+) {
+    val filteredBadges = badges[selectedCategory] ?: emptyList()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(450.dp) // ✅ Fixe une hauteur pour éviter le conflit avec LazyColumn
     ) {
-        items(badges.entries.filter {
-            selectedCategory == "all" || it.key == selectedCategory
-        }.flatMap { it.value }) { badge ->
-            BadgeCard(badge = badge)
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 160.dp),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(badges.entries.filter {
+                selectedCategory == "all" || it.key == selectedCategory
+            }.flatMap { it.value }) { badge ->
+                BadgeCard(badge = badge)
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllBadges(
+    navController : NavController,
     viewModel: AllBadgesVIewModel = viewModel(
         factory = AllBadgesViewModelFactory (DreamRepository(LocalContext.current))
     )
@@ -149,7 +177,23 @@ fun AllBadges(
         )
     )
 
-    Scaffold{ paddingValues ->
+    Scaffold (
+        topBar = {
+            TopAppBar(
+                title = { Text("Collections de badges") },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        navController.popBackStack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Retour"
+                        )
+                    }
+                }
+            )
+        }
+    ){ paddingValues ->
             LazyColumn(
                 contentPadding = paddingValues,
                 verticalArrangement = Arrangement.spacedBy(10.dp),

@@ -10,7 +10,7 @@ data class Dream(
     val title: String = "",
     val content: String = "",
     val dreamType: String = "",
-    val lucid: Boolean = false,
+    var lucid: Boolean = false,
     val isShared: Boolean = false,
     val analysis: String = "",
     val emotions: List<String> = emptyList(),

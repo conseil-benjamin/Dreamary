@@ -497,7 +497,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background),
                 topBar = {
-                    Topbar(navController, viewModel, coroutineScope, dream, savingInProgress)
+                    Topbar(navController, viewModel, coroutineScope, dream, savingInProgress, dreamTypeChoose)
                 }
             ) { paddingValues ->
                 if (savingInProgress.value) {
@@ -679,8 +679,9 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 }
 
 @Composable
-fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutineScope: CoroutineScope, dream: Dream, savingInProgress: MutableState<Boolean>) {
+fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutineScope: CoroutineScope, dream: Dream, savingInProgress: MutableState<Boolean>, dreamTypeChoose: MutableState<String>) {
     var showConfirmLeave by remember { mutableStateOf(false) }
+    dream.lucid = dreamTypeChoose.value == "Lucide"
 
     Row (
         verticalAlignment = Alignment.CenterVertically,

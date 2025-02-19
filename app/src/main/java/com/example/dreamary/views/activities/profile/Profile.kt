@@ -493,7 +493,7 @@ private fun BadgesSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                badges.forEach { badge ->
+                badges.take(3).forEach { badge ->
                     BadgeItem(
                         icon = badge.iconUrl,
                         name = badge.name,
@@ -532,7 +532,6 @@ private fun BadgeItem(
                 AsyncImage(
                     model = icon,
                     contentDescription = null,
-                    colorFilter = ColorFilter.tint(contentColor)
                 )
             }
         }

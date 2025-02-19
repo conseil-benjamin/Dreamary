@@ -46,15 +46,16 @@ class DreamRepository(private val context: Context) {
                 .get()
                 .await()
 
-            val badgeIds = snapshot.documents.mapNotNull { it.getString("badgeId") }
+            Log.i("snapshot", snapshot.documents.toString())
+            val badgeIds = snapshot.documents.mapNotNull { it.getString("badgeName") }
             Log.i("badgeIds", badgeIds.toString())
 
             if (badgeIds.isNotEmpty()) {
                 // Récupérer les détails des badges correspondants
                 val badgeSnapshot = db.collection("badges")
-                    .whereIn("badgeId", badgeIds)
+                    .whereIn("name", badgeIds)
                     .get()
-                    .await() // ⚠️ Attendre le résultat
+                    .await()
 
                 val badges = badgeSnapshot.documents.map { doc ->
                     Badge(
@@ -159,11 +160,15 @@ class DreamRepository(private val context: Context) {
         for (i in badges.indices) {
             val dreamsAdded = badges[i].unlockCriteria["dreamsAdded"] as? Int ?: 0
             val totalDreamsAdded = user.dreamStats["totalDreams"] as? Int ?: 0
+            val criteriaLucid = badges[i].unlockCriteria["lucidDreams"] as? Int ?: 0
 
-            if ((dreamsAdded == totalDreamsAdded) || (dreamsAdded <= totalDreamsAdded) || (dreamsAdded >= totalDreamsAdded)) {
+            if ((dreamsAdded == totalDreamsAdded) || (dreamsAdded <= totalDreamsAdded)) {
                 Log.i("badgeOuaissss", badges[i].unlockCriteria["dreamsAdded"].toString())
                 listBadges += badges[i]
-            } else {
+            } else if (criteriaLucid == user.dreamStats["lucidDreams"]){
+                listBadges += badges[i]
+            }
+            else {
                 Log.i("badgeOuaissss", badges[i].unlockCriteria["dreamsAdded"].toString())
                 Log.i("badgeNonnn", badges[i].toString())
                 Log.i("badgeNonnn", (badges[i].unlockCriteria["dreamsAdded"] == user.dreamStats["totalDreams"]).toString())
@@ -318,6 +323,8 @@ class DreamRepository(private val context: Context) {
 
         // todo : remettre à jour les sharedpreferences avant de rediriger vers la page de succès
         // todo : comme ca on récupère les données à jour
+
+        // todo : ajouter de l'xp à l'utilisateur pour chaque nouveau badge gagné
 
         val allBadges: List<Badge> = getAllBadges().toList().flatten()
         val badgesUser: List<Badge> = getUserBadges().toList().flatten()

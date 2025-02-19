@@ -187,7 +187,9 @@ fun NavigationManager() {
 //            SplashScreen()
 //        }
         composable(NavRoutes.AllBadges.route){
-            AllBadges()
+            AllBadges(
+                navController = navController
+            )
         }
     }
 }
