@@ -1,5 +1,6 @@
 package com.example.dreamary.views.activities.profile
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,6 +37,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.dreamary.models.entities.Badge
+import com.example.dreamary.views.components.BottomNavigation
+import com.example.dreamary.views.components.Loading
 import java.util.Locale
 
 // Data classes
@@ -45,15 +49,6 @@ data class Category(
     val icon: ImageVector
 )
 
-data class Badge(
-    val id: Int,
-    val name: String,
-    val rarity: Rarity,
-    val unlocked: Boolean,
-    val progress: Int,
-    val xp: Int
-)
-
 enum class Rarity(val color: Color, val textColor: Color) {
     COMMON(Color.Gray, Color.Gray),
     RARE(Color.Blue, Color.Blue),
@@ -61,11 +56,9 @@ enum class Rarity(val color: Color, val textColor: Color) {
     LEGENDARY(Color.Yellow, Color.Yellow)
 }
 
-// todo : essayer pour le composant Rarity de le mettre en bottom du scaffold pour qu'il soit toujours visible
-
 @Composable
 fun HeaderPage(
-    badges: Map<String, List<com.example.dreamary.views.activities.profile.Badge>>
+    badges: Map<String, List<Badge>>
 ) {
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -97,12 +90,12 @@ fun HeaderPage(
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "${
-                    badges.values.flatten().count { it.unlocked }
-                } / ${badges.values.flatten().size}",
-                fontSize = 18.sp
-            )
+//            Text(
+//                text = "${
+//                    badges.values.flatten().count { it.unlocked }
+//                } / ${badges.values.flatten().size}",
+//                fontSize = 18.sp
+//            )
         }
     }
 
@@ -143,11 +136,15 @@ fun AllBadges(
         factory = AllBadgesViewModelFactory (DreamRepository(LocalContext.current))
     )
 ) {
-    //val userBadges by viewModel.userBadges.collectAsState()
-//
-//    LaunchedEffect(Unit) {
-//        viewModel.getUserBadges()
-//    }
+    val userBadges by viewModel.userBadges.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.getUserBadges()
+    }
+
+    LaunchedEffect(userBadges) {
+        Log.i("allBadges", userBadges.toString())
+    }
 
     var selectedCategory by remember { mutableStateOf("all") }
 
@@ -156,25 +153,6 @@ fun AllBadges(
         Category("regularity", "Régularité", Icons.Default.DateRange),
         Category("volume", "Volume", Icons.Default.Star),
         Category("exploration", "Exploration", Icons.Default.Star)
-    )
-
-    val badges = mapOf(
-        "regularity" to listOf(
-            Badge(1, "Premier Pas", Rarity.COMMON, true, 100, 50),
-            Badge(2, "Rêveur Régulier", Rarity.RARE, true, 100, 100),
-            Badge(3, "Maître du Journal", Rarity.EPIC, false, 60, 200),
-            Badge(4, "Gardien des Songes", Rarity.LEGENDARY, false, 25, 500)
-        ),
-        "volume" to listOf(
-            Badge(5, "Collectionneur", Rarity.COMMON, true, 100, 50),
-            Badge(6, "Bibliothécaire", Rarity.RARE, false, 75, 150),
-            Badge(7, "Chroniqueur", Rarity.EPIC, false, 45, 300)
-        ),
-        "exploration" to listOf(
-            Badge(8, "Explorateur Lucide", Rarity.RARE, true, 100, 100),
-            Badge(9, "Maître Lucide", Rarity.EPIC, false, 40, 250),
-            Badge(10, "Tisseur d'Histoires", Rarity.LEGENDARY, false, 20, 500)
-        )
     )
 
     Scaffold (
@@ -192,15 +170,22 @@ fun AllBadges(
                     }
                 }
             )
+        },
+        bottomBar =  {
+            RarityLegend()
         }
     ){ paddingValues ->
+        if (userBadges.isEmpty()) {
+            Loading()
+            return@Scaffold
+        }
             LazyColumn(
                 contentPadding = paddingValues,
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 item {
                     HeaderPage(
-                        badges = badges
+                        badges = userBadges as Map<String, List<Badge>>
                     )
                 }
 
@@ -214,13 +199,9 @@ fun AllBadges(
 
                 item {
                     GridBadges(
-                        badges = badges,
+                        badges = userBadges as Map<String, List<Badge>>,
                         selectedCategory = selectedCategory
                     )
-                }
-
-                item {
-                    RarityLegend()
                 }
             }
         }
@@ -263,19 +244,19 @@ fun CategoryFilters(
 }
 
 @Composable
-fun BadgeCard(badge: com.example.dreamary.views.activities.profile.Badge) {
-    val scale by animateFloatAsState(if (badge.unlocked) 1f else 0.95f)
+fun BadgeCard(badge: Badge) {
+    val scale by animateFloatAsState(if (badge.color == "violet") 1f else 0.95f)
 
     Card(
         modifier = Modifier
             .scale(scale)
             .border(
                 width = 2.dp,
-                color = if (badge.unlocked) badge.rarity.color else Color.Gray.copy(alpha = 0.2f),
+                color = (if (badge.color == "violet") badge.color else Color.Gray.copy(alpha = 0.2f)) as Color,
                 shape = RoundedCornerShape(8.dp)
             )
             .clickable { }
-            .alpha(if (badge.unlocked) 1f else 0.6f),
+            .alpha(if (badge.color == "violet") 1f else 0.6f),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -286,8 +267,8 @@ fun BadgeCard(badge: com.example.dreamary.views.activities.profile.Badge) {
             Box(
                 modifier = Modifier
                     .size(64.dp)
-                    .clip(CircleShape)
-                    .background(if (badge.unlocked) badge.rarity.color else Color.Gray.copy(alpha = 0.2f)),
+                    .clip(CircleShape),
+                    //.background(if (badge.color == "violet") badge.color else Color.Gray.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -307,37 +288,37 @@ fun BadgeCard(badge: com.example.dreamary.views.activities.profile.Badge) {
                 fontSize = 16.sp
             )
 
-            // XP Reward
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = null,
-                    tint = Color.Yellow,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "${badge.xp} XP", fontSize = 14.sp)
-            }
+//            // XP Reward
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically,
+//                modifier = Modifier.padding(vertical = 8.dp)
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Default.Star,
+//                    contentDescription = null,
+//                    tint = Color.Yellow,
+//                    modifier = Modifier.size(16.dp)
+//                )
+//                Spacer(modifier = Modifier.width(4.dp))
+//                Text(text = "${badge.xp} XP", fontSize = 14.sp)
+//            }
+//
+//            // Progress Bar
+//            LinearProgressIndicator(
+//                progress = badge.progress / 100f,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(8.dp)
+//                    .clip(RoundedCornerShape(4.dp)),
+//                color = if (badge.unlocked) badge.rarity.color else Color.Gray
+//            )
 
-            // Progress Bar
-            LinearProgressIndicator(
-                progress = badge.progress / 100f,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                color = if (badge.unlocked) badge.rarity.color else Color.Gray
-            )
-
-            Text(
-                text = "${badge.progress}% accompli",
-                fontSize = 12.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+//            Text(
+//                text = "${badge.progress}% accompli",
+//                fontSize = 12.sp,
+//                color = Color.Gray,
+//                modifier = Modifier.padding(top = 4.dp)
+//            )
         }
     }
 }
@@ -347,7 +328,8 @@ fun RarityLegend() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 24.dp),
+            .height(50.dp)
+            .background(MaterialTheme.colorScheme.surface),
         horizontalArrangement = Arrangement.Center
     ) {
         Rarity.entries.forEach { rarity ->

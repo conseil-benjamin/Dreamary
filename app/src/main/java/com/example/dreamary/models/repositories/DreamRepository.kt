@@ -3,7 +3,6 @@ package com.example.dreamary.models.repositories
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.navigation.NavController
 import com.example.dreamary.models.entities.Badge
 import com.example.dreamary.models.entities.Dream
 import com.example.dreamary.models.entities.Tag
@@ -83,7 +82,7 @@ class DreamRepository(private val context: Context) {
     }
 
     /**
-     * todo : PROBLÈME LA FONCTION NE RECUPÈRE AUCUN BADGES MEME SI ON N'EN AS
+     * todo : essayer avec un utilisateur qui n'a pas de collections badge encore
      */
 
     fun getUserBadges(): Flow<List<Badge>> = flow {
@@ -214,6 +213,34 @@ class DreamRepository(private val context: Context) {
         emit(badgesUpdated)
     }
 
+    fun updateProgressionBadges(allBadges: List<Badge>, badgesUser: List<Badge>){
+        // todo : avoir également des badges qui ont une visibilité à false pour plus de fun
+        // todo : faire en sorte d'avoir un attribut unlocked et non unlocked pour les badges
+        // todo : le but est de mettre à jour les badges de l'utilisateur en fonction de sa progression
+        // todo:  par exemple on prend le premier badge de la liste de tous les badges et on vérifie à
+        // todo : à quel point l'utilisateur est avancé
+        // todo : par exemple avec le badge "Enregistrer 5 cauchemars" on va vérifier
+
+        // todo : donc la on doit remettre à jour les badges user qu'on à auparavant déjà mis à jour
+        // todo : avec cette fois ci les données lié à la progression
+
+        for (i in allBadges.indices){
+            val badge = allBadges[i]
+            if (badge.visibility == true){
+                // todo : on met à jour la progression
+
+            }
+
+            val badgeUser = badgesUser[i]
+            val progression = badge.progression
+            val progressionUser = badgeUser.progression
+
+            if (progressionUser != progression){
+                // todo : on met à jour les badges de l'utilisateur
+            }
+        }
+    }
+
 
     fun updateUser(dream: Dream): Flow<Map<String, Any>> = flow {
         Log.i("UpdateUser", "est rentré dans updateUser")
@@ -336,6 +363,9 @@ class DreamRepository(private val context: Context) {
 
         val updatedBadges: List<Badge> = updateUserBadges(newBadges, badgesUser).toList().flatten()
         Log.i("updatedBadges", updatedBadges.toString())
+
+        val updatedProgressionBadges = updateProgressionBadges(allBadges, badgesUser)
+        Log.i("updatedBadgesProgression", updatedProgressionBadges.toString())
 
         // todo : mettre à jour les badges de l'utilisateur si il en a débloquer de nouveau
 

@@ -1,7 +1,5 @@
 package com.example.dreamary.models.entities
 
-import androidx.compose.ui.graphics.Color
-
 data class Badge(
     val badgeId: String = "",
     val name: String = "",
@@ -10,5 +8,8 @@ data class Badge(
     val rarity: String = "",
     val category: String = "",
     val color: String = "",
-    val unlockCriteria: Map<String, Any> = emptyMap()
+    val unlockCriteria: Map<String, Any> = emptyMap(),
+    val progression: Map<String, Any> = emptyMap(),
+    val unlocked: Boolean = false,
+    val visibility: Boolean = true
 )

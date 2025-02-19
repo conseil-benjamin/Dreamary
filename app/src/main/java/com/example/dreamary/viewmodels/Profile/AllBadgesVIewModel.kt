@@ -14,7 +14,7 @@ class AllBadgesVIewModel(private val dreamRepository: DreamRepository) : ViewMod
 
     fun getUserBadges() {
         viewModelScope.launch{
-            dreamRepository.getUserBadges().collect { user ->
+            dreamRepository.getUserBadgesViewModel().collect { user ->
                 _userBadges.value = user
             }
         }

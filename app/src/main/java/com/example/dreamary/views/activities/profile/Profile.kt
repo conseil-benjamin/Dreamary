@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -18,9 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -462,9 +465,6 @@ private fun BadgesSection(
     navController: NavController
     ) {
 
-    // todo : dans la liste des badges gagnés par l'utilisateur remplacé
-    // todo : le nom du badge actuellement par un id d'un objet badge pour plus
-    // todo : personnalisé l'affichage des badges avec des raretés, couleurs et images différentes
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -474,33 +474,51 @@ private fun BadgesSection(
         tonalElevation = 1.dp
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp)
         ) {
-            Row (
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if(badges.isEmpty()) {
                 Text(
                     text = "Badges",
+                    textAlign = TextAlign.Start,
                     style = MaterialTheme.typography.titleMedium,
                 )
-                TextButton(onClick = { navController.navigate(NavRoutes.AllBadges.route) }) {
-                    Text("Voir tout")
-                }
-            }
-            FlowRow (
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                badges.take(3).forEach { badge ->
-                    BadgeItem(
-                        icon = badge.iconUrl,
-                        name = badge.name,
-                        rarity = badge.rarity,
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.primary
+                Column (
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = "Aucun badge pour le moment",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(top = 16.dp)
                     )
+                }
+            } else {
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Badges",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    TextButton(onClick = { navController.navigate(NavRoutes.AllBadges.route) }) {
+                        Text("Voir tout")
+                    }
+                }
+                FlowRow (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    badges.take(3).forEach { badge ->
+                        BadgeItem(
+                            icon = badge.iconUrl,
+                            name = badge.name,
+                            rarity = badge.rarity,
+                            //colorBadge = badge.color
+                        )
+                    }
                 }
             }
         }
@@ -509,11 +527,10 @@ private fun BadgesSection(
 
 @Composable
 private fun BadgeItem(
+   //colorBadge: Int,
     icon: String,
     name: String,
     rarity: String,
-    containerColor: Color,
-    contentColor: Color,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -523,7 +540,7 @@ private fun BadgeItem(
         Surface(
             modifier = Modifier.size(48.dp),
             shape = CircleShape,
-            color = containerColor
+            //color = Color(colorBadge)
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -532,6 +549,8 @@ private fun BadgeItem(
                 AsyncImage(
                     model = icon,
                     contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(24.dp),
                 )
             }
         }

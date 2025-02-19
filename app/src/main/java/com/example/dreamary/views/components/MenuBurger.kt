@@ -44,10 +44,7 @@ fun MenuBurgerScreen(
 ) {
     val auth = Firebase.auth
     val context = LocalContext.current
-
     val user = auth.currentUser
-    val userLevel = context.getSharedPreferences("user", 0).getInt("level", 1)
-    val rank = context.getSharedPreferences("user", 0).getString("rank", "Débutant(e)")
 
     Scaffold(
         topBar = {
@@ -78,7 +75,6 @@ fun MenuBurgerScreen(
                 ) {
                     UserInfoCard(
                         name = user?.displayName ?: "Unknown",
-                        email = "Niveau $userLevel - $rank",
                         onClick = { onNavigateToSection("profile") }
                     )
                 }

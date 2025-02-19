@@ -104,7 +104,6 @@ private fun AccountSection(modifier: Modifier = Modifier) {
     ) {
         UserInfoCard(
             name = user?.displayName ?: "Unknown",
-            email = user?.email ?: "Unknown",
             onClick = {}
         )
     }
@@ -282,7 +281,6 @@ public fun SettingItem(
 @Composable
 public fun UserInfoCard(
     name: String,
-    email: String,
     onClick: () -> Unit
 ) {
     Surface(
@@ -311,11 +309,6 @@ public fun UserInfoCard(
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = name)
-                Text(
-                    text = email,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,

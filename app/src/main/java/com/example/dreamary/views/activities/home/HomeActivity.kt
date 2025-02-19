@@ -2,15 +2,19 @@ package com.example.dreamary.views.activities.home
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,6 +22,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -26,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -33,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -54,13 +61,18 @@ import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.views.components.Loading
 import com.example.dreamary.models.entities.User
 import com.google.gson.Gson
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 private fun PreviewHomeActivity() {
     HomeActivity(navController = NavController(LocalContext.current))
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("RestrictedApi")
 @Composable
 fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewModel(
@@ -129,7 +141,7 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
             topBar = { TopNavigation(navController = navController) },
             snackbarHost = { CustomSnackbarHost(snackbarHostState) },
         ) { paddingValues ->
-            if (isLoading) {
+            if (isLoading || userState == null) {
                 Loading()
                 return@Scaffold
             }
@@ -163,6 +175,10 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
 private fun Stats(
     userState: User?
 ) {
+    val xp: Long = userState?.progression?.get("xp") as Long
+    val xpNeeded: Long = userState.progression["xpNeeded"] as Long
+    val progess = xp.toFloat() / xpNeeded.toFloat()
+
     Card (
         modifier = Modifier
             .fillMaxWidth()
@@ -177,7 +193,9 @@ private fun Stats(
                 .padding(16.dp),
         ) {
             Row (
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -216,8 +234,23 @@ private fun Stats(
                     }
                 }
             }
+                LinearProgressIndicator(
+                    progress = progess,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "XP: ${userState?.progression?.get("xp")} / ${userState?.progression?.get("xpNeeded")}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
-    }
 }
 
 fun isUserHasAcurrentStreak(user: User?, dreams: List<Dream>?): Boolean {
@@ -251,6 +284,7 @@ fun isUserHasAcurrentStreak(user: User?, dreams: List<Dream>?): Boolean {
     return false
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun LastTwoDreams(dreams: List<Dream>?){
     if (dreams.isNullOrEmpty()) {
@@ -302,9 +336,13 @@ private fun LastTwoDreams(dreams: List<Dream>?){
             }
         }
         dreams.forEach { dream ->
-            val timestamp = dream.metadata["createdAt"] as Timestamp;
+            val timestamp = dream.metadata["createdAt"] as Timestamp
             val date = timestamp.toDate()
-            val dateJourMoisAnnee = "${date.day}/${date.month}/${date.year}"
+            val localDate = timestamp.toDate().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+
+            val dateJourMoisAnnee = "${localDate.dayOfMonth}/${localDate.monthValue}/${localDate.year}"
 
             val cal1 = Calendar.getInstance().apply { time = date }
             Card(
@@ -371,7 +409,7 @@ private fun LastTwoDreams(dreams: List<Dream>?){
                         Row (
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            dream.emotions.forEach { emotion ->
+                            dream.emotions.take(2).forEach { emotion ->
                                     Card (
                                         modifier = Modifier
                                             .padding(8.dp),

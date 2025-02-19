@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -20,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.dreamary.R
+import com.example.dreamary.models.routes.NavRoutes
 
 @Preview(showBackground = true)
 @Composable
@@ -72,7 +72,7 @@ fun TopNavigation(navController: NavController) {
                 .size(24.dp)
         )
         Button(
-            onClick = { /*TODO*/ },
+            onClick = { navController.navigate(NavRoutes.Profile.route) },
             modifier = Modifier
                 .weight(1f)
                 .size(24.dp)
