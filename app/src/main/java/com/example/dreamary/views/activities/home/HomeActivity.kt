@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -44,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.dreamary.models.entities.Dream
 import com.example.dreamary.models.repositories.DreamRepository
 import com.example.dreamary.ui.theme.DreamaryTheme
@@ -61,9 +61,7 @@ import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.views.components.Loading
 import com.example.dreamary.models.entities.User
 import com.google.gson.Gson
-import java.time.LocalDate
 import java.time.ZoneId
-import java.util.Date
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
@@ -123,7 +121,7 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
     LaunchedEffect(dreams) {
         Log.i("dreamss", dreams.toString())
 
-        if (!dreams.isNullOrEmpty()) {
+        if (dreams.isNotEmpty()) {
             if (!isUserHasAcurrentStreak(userState, dreams) && userState?.dreamStats?.get("currentStreak") != 0) {
                 Log.i("HomeActivity", "L'utilisateur perd sa streak")
                 viewModel.updateUserStats(user?.uid.toString(), "currentStreak", 0, coroutineScope)
@@ -182,7 +180,7 @@ private fun Stats(
     Card (
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -208,14 +206,14 @@ private fun Stats(
                 Row (
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (userState?.dreamStats?.get("currentStreak") != 0){
-                        Icon(
-                            painter = painterResource(id = R.drawable.fire),
+                    if (userState.dreamStats["currentStreak"] != 0){
+                        AsyncImage(
+                            model ="https://cdn-icons-png.flaticon.com/512/785/785116.png",
                             contentDescription = "Streak icon",
                             modifier = Modifier.size(24.dp)
                         )
                         Text(
-                            text = "${userState?.dreamStats?.get("currentStreak")} jours de suite",
+                            text = "${userState.dreamStats["currentStreak"]} jours de suite",
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(start = 8.dp)
                         )
@@ -361,7 +359,7 @@ private fun LastTwoDreams(dreams: List<Dream>?){
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
-                            .padding(16.dp)
+                            .fillMaxWidth()
                     ) {
                         Text(
                             text = dream.title,
@@ -395,7 +393,12 @@ private fun LastTwoDreams(dreams: List<Dream>?){
                             }
                         }
                     }
-                    Row {
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    ) {
                         Text(
                             text = dream.content,
                             style = MaterialTheme.typography.bodySmall,
@@ -405,6 +408,8 @@ private fun LastTwoDreams(dreams: List<Dream>?){
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
                     ) {
                         Row (
                             verticalAlignment = Alignment.CenterVertically

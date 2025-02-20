@@ -176,16 +176,27 @@ class DreamRepository(private val context: Context) {
         emit(listBadges)
     }
 
-    fun updateUserBadges(badges: List<Badge>, badgesUser: List<Badge>): Flow<List<Badge>> = flow {
-        Log.i("badges", badges.toString())
+    fun updateUserBadges(newBadgesF: List<Badge>, badgesUser: List<Badge>): Flow<List<Badge>> = flow {
+        Log.i("badges", newBadgesF.toString())
         val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
         val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
 
         val badgesUpdated = badgesUser.toMutableList()
         val newBadges = mutableListOf<Map<String, Any>>()
 
-        for (badge in badges) {
-            if (badge !in badgesUser) {
+        // todo : marche pas ajoute tout le temps les badges en bdd alors qu'on les a déjà
+
+        
+        /** BADGES USER EST TOUT LE TEMPS VIDE DONC ON PEUT PAS VÉRIFIER SI L'UTILISATEUR A DÉJÀ OU NON
+         * DONC A CHAQUE FOIS CA FAIT COMME SI L'USER AVAIT AUCUN BADGE ET DONC LES AJOUTES
+         */
+
+        Log.i("badgesTest", badgesUpdated.toString())
+        Log.i("badgesTest", newBadgesF.toString())
+        Log.i("badgesTest", badgesUser.toString())
+        
+        for (badge in newBadgesF) {
+            if (badge.name !in badgesUser.map { it.name }) {
                 badgesUpdated.add(badge)
                 newBadges.add(
                     mapOf(
@@ -196,7 +207,7 @@ class DreamRepository(private val context: Context) {
             }
         }
         Log.i("badgesUpdated", badgesUpdated.toString())
-
+        Log.i("newBadges", newBadges.toString())
 
         val editor = sharedPreferences.edit()
         val json = Gson().toJson(badgesUpdated)
@@ -226,18 +237,12 @@ class DreamRepository(private val context: Context) {
 
         for (i in allBadges.indices){
             val badge = allBadges[i]
+            val objective = badge.unlockCriteria["objective"] as? Int ?: 0
             if (badge.visibility == true){
                 // todo : on met à jour la progression
-
             }
 
             val badgeUser = badgesUser[i]
-            val progression = badge.progression
-            val progressionUser = badgeUser.progression
-
-            if (progressionUser != progression){
-                // todo : on met à jour les badges de l'utilisateur
-            }
         }
     }
 
@@ -260,15 +265,20 @@ class DreamRepository(private val context: Context) {
         var longestStreak = userObject.dreamStats["longestStreak"] as Int
         val nbLucidDream = if (dream.lucid == true) userObject.dreamStats["lucidDreams"] as Int + 1 else userObject.dreamStats["lucidDreams"] as Int
         Log.i("nbLucidDream", nbLucidDream.toString())
+        var xpGained = 0
 
         if (actualStreak >= 3) {
             xp += 100
+            xpGained += 100
         } else {
             xp += 50
+            xpGained += 50
         }
+
 
         if (xp >= xpNeeded) {
             level += 1
+            xp -= xpNeeded
             xpNeeded += 200
         }
 
@@ -338,7 +348,8 @@ class DreamRepository(private val context: Context) {
                 "level" to level,
                 "xp" to xp,
                 "rank" to rank,
-                "xpNeeded" to xpNeeded
+                "xpNeeded" to xpNeeded,
+                "xpGained" to xpGained
             ),
             social = mapOf(
                 "followers" to (userObject.social["followers"] ?: 0),
@@ -364,8 +375,8 @@ class DreamRepository(private val context: Context) {
         val updatedBadges: List<Badge> = updateUserBadges(newBadges, badgesUser).toList().flatten()
         Log.i("updatedBadges", updatedBadges.toString())
 
-        val updatedProgressionBadges = updateProgressionBadges(allBadges, badgesUser)
-        Log.i("updatedBadgesProgression", updatedProgressionBadges.toString())
+        //val updatedProgressionBadges = updateProgressionBadges(allBadges, badgesUser)
+        //Log.i("updatedBadgesProgression", updatedProgressionBadges.toString())
 
         // todo : mettre à jour les badges de l'utilisateur si il en a débloquer de nouveau
 

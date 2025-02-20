@@ -1,13 +1,17 @@
 package com.example.dreamary.views.activities.Dreams
 
 import android.content.Context
+import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -79,6 +83,8 @@ fun TwoCardsStats(user: User) {
     val xp = (user.progression["xp"] as? Number)?.toFloat() ?: 0f
     val xpNeeded = (user.progression["xpNeeded"] as? Number)?.toFloat() ?: 1f
     val progress = xp / xpNeeded
+    val level = user.progression["level"] as? Number ?: 1
+    val xpGained = user.progression["xpGained"] as? Number ?: 0
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Card(
@@ -87,11 +93,64 @@ fun TwoCardsStats(user: User) {
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                ItemCardStat(title = "Série actuelle", subtitle = user.dreamStats["currentStreak"].toString(), icon = R.drawable.fire)
-                ItemCardStat(title = "Total de rêves", subtitle = user.dreamStats["totalDreams"].toString(), icon = R.drawable.lune)
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ){
+                    Column() {
+                        ItemCardStat(title = "Série actuelle", subtitle = user.dreamStats["currentStreak"].toString(), icon = R.drawable.fire)
+                        ItemCardStat(title = "Total de rêves", subtitle = user.dreamStats["totalDreams"].toString(), icon = R.drawable.lune)
+                    }
+                    Column() {
+                        Text(
+                            text = "XP gagnés",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Row (
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "+ ${xpGained.toInt()}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Row (
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .background(Color.Yellow)
+                                    .clip(CircleShape)
+                            ) {
+                                user.dreamStats["currentStreak"]?.let {
+                                    if (it >= 3) {
+                                        Text(
+                                            text = "x2",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        user.dreamStats["currentStreak"]?.let {
+                            if (it >= 3) {
+                                Text(
+                                    text = "Bonus streak !",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+
+                        Log.i("xpGained", user.toString())
+                        Log.i("xpGained", user.progression["xpGained"].toString())
+                    }
+                }
             }
         }
 
@@ -115,7 +174,7 @@ fun TwoCardsStats(user: User) {
                     Text(text = "Progression", style = MaterialTheme.typography.titleMedium)
                 }
                 Text(
-                    text = "Niveau ${user.progression["level"]}",
+                    text = "Niveau ${level.toInt()}",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 LinearProgressIndicator(
@@ -125,7 +184,7 @@ fun TwoCardsStats(user: User) {
                     trackColor = Color.LightGray
                 )
                 Text(
-                    text = "${user.progression["xp"]} / ${user.progression["xpNeeded"]} XP",
+                    text = "${xp.toInt()} / ${xpNeeded.toInt()} XP",
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.align(Alignment.End)
                 )
@@ -136,7 +195,9 @@ fun TwoCardsStats(user: User) {
 
 @Composable
 fun ItemCardStat(title: String, subtitle: String, icon: Int) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Icon(
             painter = painterResource(id = icon),
             contentDescription = null,

@@ -9,7 +9,8 @@ data class Badge(
     val category: String = "",
     val color: String = "",
     val unlockCriteria: Map<String, Any> = emptyMap(),
-    val progression: Map<String, Any> = emptyMap(),
+    val acutalProgression: Int = 0,
+    val objective: Int = 0,
     val unlocked: Boolean = false,
     val visibility: Boolean = true
 )

@@ -34,7 +34,8 @@ data class User(
         "xpNeeded" to 0,
         "level" to 1,
         "xp" to 0,
-        "rank" to ""
+        "rank" to "",
+        "xpGained" to 0
     ),
     val social: Map<String, Any> = mapOf(
         "groups" to listOf<String>(),

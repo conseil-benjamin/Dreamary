@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
@@ -103,13 +104,13 @@ fun BottomNavigation(navController: NavController) {
                 verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    tint = if (currentRoute == "addDream") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     painter = painterResource(id = R.drawable.plus),
                     contentDescription = "Home",
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(30.dp)
                         .clip(shape = CircleShape)
-                        .background(Color(0xFF3F51B5))
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             }
             Column(
