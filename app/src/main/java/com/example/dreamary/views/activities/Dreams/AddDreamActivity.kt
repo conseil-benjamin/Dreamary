@@ -20,14 +20,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -51,7 +49,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dreamary.models.entities.Dream
@@ -65,8 +62,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import android.Manifest
 import android.app.TimePickerDialog
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -82,13 +77,11 @@ import androidx.compose.material3.Slider
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import coil.request.Tags
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.dreamary.models.entities.Tag
@@ -159,21 +152,19 @@ private fun ConfirmDialog(
 fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel = viewModel(
     factory = AddDreamViewModelFactory (DreamRepository(LocalContext.current))
 )) {
-    val dreamTypeChoose = remember { mutableStateOf("Rêve") }
+    var dreamTypeChoose by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("")}
     var title by remember { mutableStateOf("")}
-    var date by remember { mutableStateOf("")}
     val currentUser = FirebaseAuth.getInstance().currentUser
     val pickedEmotions = remember { mutableStateListOf<String>() }
-    val pickedTags = remember { mutableStateListOf("") }
     var showPermissionDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     var dream by remember { mutableStateOf(Dream(
         title = title,
         content = content,
-        dreamType = dreamTypeChoose.value,
-        lucid = dreamTypeChoose.value == "Lucide",
+        dreamType = dreamTypeChoose,
+        lucid = dreamTypeChoose == "Lucide",
         isShared = false,
         analysis = "",
         emotions = pickedEmotions,
@@ -224,6 +215,13 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
             "divers" to listOf<String>()
         )
     ))
+    }
+
+    LaunchedEffect(dreamTypeChoose) {
+        Log.d("dreamTypeChoose", dreamTypeChoose)
+        dream = dream.copy(
+            dreamType = dreamTypeChoose
+        )
     }
 
     /**
@@ -347,10 +345,10 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     }
 
     var noiseLevel by remember {
-        mutableStateOf("")
+        mutableStateOf("Non renseigné")
     }
     var nbReveils by remember {
-        mutableStateOf("")
+        mutableStateOf("Non renseigné")
     }
     var temperature by remember {
         mutableIntStateOf(0)
@@ -375,6 +373,18 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         Log.d("dreamCopyAUDIO", dream.toString())
     }
 
+    var clarity by remember { mutableStateOf(0) }
+    var emotionalImpact by remember { mutableStateOf(0) }
+
+    LaunchedEffect(clarity, emotionalImpact) {
+        dream = dream.copy(
+            characteristics = dream.characteristics.toMutableMap().apply {
+                this["clarity"] = clarity
+                this["emotionalImpact"] = emotionalImpact
+            }
+            )
+    }
+
     LaunchedEffect(noiseLevel, nbReveils, temperature, time) {
         Log.d("dreamCopyCONTEXT", dream.toString())
         dream = dream.copy(
@@ -392,16 +402,16 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     }
 
     var selectedType by remember {
-        mutableStateOf("")
+        mutableStateOf("Non renseigné")
     }
     var selectedSeason by remember {
-        mutableStateOf("")
+        mutableStateOf("Non renseigné")
     }
     var selectedWeather by remember {
-        mutableStateOf("")
+        mutableStateOf("Non renseigné")
     }
     var selectedColors by remember {
-        mutableStateOf("")
+        mutableStateOf("Non renseigné")
     }
 
     LaunchedEffect(selectedType, selectedSeason, selectedWeather, selectedColors) {
@@ -526,7 +536,8 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 
                     item {
                         DreamType(
-                            dreamTypeChoose = dreamTypeChoose
+                            dreamTypeChoose = dreamTypeChoose,
+                            onDreamTypeChanged = { dreamTypeChoose = it }
                         )
                     }
 
@@ -613,7 +624,12 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                     }
 
                     item {
-                        Features()
+                        Features(
+                            clarity = clarity,
+                            onClarityChanged = {clarity = it},
+                            emotionalImpact = emotionalImpact,
+                            onEmotionalImpactChanged = {emotionalImpact = it}
+                        )
                     }
                     item {
                         Environment(
@@ -679,9 +695,9 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 }
 
 @Composable
-fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutineScope: CoroutineScope, dream: Dream, savingInProgress: MutableState<Boolean>, dreamTypeChoose: MutableState<String>) {
+fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutineScope: CoroutineScope, dream: Dream, savingInProgress: MutableState<Boolean>, dreamTypeChoose: String) {
     var showConfirmLeave by remember { mutableStateOf(false) }
-    dream.lucid = dreamTypeChoose.value == "Lucide"
+    dream.lucid = dreamTypeChoose == "Lucide"
 
     Row (
         verticalAlignment = Alignment.CenterVertically,
@@ -885,7 +901,8 @@ fun ContextSleep (
 
 @Composable
 fun DreamType (
-    dreamTypeChoose: MutableState<String>
+    dreamTypeChoose: String,
+    onDreamTypeChanged: (String) -> Unit
 ) {
 
     TitleSection(
@@ -897,17 +914,20 @@ fun DreamType (
          ItemDreamType(
             icon = R.drawable.lune,
             text = "Rêve",
-             dreamTypeChoose = dreamTypeChoose
+            dreamTypeChoose = dreamTypeChoose,
+            onDreamTypeChanged = { onDreamTypeChanged("Rêve") }
         )
         ItemDreamType(
             icon = R.drawable.etoile,
             text = "Lucide",
-            dreamTypeChoose = dreamTypeChoose
+            dreamTypeChoose = dreamTypeChoose,
+            onDreamTypeChanged = { onDreamTypeChanged("Lucide") }
         )
         ItemDreamType(
             icon = R.drawable.cauchemar,
             text = "Cauchemar",
-            dreamTypeChoose = dreamTypeChoose
+            dreamTypeChoose = dreamTypeChoose,
+            onDreamTypeChanged = { onDreamTypeChanged("Cauchemar") }
         )
     }
 }
@@ -916,17 +936,18 @@ fun DreamType (
 fun ItemDreamType (
     icon: Int,
     text: String,
-    dreamTypeChoose: MutableState<String>
+    dreamTypeChoose: String,
+    onDreamTypeChanged: () -> Unit
 ) {
     Button (
         onClick = {
-            dreamTypeChoose.value = text
+            onDreamTypeChanged()
         },
         modifier = Modifier
             .padding(16.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if(dreamTypeChoose.value == text) Color(0xFFeff2fe) else MaterialTheme.colorScheme.surface,
-            contentColor = if (dreamTypeChoose.value == text) Color(0xFF555393) else MaterialTheme.colorScheme.onSurface,
+            containerColor = if(dreamTypeChoose == text) Color(0xFFeff2fe) else MaterialTheme.colorScheme.surface,
+            contentColor = if (dreamTypeChoose == text) Color(0xFF555393) else MaterialTheme.colorScheme.onSurface,
         ),
     ) {
         Column (
@@ -1366,13 +1387,46 @@ fun Tags(
 
 
 @Composable
-fun Features  () {
+fun Features  (
+    clarity: Int,
+    onClarityChanged: (Int) -> Unit,
+    emotionalImpact: Int,
+    onEmotionalImpactChanged: (Int) -> Unit
+
+    ) {
     TitleSection(stringResource(id = R.string.AddDream_characteristics_label), R.drawable.features)
 
-    Row {
-        Text(
-            text = "Clarté du souvenir"
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Column {
+            Text(
+                text = "Clarté du souvenir"
+            )
+            Slider(
+                value = clarity.toFloat(),
+                onValueChange = { newClarity ->
+                    onClarityChanged(newClarity.toInt())
+                },
+                valueRange = 1f..5f,
+                steps = 0
+            )
+        }
+        Column {
+            Text(
+                text = "Impact émotionnel"
+            )
+            Slider(
+                value = emotionalImpact.toFloat(),
+                onValueChange = { newImpact ->
+                    onEmotionalImpactChanged(newImpact.toInt())
+                },
+                valueRange = 1f..5f,
+                steps = 0
+            )
+        }
     }
 }
 

@@ -6,7 +6,7 @@ import com.google.firebase.Timestamp
 import java.util.Date
 
 data class Dream(
-    val id: String = "",
+    var id: String = "",
     val title: String = "",
     val content: String = "",
     val dreamType: String = "",
@@ -65,11 +65,11 @@ data class Dream(
         "similarDreams" to listOf<String>()
     ),
 
-    var tags: Map<String, Any> = mapOf(
-        "symbols" to listOf<String>(),
-        "themes" to listOf<String>(),
-        "characters" to listOf<String>(),
-        "places" to listOf<String>(),
-        "divers" to listOf<String>()
-    ),
+    var tags: Map<String, List<String>> = mapOf(
+        "symbols" to listOf(),
+        "themes" to listOf(),
+        "characters" to listOf(),
+        "places" to listOf(),
+        "divers" to listOf()
+    )
 )

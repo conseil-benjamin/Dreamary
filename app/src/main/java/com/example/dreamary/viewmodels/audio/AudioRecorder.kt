@@ -82,6 +82,29 @@ class AudioRecorder(private val context: Context) {
         }
     }
 
+    fun playAudioFromFirebase(url: String, onReady: (Boolean) -> Unit) {
+        try {
+            val mediaPlayer = MediaPlayer().apply {
+                setDataSource(url)
+                prepareAsync()
+
+                setOnPreparedListener {
+                    start()
+                    onReady(true) // Audio prêt
+                }
+
+                setOnCompletionListener {
+                    release()
+                    onReady(false) // Audio terminé
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("AudioRecorder", "Error playing audio", e)
+            onReady(false) // En cas d'erreur
+        }
+    }
+
+
     fun deleteAudio() {
         val file = File(currentFilePath)
         if (file.exists()) {

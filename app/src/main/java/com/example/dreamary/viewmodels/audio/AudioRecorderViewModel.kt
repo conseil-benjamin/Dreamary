@@ -26,6 +26,9 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
 
     private var durationJob: Job? = null
 
+    private val _isPlaying = MutableStateFlow(false)
+    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
+
     fun isMediaPlayerReleased() = audioRecorder.isMediaPlayerReleased()
 
     fun startRecording() {
@@ -62,6 +65,12 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
         }
     }
 
+    fun playAudioFromFirebase(url: String) {
+        audioRecorder.playAudioFromFirebase(url) { isPlaying ->
+            _isPlaying.value = isPlaying
+        }
+    }
+
     fun deleteAudio() {
         viewModelScope.launch {
             try {
@@ -92,7 +101,6 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
         viewModelScope.launch {
             try {
                 audioRecorder.resumeRecording()
-                // Redémarrer le compteur de durée
                 startDurationCounter()
                 _isRecording.value = true
             } catch (e: Exception) {

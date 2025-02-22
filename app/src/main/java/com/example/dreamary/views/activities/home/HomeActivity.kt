@@ -36,7 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -60,6 +62,7 @@ import com.example.dreamary.R
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.views.components.Loading
 import com.example.dreamary.models.entities.User
+import com.example.dreamary.models.routes.NavRoutes
 import com.google.gson.Gson
 import java.time.ZoneId
 
@@ -159,7 +162,8 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
                     }
                     item{
                         LastTwoDreams(
-                            dreams
+                            dreams,
+                            navController
                         )
                     }
                 }
@@ -284,7 +288,9 @@ fun isUserHasAcurrentStreak(user: User?, dreams: List<Dream>?): Boolean {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun LastTwoDreams(dreams: List<Dream>?){
+private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
+    val haptic = LocalHapticFeedback.current
+
     if (dreams.isNullOrEmpty()) {
         return
     }
@@ -350,6 +356,10 @@ private fun LastTwoDreams(dreams: List<Dream>?){
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    navController.navigate(NavRoutes.DreamDetail.createRoute(dream.id))
+                }
             ) {
                 Column(
                     modifier = Modifier

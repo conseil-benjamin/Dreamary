@@ -32,6 +32,9 @@ class DreamRepository(private val context: Context) {
     private val _userBadges = MutableStateFlow<List<Badge>>(emptyList())
     var userBadges = _userBadges.asStateFlow()
 
+    private val _dream = MutableStateFlow<Dream?>(null)
+    var dream = _dream.asStateFlow()
+
     suspend fun getUserBadgesViewModel(): StateFlow<List<Badge>> {
         try {
             Log.i("getUserBadges", "est rentré dans getUserBadges")
@@ -437,6 +440,7 @@ class DreamRepository(private val context: Context) {
                 Log.i("filePath", "No audio file")
             }
             Log.d("dream5", dream.toString())
+            dream.id = Timestamp.now().toString() + dream.userId
 
             db.collection("dreams")
                 .add(dream)
@@ -551,4 +555,24 @@ class DreamRepository(private val context: Context) {
             emit(emptyList())
         }
     }
+
+    fun getDreamById(idDream: String): StateFlow<Dream?> {
+        try {
+            db.collection("dreams")
+                .document(idDream)
+                .get()
+                .addOnSuccessListener { document ->
+                    val dream = document.toObject(Dream::class.java)
+                    _dream.value = dream
+                    Log.d("DreamRepository", "Dream data retrieved: $dream")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("DreamRepository", "Error getting user data", e)
+                }
+        } catch (e: Exception) {
+            Log.e("DreamRepository", "Error retrieving dream", e)
+        }
+        return dream
+    }
+
 }

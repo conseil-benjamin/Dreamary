@@ -24,6 +24,7 @@ import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
 import com.example.dreamary.views.activities.Dreams.AddDreamActivity
+import com.example.dreamary.views.activities.Dreams.DetailsDreamActivity
 import com.example.dreamary.views.activities.Dreams.SuccessAddDream
 import com.example.dreamary.views.activities.profile.ProfileActivity
 import com.example.dreamary.views.activities.Social.HomePageSocialActivity
@@ -189,6 +190,12 @@ fun NavigationManager() {
         composable(NavRoutes.AllBadges.route){
             AllBadges(
                 navController = navController
+            )
+        }
+        composable(NavRoutes.DreamDetail.route){
+            DetailsDreamActivity(
+                navController = navController,
+                dreamId = it.arguments?.getString("dreamId") ?: ""
             )
         }
     }
