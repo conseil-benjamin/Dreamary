@@ -266,8 +266,10 @@ class DreamRepository(private val context: Context) {
         var rank = userObject.progression["rank"] as String
         val actualStreak = userObject.dreamStats["currentStreak"] as Int
         var longestStreak = userObject.dreamStats["longestStreak"] as Int
-        val nbLucidDream = if (dream.lucid == true) userObject.dreamStats["lucidDreams"] as Int + 1 else userObject.dreamStats["lucidDreams"] as Int
+        var nbDreams = userObject.dreamStats["totalDreams"] as Int
+        val nbLucidDream = if (dream.lucid) userObject.dreamStats["lucidDreams"] as Int + 1 else userObject.dreamStats["lucidDreams"] as Int
         Log.i("nbLucidDream", nbLucidDream.toString())
+        val nbNightmares = if (dream.dreamType == "Cauchemar") userObject.dreamStats["nightmares"] as Int + 1 else userObject.dreamStats["nightmares"] as Int
         var xpGained = 0
 
         if (actualStreak >= 3) {
@@ -277,7 +279,6 @@ class DreamRepository(private val context: Context) {
             xp += 50
             xpGained += 50
         }
-
 
         if (xp >= xpNeeded) {
             level += 1
@@ -309,8 +310,10 @@ class DreamRepository(private val context: Context) {
         if ((cal1.get(Calendar.DAY_OF_MONTH) != cal2.get(Calendar.DAY_OF_MONTH))) {
             Log.i("cal", "oaduadad")
             currentStreak = userObject.dreamStats["currentStreak"] as Int + 1
+        } else if ((cal1.get(Calendar.DAY_OF_MONTH) != cal2.get(Calendar.DAY_OF_MONTH)) && nbDreams == 0) {
+            Log.i("cal", "oaduadad")
+            currentStreak = userObject.dreamStats["currentStreak"] as Int +1
         } else {
-            Log.i("cal", "dqzdqzpmdqzmdqz")
             currentStreak = userObject.dreamStats["currentStreak"] as Int
         }
 
@@ -341,7 +344,7 @@ class DreamRepository(private val context: Context) {
                 "language" to (userObject.preferences["language"] as? String ?: "fr")
             ),
             dreamStats = mapOf(
-                "nightmares" to (userObject.dreamStats["nightmares"] ?: 0),
+                "nightmares" to nbNightmares,
                 "totalDreams" to (userObject.dreamStats["totalDreams"] ?: 0) + 1,
                 "lucidDreams" to nbLucidDream,
                 "longestStreak" to longestStreak,

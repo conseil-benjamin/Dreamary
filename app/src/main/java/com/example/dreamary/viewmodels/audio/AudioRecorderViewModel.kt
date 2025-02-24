@@ -29,6 +29,9 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
+    private val _lastDreamDuration = MutableStateFlow(0L)
+    val lastDreamDuration: StateFlow<Long> = _lastDreamDuration.asStateFlow()
+
     fun isMediaPlayerReleased() = audioRecorder.isMediaPlayerReleased()
 
     fun startRecording() {
@@ -56,12 +59,8 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
     }
 
     fun playAudio() {
-        viewModelScope.launch {
-            try {
-                audioRecorder.playAudio()
-            } catch (e: Exception) {
-                Log.e("AudioRecorderViewModel", "Error playing audio", e)
-            }
+        audioRecorder.playAudio() { isPlaying ->
+            _isPlaying.value = isPlaying
         }
     }
 
@@ -112,6 +111,7 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
 
     private fun stopDurationCounter() {
         durationJob?.cancel()
+        _lastDreamDuration.value = _recordingDuration.value
         _recordingDuration.value = 0
     }
 

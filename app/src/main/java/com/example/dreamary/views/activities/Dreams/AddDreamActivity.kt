@@ -73,6 +73,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
@@ -92,6 +93,7 @@ import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.views.components.CustomDropdown
 import java.util.Calendar
 import androidx.compose.ui.text.input.ImeAction
+import coil.compose.AsyncImage
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.views.components.Loading
 import kotlin.math.abs
@@ -570,6 +572,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 
                     item {
                         DescribeDream(
+                            showOverlay,
                             title = title,
                             content = content,
                             onValueChangeTitle = { title = it },
@@ -712,7 +715,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                             audio = dream.audio as MutableMap<String, Any>,
                             onPathChanged = { path = it },
                             onAudioChanged = { dream.audio = it },
-                            OnDurationChanged = { duration = it }
+                            onDurationChanged = { duration = it }
                         )
                     }
                 }
@@ -732,6 +735,7 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
             .fillMaxWidth()
             .height(100.dp)
             .background(MaterialTheme.colorScheme.surface)
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
     ) {
         Text(
             "Annuler",
@@ -742,6 +746,10 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
                 }
         )
         Button(
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
             onClick = {
                 Log.d("test1232", dream.toString())
                 savingInProgress.value = true
@@ -759,7 +767,9 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
                 )
             }
         ) {
-            Text("Enregistrer")
+            Text(
+                text = "Enregistrer",
+            )
         }
     }
 
@@ -987,7 +997,10 @@ fun ItemDreamType (
                 modifier = Modifier
                     .size(24.dp)
             )
-            Text(text)
+            Text(
+                text= text,
+                maxLines = 1,
+            )
         }
     }
 }
@@ -1002,7 +1015,7 @@ fun OverlayAudioPlayer (
     audio: MutableMap<String, Any>,
     onAudioChanged : (MutableMap<String, Any>) -> Unit,
     onPathChanged: (String) -> Unit,
-    OnDurationChanged: (Int) -> Unit
+    onDurationChanged: (Int) -> Unit
     )
 {
 
@@ -1029,7 +1042,6 @@ fun OverlayAudioPlayer (
             }
         )
     }
-
 
     Column (
         modifier = Modifier
@@ -1062,7 +1074,7 @@ fun OverlayAudioPlayer (
                 onClick = {
                     viewModel.stopRecording()
                     onChangeShowOverlay(false)
-                    OnDurationChanged(duration.toInt())
+                    onDurationChanged(duration.toInt())
                     onPathChanged(audioFilePath.toString())
                     onAudioChanged(audio)
                 }
@@ -1095,9 +1107,9 @@ fun OverlayAudioPlayer (
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun DescribeDream(
+    showOverlay: Boolean,
     title: String,
     content: String,
     onValueChangeTitle: (String) -> Unit = {},
@@ -1116,8 +1128,12 @@ fun DescribeDream(
 
     val audioFilePath by viewModel.audioFilePath.collectAsState()
     var isListening by remember { mutableStateOf(false) }
-    val isRecording by viewModel.isRecording.collectAsState()
     var showConfirmDialog by remember { mutableStateOf(false) }
+    var showConfirmDialogAlready by remember { mutableStateOf(false) }
+
+
+    val isPlaying by viewModel.isPlaying.collectAsState(initial = false)
+    val lastDreamDuration by viewModel.lastDreamDuration.collectAsState()
 
     if (showConfirmDialog){
         ConfirmDialog(
@@ -1130,6 +1146,22 @@ fun DescribeDream(
             },
             text = "Êtes-vous sûr de vouloir supprimer l'enregistrement audio ?",
             title = "Supprimer l'enregistrement audio"
+        )
+    }
+
+    if (showConfirmDialogAlready) {
+        ConfirmDialog(
+            onConfirm = {
+                viewModel.deleteAudio()
+                showConfirmDialogAlready = false
+                onChangeShowOverlay(true)
+                viewModel.startRecording()
+            },
+            onDismiss = {
+                showConfirmDialog = false
+            },
+            text = "Commencer un nouvel enregistrement audio effacera l'enregistrement existant. Êtes-vous sûr de vouloir continuer ?",
+            title = "Suppresion de l'enregistrement actuel"
         )
     }
 
@@ -1151,10 +1183,10 @@ fun DescribeDream(
         modifier = Modifier
             .fillMaxWidth(),
         placeHolder = "Contenu du rêve...",
-        maxCharacters = 1000,
-        maxLine = 5,
-        height = 150,
-        maxHeight = 300
+        maxCharacters = 2000,
+        maxLine = 10,
+        height = 250,
+        maxHeight = 500
     )
 
     Row (
@@ -1179,9 +1211,12 @@ fun DescribeDream(
                 .size(24.dp)
                 .clickable {
                     Log.d("Audio", hasAudioPermission.toString())
-                    if (hasAudioPermission.value) {
+                    if (hasAudioPermission.value && audioFilePath == null) {
                         viewModel.startRecording()
                         onChangeShowOverlay(true)
+                    } else if (hasAudioPermission.value && audioFilePath != null) {
+                        // todo : demander d'écraser le vocal existant
+                        showConfirmDialogAlready = true
                     } else {
                         checkAudioPermission()
                     }
@@ -1189,45 +1224,66 @@ fun DescribeDream(
         )
     }
 
-    if (audioFilePath != null) {
-        Row (
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ){
-            Button(
-                onClick = {
-                    viewModel.playAudio()
-                    isListening = !isListening
-                }
+    if (audioFilePath != null && !showOverlay) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (!viewModel.isMediaPlayerReleased()){
-                    GlideImage(
-                        model = R.drawable.ecouteurs,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
+                Icon(
+                    painter = painterResource(id = if(!isPlaying) R.drawable.play else R.drawable.pause),
+                    contentDescription = "Lecture audio",
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable {
+                            // todo : la mise en pause de l'audio ne marche pas
+                            if (!isPlaying) {
+                                isListening = true
+                                viewModel.playAudio()
+                            } else if (isPlaying) {
+                                isListening = false
+                                viewModel.pauseRecording()
+                            } else {
+                                isListening = true
+                                viewModel.resumeRecording()
+                            }
+                        },
+                )
+                if (!isPlaying) {
+                    Text(
+                        text = "Écouter l'enregistrement",
+                        modifier = Modifier.padding(start = 8.dp)
                     )
                 } else {
-                    Log.d("Audio", viewModel.isMediaPlayerReleased().toString())
-                    Icon(
-                        painter = painterResource(id = R.drawable.play),
-                        contentDescription = null,
+                    // todo : nul à chier l'image la changer
+                    AsyncImage(
+                        model = R.drawable.sound_wave,
+                        contentDescription = "Audio",
                         modifier = Modifier
+                            .padding(start = 8.dp)
                             .size(24.dp)
                     )
                 }
-                Text("Écouter l'enregistrement")
-            }
-            Button(
-                onClick = {
-                    showConfirmDialog = !showConfirmDialog
-                }
-            ) {
+                Text(
+                    text = "${lastDreamDuration}s",
+                    modifier = Modifier.padding(start = 8.dp),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
                 Icon(
                     painter = painterResource(id = R.drawable.delete),
-                    contentDescription = null,
+                    contentDescription = "Supprimer l'enregistrement",
                     modifier = Modifier
+                        .padding(start = 16.dp)
                         .size(24.dp)
+                        .clickable {
+                            showConfirmDialog = true
+                        }
                 )
             }
         }

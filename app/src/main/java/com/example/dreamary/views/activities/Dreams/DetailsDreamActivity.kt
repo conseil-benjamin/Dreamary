@@ -1,8 +1,6 @@
 package com.example.dreamary.views.activities.Dreams
 
-import android.net.wifi.aware.Characteristics
 import android.os.Build
-import android.os.Environment
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -43,9 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.dreamary.ui.theme.DreamaryTheme
 import com.example.dreamary.R
-import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.repositories.DreamRepository
-import com.example.dreamary.viewmodels.Profile.ProfileViewModelFactory
 import com.example.dreamary.viewmodels.dreams.DetailsDreamViewModel
 import com.example.dreamary.viewmodels.dreams.DetailsDreamViewModelFactory
 import com.example.dreamary.views.components.Loading
@@ -58,17 +54,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextAlign
 import coil.compose.AsyncImage
-import coil.request.Tags
 import com.example.dreamary.models.entities.Dream
-import com.example.dreamary.models.entities.Tag
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModel
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
-import org.jetbrains.annotations.Async
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.collections.forEach
-import kotlin.text.get
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)

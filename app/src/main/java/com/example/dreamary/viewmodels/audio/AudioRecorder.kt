@@ -71,15 +71,25 @@ class AudioRecorder(private val context: Context) {
         }
     }
 
-    fun playAudio() {
-       mediaPlayer = MediaPlayer().apply {
-            setDataSource(currentFilePath)
-            prepare()
-            start()
-        }
-        mediaPlayer?.setOnCompletionListener {
-            mediaPlayer?.release()
-            mediaPlayer = null
+    fun playAudio(onReady: (Boolean) -> Unit) {
+        try {
+            val mediaPlayer = MediaPlayer().apply {
+                setDataSource(currentFilePath)
+                prepareAsync()
+
+                setOnPreparedListener {
+                    start()
+                    onReady(true)
+                }
+
+                setOnCompletionListener {
+                    release()
+                    onReady(false)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("AudioRecorder", "Error playing audio", e)
+            onReady(false) // En cas d'erreur
         }
     }
 

@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -102,6 +103,9 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
     LaunchedEffect(userState) {
         Log.i("HomeActivity", "Sauvegarde de l'utilisateur")
         val gson = Gson()
+        if (userState == null) {
+            return@LaunchedEffect
+        }
 
         val userJson = gson.toJson(userState)
         context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE).edit().putString("userDatabase", userJson).apply()
@@ -222,9 +226,8 @@ private fun Stats(
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     } else {
-                        Icon(
+                        Image(
                             painter = painterResource(id = R.drawable.fire),
-                            tint = MaterialTheme.colorScheme.primary,
                             contentDescription = "Streak icon",
                             modifier = Modifier.size(24.dp)
                         )
@@ -258,7 +261,7 @@ private fun Stats(
 fun isUserHasAcurrentStreak(user: User?, dreams: List<Dream>?): Boolean {
     Log.i("HomeActivity", "Vérification de la suite")
     Log.i("dreamsss", dreams.toString())
-    if (user?.dreamStats["currentStreak"] == 0) {
+    if (user?.dreamStats?.get("currentStreak") == 0) {
         return false
     } else {
         Log.i("HomeActivity", "L'utilisateur a une suite")
@@ -269,7 +272,7 @@ fun isUserHasAcurrentStreak(user: User?, dreams: List<Dream>?): Boolean {
             Log.i("dreamList", dreams.toString())
             val lastDream = dreams?.firstOrNull()
             Log.i("lastdream", lastDream.toString())
-            val timestamp = lastDream?.metadata["createdAt"] as Timestamp
+            val timestamp = lastDream?.metadata?.get("createdAt") as Timestamp
             val date = timestamp.toDate()
             val cal1 = Calendar.getInstance().apply { time = date }
             val cal2 = Calendar.getInstance()
@@ -292,6 +295,19 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
     val haptic = LocalHapticFeedback.current
 
     if (dreams.isNullOrEmpty()) {
+        Column (
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Aucun rêve récent à afficher.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(16.dp),
+                textAlign = TextAlign.Center
+            )
+        }
         return
     }
     Column (
@@ -380,7 +396,7 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
                                 modifier = Modifier
                                     .padding(8.dp),
                                 shape = RoundedCornerShape(8.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onPrimary),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             ){
                                 Row (
@@ -429,7 +445,7 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
                                         modifier = Modifier
                                             .padding(8.dp),
                                         shape = RoundedCornerShape(8.dp),
-                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
+                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onPrimary),
                                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                                     ) {
                                         Text(

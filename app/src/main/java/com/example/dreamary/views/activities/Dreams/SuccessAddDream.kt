@@ -52,7 +52,7 @@ fun SuccessAddDream(
             ) {
                 item { HeaderSuccess() }
                 item { TwoCardsStats(user = userObject) }
-                item { Bottom(navController = navController) }
+                item { Bottom(navController) }
             }
         }
     }
@@ -220,8 +220,14 @@ fun Bottom(navController: NavController) {
     ) {
         Button(
             onClick = {
-                navController.navigate(NavRoutes.Home.route) {
-                    popUpTo(NavRoutes.SucessAddDream.route) { inclusive = true }
+                if (navController == null) {
+                    Log.i("logNavigation", "navController is null")
+                } else {
+                    navController.navigate(NavRoutes.Home.route) {
+                        popUpTo(NavRoutes.SucessAddDream.route) {
+                            inclusive = true
+                        }
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth().padding(16.dp),

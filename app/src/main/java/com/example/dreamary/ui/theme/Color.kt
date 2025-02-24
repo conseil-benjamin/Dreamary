@@ -11,18 +11,18 @@ val Success = Color(0xFF10B981)         // Green-500
 val Warning = Color(0xFFF59E0B)         // Amber-500
 
 // Couleurs du thème clair
-val LightBackground = Color(0xFFF9FAFB)      // Gray-50
-val LightSurface = Color(0xFFFFFFFF)         // White
-val LightSurfaceVariant = Color(0xFFF3F4F6)  // Gray-100
+val LightBackground = Color(0xFFf7f3ed)      // Beige clair
+val LightSurface = Color(0xFFF5ECE3)         // White
+val LightSurfaceVariant = Color(0xFF78539b)  // Gray-100
 val LightOnBackground = Color(0xFF111827)    // Gray-900
-val LightOnSurface = Color(0xFF1F2937)       // Gray-800
-val LightOnSurfaceVariant = Color(0xFF4B5563) // Gray-600
+val LightOnSurface = Color(0xFF000000)       // Gray-800
+val LightOnSurfaceVariant = Color(0xFFF5ECE3) // Gray-600
 val LightOutline = Color(0xFFD1D5DB)         // Gray-300
 val LightSelectElement = Color(0xeff2fe)
 val LightSelectElementColor = Color(0x514cbf)
 
 // Couleurs du thème sombre
-val DarkBackground = Color(0xFF030712)      // Gray-950
+val DarkBackground = Color(0xFF2E3B55)      // Gray-950
 val DarkSurface = Color(0xFF111827)         // Gray-900
 val DarkSurfaceVariant = Color(0xFF1F2937)  // Gray-800
 val DarkOnBackground = Color(0xFFF9FAFB)    // Gray-50

@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dreamary.models.repositories.DreamRepository
-import com.example.dreamary.viewmodels.Profile.AllBadgesVIewModel
-import com.example.dreamary.viewmodels.Profile.AllBadgesViewModelFactory
+import com.example.dreamary.viewmodels.profile.AllBadgesVIewModel
+import com.example.dreamary.viewmodels.profile.AllBadgesViewModelFactory
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.dreamary.models.entities.Badge
-import com.example.dreamary.views.components.BottomNavigation
 import com.example.dreamary.views.components.Loading
 import java.util.Locale
 

@@ -32,14 +32,14 @@ import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.example.dreamary.models.entities.User
 import com.google.firebase.auth.FirebaseAuth
-import com.example.dreamary.viewmodels.profile.ProfileViewModel
 import com.example.dreamary.R
 import com.example.dreamary.models.entities.Badge
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.repositories.DreamRepository
 import com.example.dreamary.models.routes.NavRoutes
-import com.example.dreamary.viewmodels.Profile.ProfileViewModelFactory
+import com.example.dreamary.viewmodels.profile.ProfileViewModelFactory
 import com.example.dreamary.viewmodels.home.HomeViewModelFactory
+import com.example.dreamary.viewmodels.profile.ProfileViewModel
 import com.example.dreamary.views.components.Loading
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -481,6 +481,7 @@ private fun BadgesSection(
                     text = "Badges",
                     textAlign = TextAlign.Start,
                     style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 16.dp)
                 )
                 Column (
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -490,7 +491,7 @@ private fun BadgesSection(
                     Text(
                         text = "Aucun badge pour le moment",
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(top = 16.dp)
+                        modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
                     )
                 }
             } else {

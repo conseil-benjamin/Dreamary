@@ -1,4 +1,4 @@
-package com.example.dreamary.viewmodels.Profile
+package com.example.dreamary.viewmodels.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
