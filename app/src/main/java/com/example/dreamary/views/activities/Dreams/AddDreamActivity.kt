@@ -62,6 +62,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import android.Manifest
 import android.app.TimePickerDialog
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -92,6 +94,7 @@ import java.util.Calendar
 import androidx.compose.ui.text.input.ImeAction
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.views.components.Loading
+import kotlin.math.abs
 
 @Preview(showBackground = true)
 @Composable
@@ -159,6 +162,12 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     val pickedEmotions = remember { mutableStateListOf<String>() }
     var showPermissionDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    var showConfirmLeaveActivity by remember { mutableStateOf(false) }
+
+    BackHandler {
+        showConfirmLeaveActivity = true
+    }
 
     var dream by remember { mutableStateOf(Dream(
         title = title,
@@ -477,6 +486,22 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         )
     }
 
+
+    if (showConfirmLeaveActivity) {
+        ConfirmDialog(
+            onConfirm = {
+                showConfirmLeaveActivity = false
+                navController.popBackStack()
+            },
+            onDismiss = {
+                showConfirmLeaveActivity = false
+            },
+            text = "Êtes-vous sûr de vouloir quitter sans enregistrer ?",
+            title = "Quitter sans enregistrer"
+        )
+    }
+
+
     fun checkAudioPermission(): () -> Unit = {
         when {
             ContextCompat.checkSelfPermission(
@@ -501,7 +526,9 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     val savingInProgress = remember { mutableStateOf(false) }
 
     DreamaryTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+        ) {
             Scaffold(
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 modifier = Modifier
@@ -1124,7 +1151,7 @@ fun DescribeDream(
         modifier = Modifier
             .fillMaxWidth(),
         placeHolder = "Contenu du rêve...",
-        maxCharacters = 500,
+        maxCharacters = 1000,
         maxLine = 5,
         height = 150,
         maxHeight = 300
@@ -1496,7 +1523,7 @@ fun AutoAnalyse (
         analysisText = analysisText,
         onTextChange = { onTextChange(it) },
         placeHolder = "Écris ton ressenti et ton analyse ici...",
-        maxCharacters = 1000,
+        maxCharacters = 500,
         maxLine = 5,
         height = 100,
         maxHeight = 200

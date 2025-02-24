@@ -46,6 +46,7 @@ class AudioRecorder(private val context: Context) {
     }
 
     fun resumeRecording() {
+        Log.i("AudioRecorder", "Resuming recording")
         mediaRecorder?.apply {
             resume()
         }

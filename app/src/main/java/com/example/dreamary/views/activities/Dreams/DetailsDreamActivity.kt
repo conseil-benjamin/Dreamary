@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -196,10 +197,6 @@ fun DreamContent(dream: Dream) {
                 .padding(16.dp)
         ) {
             Text(
-                text = dream?.title ?: "",
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Text(
                 text = dream?.content ?: "",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(top = 8.dp)
@@ -249,9 +246,10 @@ fun HeaderDream(dream: Dream) {
                 }
             )
             Text(
-                text = dream.dreamType,
+                text = dream.title,
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp),
+                textAlign = TextAlign.Center
             )
             Text(
                 text = dream.createdAt.toDate().format(),
@@ -289,16 +287,20 @@ fun AudioPlayerDream(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painter = painterResource(id = if(!isPlaying) R.drawable.play else R.drawable.stop),
+                        painter = painterResource(id = if(!isPlaying) R.drawable.play else R.drawable.pause),
                         contentDescription = "Lecture audio",
                         modifier = Modifier
                             .size(24.dp)
                             .clickable {
+                                // todo : la mise en pause de l'audio ne marche pas
                                 if (!isPlaying && !isListening) {
+                                    isListening = true
                                     viewModel.playAudioFromFirebase(dream.audio["url"].toString())
                                 } else if (isPlaying) {
+                                    isListening = false
                                     viewModel.pauseRecording()
                                 } else {
+                                    isListening = true
                                     viewModel.resumeRecording()
                                 }
                             },
@@ -379,17 +381,17 @@ fun ContextSleepDream(dream: Dream) {
                 DetailRow(
                     icon = R.drawable.thermometre,
                     label = "Température",
-                    value = if (context["temperature"] == "") "Non renseigné" else context["temperature"].toString()
+                    value = if (context["temperature"] == 0) "Non renseigné" else context["temperature"].toString()
                 )
                 DetailRow(
                     icon = R.drawable.bed,
                     label = "Réveils",
-                    value = if (context["temperature"] == "") "Non renseigné" else context["temperature"].toString()
+                    value = if (context["nbReveils"] == "") "Non renseigné" else context["nbReveils"].toString()
                 )
                 DetailRow(
                     icon = R.drawable.son,
                     label = "Niveau sonore",
-                    value = if (context["temperature"] == "") "Non renseigné" else context["temperature"].toString()
+                    value = if (context["noiseLevel"] == "") "Non renseigné" else context["noiseLevel"].toString()
                 )
             }
         }
@@ -449,19 +451,19 @@ fun Environment(dream: Dream) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            dream?.environment?.let { environment ->
+            dream.environment.let { environment ->
                 DetailRow(
-                    icon = R.drawable.lune,
+                    icon = R.drawable.security,
                     label = "Type",
                     value = if (environment["type"] == "Non renseigné") "Non renseigné" else environment["type"].toString()
                 )
                 DetailRow(
-                    icon = R.drawable.lune,
+                    icon = R.drawable.season,
                     label = "Saison",
                     value = if (environment["season"] == "Non renseigné") "Non renseigné" else environment["season"].toString()
                 )
                 DetailRow(
-                    icon = R.drawable.lune,
+                    icon = R.drawable.cloudy,
                     label = "Météo",
                     value = if (environment["weather"] == "Non renseigné") "Non renseigné" else environment["weather"].toString()
                 )
@@ -579,7 +581,7 @@ private fun DetailRow(
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
+        Image(
             painter = painterResource(id = icon),
             contentDescription = null,
             modifier = Modifier.size(24.dp)

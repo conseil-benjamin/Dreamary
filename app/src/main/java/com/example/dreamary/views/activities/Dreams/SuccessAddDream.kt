@@ -2,6 +2,7 @@ package com.example.dreamary.views.activities.Dreams
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -64,10 +65,9 @@ fun HeaderSuccess() {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth().padding(16.dp)
     ) {
-        Icon(
+        Image(
             painter = painterResource(id = R.drawable.success),
             contentDescription = "Success icon",
-            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(80.dp)
         )
         Text(

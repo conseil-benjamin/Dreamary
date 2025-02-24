@@ -365,9 +365,9 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                    Column (
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.Start,
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {

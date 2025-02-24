@@ -1,13 +1,17 @@
 package com.example.dreamary.views.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,29 +36,23 @@ fun TopNavigation(navController: NavController) {
     Row (
         modifier = Modifier
             .fillMaxWidth()
-            .height(90.dp),
+            .height(100.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ){
         Row (
             modifier = Modifier
                 .weight(5f)
-                .size(24.dp),
+                .height(100.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ){
-            Icon(
-                painter = painterResource(id = R.drawable.lune),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.dreamary_name2),
                 contentDescription = "Menu",
                 modifier = Modifier
-                    .weight(1f)
-                    .size(24.dp)
-            )
-            Text(
-                text = "Dreamary",
-                modifier = Modifier
-                    .weight(4f)
-                    .size(24.dp)
+                    .padding(start = 16.dp),
+                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
         }
         Icon(
@@ -71,20 +69,17 @@ fun TopNavigation(navController: NavController) {
                 .weight(1f)
                 .size(24.dp)
         )
-        Button(
-            onClick = { navController.navigate(NavRoutes.Profile.route) },
+        Image(
+            painter = painterResource(id = R.drawable.user),
+            contentDescription = "Menu",
             modifier = Modifier
-                .weight(1f)
                 .size(24.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.user),
-                contentDescription = "Menu",
-                modifier = Modifier
-                    .size(24.dp)
-            )
-            Text(stringResource(id = R.string.TopNavigation))
-        }
+                .weight(1f)
+                .clickable{
+                    navController.navigate(NavRoutes.Profile.route)
+                },
+            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+        )
         Icon(
             painter = painterResource(id = R.drawable.menu),
             contentDescription = "Menu",
