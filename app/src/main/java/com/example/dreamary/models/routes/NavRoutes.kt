@@ -18,4 +18,5 @@ sealed class NavRoutes(val route: String) {
     data object SplashScreen: NavRoutes("splashScreen")
     data object SucessAddDream: NavRoutes("sucessAddDream")
     data object AllBadges : NavRoutes("allBadges")
+    data object AllDreamsCalendar : NavRoutes("allDreamsCalendar")
 }

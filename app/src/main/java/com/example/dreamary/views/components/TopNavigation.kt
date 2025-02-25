@@ -52,7 +52,7 @@ fun TopNavigation(navController: NavController) {
                 contentDescription = "Menu",
                 modifier = Modifier
                     .padding(start = 16.dp),
-                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.surfaceVariant)
             )
         }
         Icon(

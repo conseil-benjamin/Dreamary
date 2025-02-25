@@ -27,11 +27,9 @@ data class Dream(
         "createdAt" to Date()
     ),
 
-    val characteristics: Map<String, Any> = mapOf(
+    val characteristics: Map<String, Int> = mapOf(
         "clarity" to 0,
         "emotionalImpact" to 0,
-        "perspective" to "",
-        "timePeriod" to ""
     ),
 
     var environment: Map<String, Any> = mapOf(

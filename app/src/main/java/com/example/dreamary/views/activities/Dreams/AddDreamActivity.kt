@@ -77,6 +77,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -193,8 +194,6 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         characteristics = mapOf(
             "clarity" to 0,
             "emotionalImpact" to 0,
-            "perspective" to "",
-            "timePeriod" to ""
         ),
         environment = mapOf(
             "dominantColors" to "",
@@ -1489,6 +1488,11 @@ fun Features  (
                 text = "Clarté du souvenir"
             )
             Slider(
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                ),
                 value = clarity.toFloat(),
                 onValueChange = { newClarity ->
                     onClarityChanged(newClarity.toInt())
@@ -1502,6 +1506,11 @@ fun Features  (
                 text = "Impact émotionnel"
             )
             Slider(
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                ),
                 value = emotionalImpact.toFloat(),
                 onValueChange = { newImpact ->
                     onEmotionalImpactChanged(newImpact.toInt())

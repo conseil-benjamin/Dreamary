@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -250,7 +251,7 @@ private fun Stats(
                 Text(
                     text = "XP: ${userState?.progression?.get("xp")} / ${userState?.progression?.get("xpNeeded")}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.End,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -338,7 +339,10 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
             }
             Row (
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.clickable {
+                    navController.navigate(NavRoutes.AllDreamsCalendar.route)
+                }
             ){
                 Text(
                     text = "Voir tout",
@@ -414,6 +418,8 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
                                     Text(
                                         text = "Lucide",
                                         style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier
+                                            .padding(end = 8.dp)
                                     )
                                 }
                             }

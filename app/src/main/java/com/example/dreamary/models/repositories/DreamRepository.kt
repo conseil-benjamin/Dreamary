@@ -310,15 +310,17 @@ class DreamRepository(private val context: Context) {
         if ((cal1.get(Calendar.DAY_OF_MONTH) != cal2.get(Calendar.DAY_OF_MONTH))) {
             Log.i("cal", "oaduadad")
             currentStreak = userObject.dreamStats["currentStreak"] as Int + 1
-        } else if ((cal1.get(Calendar.DAY_OF_MONTH) != cal2.get(Calendar.DAY_OF_MONTH)) && nbDreams == 0) {
+        } else if ((cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)) && nbDreams == 0) {
             Log.i("cal", "oaduadad")
             currentStreak = userObject.dreamStats["currentStreak"] as Int +1
         } else {
+            Log.i("cal", "nannnnnnnnnnnnnnnnnnn")
+            Log.i("cal", nbDreams.toString())
             currentStreak = userObject.dreamStats["currentStreak"] as Int
         }
 
-        if (actualStreak >= longestStreak) {
-            longestStreak = actualStreak
+        if (currentStreak >= longestStreak) {
+            longestStreak = currentStreak
         }
 
         Log.i("userObject", userObject.toString())
@@ -335,7 +337,7 @@ class DreamRepository(private val context: Context) {
                 "isPremium" to (userObject.metadata["isPremium"] as? Boolean ?: false),
                 "lastLogin" to (userObject.metadata["lastLogin"] as? Timestamp ?: Timestamp.now()),
                 "createdAt" to (userObject.metadata["createdAt"] as? Timestamp ?: Timestamp.now()
-                        )
+                )
             ),
             preferences = mapOf(
                 "notifications" to (userObject.preferences["notifications"] as? Boolean ?: true),
@@ -555,6 +557,22 @@ class DreamRepository(private val context: Context) {
         } catch (e: Exception) {
             Log.e("DreamRepository", "Error retrieving dreams", e)
             onFailure(e)
+            emit(emptyList())
+        }
+    }
+
+    fun getDreams(): Flow<List<Dream>> = flow {
+        try {
+            val dreams = db.collection("dreams")
+                .get()
+                .await()
+                .documents
+                .mapNotNull { document ->
+                    document.toObject(Dream::class.java)?.copy(id = document.id)
+                }
+            emit(dreams)
+        } catch (e: Exception) {
+            Log.e("DreamRepository", "Error retrieving dreams", e)
             emit(emptyList())
         }
     }

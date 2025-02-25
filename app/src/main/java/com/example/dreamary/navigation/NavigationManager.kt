@@ -23,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
+import com.example.dreamary.views.activities.AllDreamsCalendar.AllDreamsCalendar
 import com.example.dreamary.views.activities.Dreams.AddDreamActivity
 import com.example.dreamary.views.activities.Dreams.DetailsDreamActivity
 import com.example.dreamary.views.activities.Dreams.SuccessAddDream
@@ -197,6 +198,9 @@ fun NavigationManager() {
                 navController = navController,
                 dreamId = it.arguments?.getString("dreamId") ?: ""
             )
+        }
+        composable(NavRoutes.AllDreamsCalendar.route){
+            AllDreamsCalendar(navController = navController)
         }
     }
 }

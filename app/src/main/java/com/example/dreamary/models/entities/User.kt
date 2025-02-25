@@ -1,5 +1,6 @@
 package com.example.dreamary.models.entities
 
+import com.google.firebase.Timestamp
 import java.util.Date
 import java.util.UUID
 
@@ -15,7 +16,7 @@ data class User(
         "lastDreamDate" to Date(),
         "isPremium" to false,
         "lastLogin" to Date(),
-        "createdAt" to Date()
+        "createdAt" to Timestamp.now(),
     ),
     val preferences: Map<String, Any> = mapOf(
         "notifications" to true,

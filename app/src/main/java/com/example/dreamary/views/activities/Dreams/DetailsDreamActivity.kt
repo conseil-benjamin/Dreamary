@@ -48,6 +48,7 @@ import com.example.dreamary.views.components.Loading
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -181,6 +182,7 @@ fun DreamContent(dream: Dream) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -270,7 +272,8 @@ fun AudioPlayerDream(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
                 Row(
                     modifier = Modifier
@@ -341,7 +344,8 @@ fun AnalyseDream(dream: Dream) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Text(
             text = dream?.analysis ?: "",
@@ -357,7 +361,8 @@ fun ContextSleepDream(dream: Dream) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
             modifier = Modifier
@@ -397,7 +402,8 @@ fun CharacteristicsDream(dream: Dream) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
             modifier = Modifier
@@ -406,14 +412,16 @@ fun CharacteristicsDream(dream: Dream) {
         ) {
             dream.characteristics.let { characteristics ->
                 Log.d("CharacteristicsDream", characteristics.toString())
-                Log.d("CharacteristicsDream", characteristics["clarity"].toString())
+                Log.d("CharacteristicsDream", (characteristics["clarity"] as? Int)?.toFloat().toString())
                 Column {
                     Text("Clarté du souvenir")
                     LinearProgressIndicator(
                         progress = (characteristics["clarity"] as? Int)?.toFloat()?.div(5f) ?: 0f,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                            .padding(vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        trackColor = MaterialTheme.colorScheme.background
                     )
                 }
                 Column {
@@ -422,7 +430,9 @@ fun CharacteristicsDream(dream: Dream) {
                         progress = (characteristics["emotionalImpact"] as? Int)?.toFloat()?.div(5f) ?: 0f,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                            .padding(vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        trackColor = MaterialTheme.colorScheme.background
                     )
                 }
             }
@@ -436,7 +446,8 @@ fun Environment(dream: Dream) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
             modifier = Modifier
@@ -472,7 +483,8 @@ fun Environment(dream: Dream) {
 @Composable
 fun Tags(dream: Dream){
     SectionTitle("Tags", R.drawable.tags)
-    if (dream.tags.isEmpty()) {
+    Log.d("Tags2", dream.tags.toString())
+    if ((dream.tags["symbols"]?.isEmpty() == true) && dream.tags["characters"]?.isEmpty() == true && dream.tags["places"]?.isEmpty() == true && dream.tags["divers"]?.isEmpty() == true && dream.tags["divers"]?.isEmpty() == true) {
         Text(
             text = "Aucun tag",
             style = MaterialTheme.typography.bodyMedium,
@@ -499,7 +511,7 @@ fun Tags(dream: Dream){
                         onClick = { },
                         label = { Text(tag) },
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            containerColor = MaterialTheme.colorScheme.surface
                         )
                     )
                 }
