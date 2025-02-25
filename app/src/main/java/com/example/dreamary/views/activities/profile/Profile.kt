@@ -513,12 +513,14 @@ private fun BadgesSection(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     badges.take(3).forEach { badge ->
-                        BadgeItem(
-                            icon = badge.iconUrl,
-                            name = badge.name,
-                            rarity = badge.rarity,
-                            //colorBadge = badge.color
-                        )
+                        if (badge.unlocked){
+                            BadgeItem(
+                                icon = badge.iconUrl,
+                                name = badge.name,
+                                rarity = badge.rarity,
+                                //colorBadge = badge.color
+                            )
+                        }
                     }
                 }
             }

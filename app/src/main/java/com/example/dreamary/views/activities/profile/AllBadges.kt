@@ -32,11 +32,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.dreamary.R
 import com.example.dreamary.models.entities.Badge
 import com.example.dreamary.views.components.Loading
 import java.util.Locale
@@ -48,6 +50,13 @@ data class Category(
     val icon: ImageVector
 )
 
+val categories = listOf(
+    Category("all", "Tous", Icons.Default.AccountBox),
+    Category("Régularité", "Régularité", Icons.Default.DateRange),
+    Category("Volume", "Volume", Icons.Default.Star),
+    Category("Exploration", "Exploration", Icons.Default.Star)
+)
+
 enum class Rarity(val color: Color, val textColor: Color) {
     COMMON(Color.Gray, Color.Gray),
     RARE(Color.Blue, Color.Blue),
@@ -57,7 +66,7 @@ enum class Rarity(val color: Color, val textColor: Color) {
 
 @Composable
 fun HeaderPage(
-    badges: Map<String, List<Badge>>
+    badges: List<Badge>,
 ) {
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -65,16 +74,6 @@ fun HeaderPage(
             .padding(16.dp)
             .fillMaxWidth()
     ) {
-        Text(
-            text = "Collection de Badges",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .padding(bottom = 16.dp)
-        )
-
-        // Total Progress
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
@@ -83,18 +82,16 @@ fun HeaderPage(
                 .fillMaxWidth()
         ) {
             Icon(
-                imageVector = Icons.Default.Star,
+                painter = painterResource(id = R.drawable.badge),
                 contentDescription = null,
                 tint = Color.Yellow,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-//            Text(
-//                text = "${
-//                    badges.values.flatten().count { it.unlocked }
-//                } / ${badges.values.flatten().size}",
-//                fontSize = 18.sp
-//            )
+            Text(
+                text = "${badges.count { it.unlocked }} / ${badges.size}",
+                fontSize = 18.sp
+            )
         }
     }
 
@@ -102,10 +99,12 @@ fun HeaderPage(
 
 @Composable
 fun GridBadges(
-    badges: Map<String, List<Badge>>,
+    badges: List<Badge>,
     selectedCategory: String
 ) {
-    val filteredBadges = badges[selectedCategory] ?: emptyList()
+    val filteredBadges = badges.filter {
+        selectedCategory == "all" || it.category == selectedCategory
+    }
 
     Box(
         modifier = Modifier
@@ -118,9 +117,7 @@ fun GridBadges(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(badges.entries.filter {
-                selectedCategory == "all" || it.key == selectedCategory
-            }.flatMap { it.value }) { badge ->
+            items(filteredBadges) { badge ->
                 BadgeCard(badge = badge)
             }
         }
@@ -146,13 +143,6 @@ fun AllBadges(
     }
 
     var selectedCategory by remember { mutableStateOf("all") }
-
-    val categories = listOf(
-        Category("all", "Tous", Icons.Default.AccountBox),
-        Category("regularity", "Régularité", Icons.Default.DateRange),
-        Category("volume", "Volume", Icons.Default.Star),
-        Category("exploration", "Exploration", Icons.Default.Star)
-    )
 
     Scaffold (
         topBar = {
@@ -184,7 +174,7 @@ fun AllBadges(
             ) {
                 item {
                     HeaderPage(
-                        badges = userBadges as Map<String, List<Badge>>
+                        badges = userBadges
                     )
                 }
 
@@ -198,7 +188,7 @@ fun AllBadges(
 
                 item {
                     GridBadges(
-                        badges = userBadges as Map<String, List<Badge>>,
+                        badges = userBadges,
                         selectedCategory = selectedCategory
                     )
                 }
@@ -221,8 +211,8 @@ fun CategoryFilters(
     ) {
         categories.forEach { category ->
             FilterChip(
-                selected = selectedCategory == category.id,
-                onClick = { onCategorySelected(category.id) },
+                selected = selectedCategory == category.name,
+                onClick = { onCategorySelected(category.name) },
                 label = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -246,16 +236,24 @@ fun CategoryFilters(
 fun BadgeCard(badge: Badge) {
     val scale by animateFloatAsState(if (badge.color == "violet") 1f else 0.95f)
 
+    val color = when (badge.rarity) {
+        "Commun" -> Rarity.COMMON
+        "Rare" -> Rarity.RARE
+        "Epique" -> Rarity.EPIC
+        "Legendaire" -> Rarity.LEGENDARY
+        else -> Rarity.COMMON
+    }
+
     Card(
         modifier = Modifier
             .scale(scale)
             .border(
                 width = 2.dp,
-                color = (if (badge.color == "violet") badge.color else Color.Gray.copy(alpha = 0.2f)) as Color,
+                color = (if (badge.unlocked) color.color else Color.Gray.copy(alpha = 0.2f)),
                 shape = RoundedCornerShape(8.dp)
             )
             .clickable { }
-            .alpha(if (badge.color == "violet") 1f else 0.6f),
+            .alpha(if (badge.unlocked) 1f else 0.5f),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -266,9 +264,9 @@ fun BadgeCard(badge: Badge) {
             Box(
                 modifier = Modifier
                     .size(64.dp)
-                    .clip(CircleShape),
-                    //.background(if (badge.color == "violet") badge.color else Color.Gray.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
+                    .clip(CircleShape)
+                    .background(if (badge.unlocked) color.color else Color.Gray.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Star,
@@ -284,40 +282,41 @@ fun BadgeCard(badge: Badge) {
             Text(
                 text = badge.name,
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center
             )
 
-//            // XP Reward
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically,
-//                modifier = Modifier.padding(vertical = 8.dp)
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Default.Star,
-//                    contentDescription = null,
-//                    tint = Color.Yellow,
-//                    modifier = Modifier.size(16.dp)
-//                )
-//                Spacer(modifier = Modifier.width(4.dp))
-//                Text(text = "${badge.xp} XP", fontSize = 14.sp)
-//            }
-//
-//            // Progress Bar
-//            LinearProgressIndicator(
-//                progress = badge.progress / 100f,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(8.dp)
-//                    .clip(RoundedCornerShape(4.dp)),
-//                color = if (badge.unlocked) badge.rarity.color else Color.Gray
-//            )
+            // XP Reward
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    tint = Color.Yellow,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "${badge.xp} XP", fontSize = 14.sp)
+            }
 
-//            Text(
-//                text = "${badge.progress}% accompli",
-//                fontSize = 12.sp,
-//                color = Color.Gray,
-//                modifier = Modifier.padding(top = 4.dp)
-//            )
+            // Progress Bar
+            LinearProgressIndicator(
+                progress = (badge.progression.toFloat() * 100) / 100f,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp)),
+                color = if (badge.unlocked) color.color else Color.Gray
+            )
+
+            Text(
+                text = "${((badge.progression.toFloat() / badge.objective.toFloat()) * 100).toInt()}% accompli",
+                fontSize = 12.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 4.dp)
+            )
         }
     }
 }

@@ -2,7 +2,9 @@ package com.example.dreamary.models.repositories
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.example.dreamary.models.entities.Badge
 import com.example.dreamary.models.entities.Dream
 import com.example.dreamary.models.entities.Tag
@@ -12,6 +14,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import com.google.gson.Gson
@@ -26,6 +29,9 @@ import java.io.File
 import java.util.Calendar
 import java.util.Date
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
 
 class DreamRepository(private val context: Context) {
     private val db = Firebase.firestore
@@ -62,13 +68,19 @@ class DreamRepository(private val context: Context) {
                 val badges = badgeSnapshot.documents.map { doc ->
                     Badge(
                         badgeId = doc.id,
+                        category = doc.getString("category") ?: "",
                         name = doc.getString("name") ?: "",
                         description = doc.getString("description") ?: "",
                         iconUrl = doc.getString("iconUrl") ?: "",
                         rarity = doc.getString("rarity") ?: "",
                         color = doc.getString("color") ?: "#FFFFFF",
-                        unlockCriteria = doc.get("unlockCriteria") as? Map<String, Any> ?: emptyMap()
-                    )
+                        unlockCriteria = doc.get("unlockCriteria") as? Map<String, Any> ?: emptyMap(),
+                        visibility = doc.getBoolean("visibility") ?: true,
+                        progression = snapshot.documents.find { it.getString("badgeName") == doc.getString("name") }?.get("progression") as? Long ?: 0,
+                        objective = doc.get("objective") as? Long ?: 0,
+                        unlocked = snapshot.documents.find { it.getString("badgeName") == doc.getString("name") }?.getBoolean("unlocked") ?: false,
+                        xp = doc.get("xp") as? Long ?: 0
+                        )
                 }
                 Log.d("badgesUser", "Badges retrieved successfully: $badges")
                 _userBadges.value = badges
@@ -88,10 +100,11 @@ class DreamRepository(private val context: Context) {
      * todo : essayer avec un utilisateur qui n'a pas de collections badge encore
      */
 
-    fun getUserBadges(): Flow<List<Badge>> = flow {
+    private fun getUserBadges(): Flow<List<Badge>> = flow {
         try {
             val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
             val userId = userFirebase.getString("uid", "").toString()
+            Log.i("userId", userId)
 
             // Récupérer les IDs des badges de l'utilisateur
             val snapshot = db.collection("users")
@@ -99,30 +112,41 @@ class DreamRepository(private val context: Context) {
                 .collection("badges")
                 .get()
                 .await() // ⚠️ Attendre le résultat
+            Log.i("snapshotUser", snapshot.toString())
 
-            val badgeIds = snapshot.documents.mapNotNull { it.getString("badgeId") }
+            val badgeIds = snapshot.documents.mapNotNull { it.getString("badgeName") }
+            Log.i("badgeIdsUser", badgeIds.toString())
 
             if (badgeIds.isNotEmpty()) {
                 // Récupérer les détails des badges correspondants
                 val badgeSnapshot = db.collection("badges")
-                    .whereIn("badgeId", badgeIds)
+                    .whereIn("name", badgeIds)
                     .get()
-                    .await() // ⚠️ Attendre le résultat
+                    .await()
+
+                Log.i("badgeSnapshot", badgeSnapshot.documents.toString())
 
                 val badges = badgeSnapshot.documents.map { doc ->
                     Badge(
                         badgeId = doc.id,
+                        category = doc.getString("category") ?: "",
                         name = doc.getString("name") ?: "",
                         description = doc.getString("description") ?: "",
                         iconUrl = doc.getString("iconUrl") ?: "",
                         rarity = doc.getString("rarity") ?: "",
                         color = doc.getString("color") ?: "#FFFFFF",
-                        unlockCriteria = doc.get("unlockCriteria") as? Map<String, Any> ?: emptyMap()
+                        unlockCriteria = doc.get("unlockCriteria") as? Map<String, Any> ?: emptyMap(),
+                        visibility = doc.getBoolean("visibility") ?: true,
+                        progression = snapshot.documents.find { it.getString("badgeName") == doc.getString("name") }?.get("progression") as? Long ?: 0,
+                        unlocked = snapshot.documents.find { it.getString("badgeName") == doc.getString("name") }?.getBoolean("unlocked") ?: false,
+                        objective = doc.get("objective") as? Long ?: 0,
+                        xp = doc.get("xp") as? Long ?: 0
                     )
                 }
                 Log.d("badgesUser", "Badges retrieved successfully: $badges")
                 emit(badges)
             } else {
+                Log.d("badgesUser", "No badges found for user")
                 emit(emptyList())
             }
 
@@ -132,7 +156,7 @@ class DreamRepository(private val context: Context) {
         }
     }
 
-    fun getAllBadges(): Flow<List<Badge>> = flow {
+    private fun getAllBadges(): Flow<List<Badge>> = flow {
         try {
             val snapshot = db.collection("badges").get().await()
             val badges = snapshot.documents.map {
@@ -144,7 +168,8 @@ class DreamRepository(private val context: Context) {
                     rarity = it.getString("rarity") ?: "",
                     color = it.getString("color") ?: "#FFFFFF",
                     category = it.getString("category") ?: "",
-                    unlockCriteria = it.get("unlockCriteria") as? Map<String, Any> ?: emptyMap()
+                    unlockCriteria = it.get("unlockCriteria") as? Map<String, Any> ?: emptyMap(),
+                    xp = it.get("xp") as? Long ?: 0,
                 )
             }
             Log.d("allbadges", "Badges retrieved successfully: $badges")
@@ -155,101 +180,226 @@ class DreamRepository(private val context: Context) {
         }
     }
 
-    fun checkIfUserHaveNewBadge(badges: List<Badge>, user: User): Flow<List<Badge>> = flow {
-        Log.i("badges", user.toString())
-        var listBadges: List<Badge> = emptyList()
-        Log.i("badgeAtttennnd", user.dreamStats["totalDreams"].toString())
-        for (i in badges.indices) {
-            val dreamsAdded = badges[i].unlockCriteria["dreamsAdded"] as? Int ?: 0
-            val totalDreamsAdded = user.dreamStats["totalDreams"] as? Int ?: 0
-            val criteriaLucid = badges[i].unlockCriteria["lucidDreams"] as? Int ?: 0
-
-            if ((dreamsAdded == totalDreamsAdded) || (dreamsAdded <= totalDreamsAdded)) {
-                Log.i("badgeOuaissss", badges[i].unlockCriteria["dreamsAdded"].toString())
-                listBadges += badges[i]
-            } else if (criteriaLucid == user.dreamStats["lucidDreams"]){
-                listBadges += badges[i]
-            }
-            else {
-                Log.i("badgeOuaissss", badges[i].unlockCriteria["dreamsAdded"].toString())
-                Log.i("badgeNonnn", badges[i].toString())
-                Log.i("badgeNonnn", (badges[i].unlockCriteria["dreamsAdded"] == user.dreamStats["totalDreams"]).toString())
-            }
-        }
-        emit(listBadges)
-    }
-
-    fun updateUserBadges(newBadgesF: List<Badge>, badgesUser: List<Badge>): Flow<List<Badge>> = flow {
-        Log.i("badges", newBadgesF.toString())
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun updateProgressionBadges(
+        allBadges: List<Badge>,
+        badgesUser: List<Badge>,
+        user: User,
+        latestDreamTimestamp: Long
+    ): Flow<List<Badge>> = flow {
+        var updatedBadges = badgesUser.toMutableList()
+        val newBadges = mutableListOf<Badge>()
         val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
-        val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
 
-        val badgesUpdated = badgesUser.toMutableList()
-        val newBadges = mutableListOf<Map<String, Any>>()
+        Log.d("updateProgressionBadges", "Starting to process badges for user: ${user.uid}")
+        Log.i("cacaAllBadges", "All badges: $allBadges")
 
-        // todo : marche pas ajoute tout le temps les badges en bdd alors qu'on les a déjà
+        for (badge in allBadges) {
+            if (!badge.visibility) {
+                Log.d("updateProgressionBadges", "Badge ${badge.name} is not visible, skipping.")
+                continue
+            }
 
-        
-        /** BADGES USER EST TOUT LE TEMPS VIDE DONC ON PEUT PAS VÉRIFIER SI L'UTILISATEUR A DÉJÀ OU NON
-         * DONC A CHAQUE FOIS CA FAIT COMME SI L'USER AVAIT AUCUN BADGE ET DONC LES AJOUTES
-         */
+            Log.d("updateProgressionBadges", "Processing badge: ${badge.name}")
 
-        Log.i("badgesTest", badgesUpdated.toString())
-        Log.i("badgesTest", newBadgesF.toString())
-        Log.i("badgesTest", badgesUser.toString())
-        
-        for (badge in newBadgesF) {
-            if (badge.name !in badgesUser.map { it.name }) {
-                badgesUpdated.add(badge)
-                newBadges.add(
-                    mapOf(
-                        "badgeName" to badge.name,
-                        "createdAt" to Timestamp.now()
-                    )
-                )
+            val existingBadge = badgesUser.find { it.name == badge.name }
+            Log.d("updateProgressionBadges", "Existing badge for ${badge.name}: $existingBadge")
+
+            val newProgression = when (badge.unlockCriteria["type"]) {
+                "dream_count" -> {
+                    Log.d("updateProgressionBadges", "Badge ${badge.name} unlock criteria: dream_count")
+
+                    // Vérification de la progression pour le badge "Première Plume"
+                    if (badge?.name == "Première Plume" && (user.dreamStats["totalDreams"] ?: 0) > (existingBadge?.progression
+                            ?: 0)) {
+                        Log.d("updateProgressionBadges", "Progression increased based on totalDreams")
+                        1
+                    }
+                    // Vérification de la progression pour le badge "Rêveur Assidu"
+                    else if (badge?.name == "Rêveur Assidu" && (user.dreamStats["totalDreams"] ?: 0) > (existingBadge?.progression
+                            ?: 0)) {
+                        Log.d("updateProgressionBadges", "Progression increased based on totalDreams")
+                        1
+                    }
+                    // Vérification de la progression pour les rêves lucides
+                    else if (badge?.name == "Explorateur Lucide" && (user.dreamStats["lucidDreams"] ?: 0) > (existingBadge?.progression ?: 0)) {
+                        Log.d("updateProgressionBadges", "Progression increased based on lucidDreams")
+                        1
+                    }
+                    else {
+                        Log.d("updateProgressionBadges", "No progress for ${existingBadge?.name}, no increase")
+                        0
+                    }
+                }
+
+                "time_range" -> { // Badge pour un rêve à une certaine heure
+                    Log.d("updateProgressionBadges", "Badge ${badge.name} unlock criteria: time_range")
+
+                    val startHour = (badge.unlockCriteria["startHour"] as? Long)?.toInt() ?: 0
+                    val endHour = (badge.unlockCriteria["endHour"] as? Long)?.toInt() ?: 0
+                    val dreamHour = Instant.ofEpochSecond(latestDreamTimestamp)
+                        .atZone(ZoneId.systemDefault()).hour
+
+                    Log.d("updateProgressionBadges", "Dream hour: $dreamHour, Range: $startHour - $endHour")
+
+                    if (dreamHour in startHour until endHour) {
+                        Log.d("updateProgressionBadges", "Progression increased based on time range")
+                        1
+                    } else {
+                        Log.d("updateProgressionBadges", "No progress for ${badge.name} based on time range")
+                        0
+                    }
+                }
+
+                else -> {
+                    Log.d("updateProgressionBadges", "No valid unlock criteria for ${badge.name}, no progression.")
+                    0
+                }
+            }
+
+
+
+            val goal = badge.unlockCriteria["count"] as? Long ?: 1
+            val updatedProgression = (existingBadge?.progression ?: 0) + newProgression
+            val unlocked = updatedProgression >= goal
+
+            // todo : marche pas n'ajoute pas les xp au profil de l'utilisateur
+
+            if (unlocked && !existingBadge?.unlocked!!) {
+                coroutineScope {
+                    launch {
+                        incrementUserXP(user, badge.xp)
+                    }
+                }
+            }
+
+            Log.d("updateProgressionBadges", "Updated progression for ${badge.name}: $updatedProgression, Unlocked: $unlocked")
+
+            if (existingBadge != null) {
+                Log.d("cacaboudin", existingBadge.unlocked.toString())
+                if (unlocked && existingBadge.unlocked) {
+                    continue
+                }
+                Log.d("updateProgressionBadges", "Updating existing badge: ${badge.name}")
+                updatedBadges = updatedBadges.map {
+                    if (it.name == badge.name) it.copy(progression = updatedProgression, unlocked = unlocked) else it
+                }.toMutableList()
+            } else {
+                if (newProgression == 0) {
+                    Log.d("updateProgressionBadges", "No progress for ${badge.name}, skipping.")
+                    continue
+                }
+                Log.d("updateProgressionBadges", "Adding new badge: ${badge.name}")
+                val newBadge = badge.copy(progression = updatedProgression, unlocked = unlocked)
+                newBadges.add(newBadge)
             }
         }
-        Log.i("badgesUpdated", badgesUpdated.toString())
-        Log.i("newBadges", newBadges.toString())
 
+        updatedBadges.addAll(newBadges)
+
+        Log.d("updateProgressionBadges", "Saving updated badges to shared preferences")
         val editor = sharedPreferences.edit()
-        val json = Gson().toJson(badgesUpdated)
+        val json = Gson().toJson(updatedBadges)
         editor.putString("badges", json)
         editor.apply()
 
-        val userId = userFirebase.getString("uid", "").toString()
+        Log.d("updateProgressionBadges", "Saving updated badges to Firestore")
+        val userId = user.uid
         val userRef = db.collection("users").document(userId).collection("badges")
 
-        newBadges.forEach { badgeData ->
-            userRef.add(badgeData)
-        }
+        updatedBadges.forEach { badge ->
+            val badgeRef = userRef.document(badge.badgeId)
+            val goal = badge.unlockCriteria["count"] as? Long ?: 1
 
-        emit(badgesUpdated)
-    }
-
-    fun updateProgressionBadges(allBadges: List<Badge>, badgesUser: List<Badge>){
-        // todo : avoir également des badges qui ont une visibilité à false pour plus de fun
-        // todo : faire en sorte d'avoir un attribut unlocked et non unlocked pour les badges
-        // todo : le but est de mettre à jour les badges de l'utilisateur en fonction de sa progression
-        // todo:  par exemple on prend le premier badge de la liste de tous les badges et on vérifie à
-        // todo : à quel point l'utilisateur est avancé
-        // todo : par exemple avec le badge "Enregistrer 5 cauchemars" on va vérifier
-
-        // todo : donc la on doit remettre à jour les badges user qu'on à auparavant déjà mis à jour
-        // todo : avec cette fois ci les données lié à la progression
-
-        for (i in allBadges.indices){
-            val badge = allBadges[i]
-            val objective = badge.unlockCriteria["objective"] as? Int ?: 0
-            if (badge.visibility == true){
-                // todo : on met à jour la progression
+            badgeRef.get().addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // Le badge existe déjà → on met juste à jour sa progression
+                    Log.d("updateProgressionBadges", "Badge ${badge.name} exists in Firestore, updating progression.")
+                    badgeRef.set(
+                        mapOf(
+                            "progression" to badge.progression,
+                            "unlocked" to badge.unlocked,
+                            "updatedAt" to Timestamp.now()
+                        ),
+                        SetOptions.merge()
+                    )
+                } else {
+                    // Le badge n'existe pas → on l'ajoute complètement
+                    Log.d("updateProgressionBadges", "Badge ${badge.name} does not exist in Firestore, adding it.")
+                    badgeRef.set(
+                        mapOf(
+                            "badgeName" to badge.name,
+                            "progression" to badge.progression,
+                            "unlocked" to badge.unlocked,
+                            "createdAt" to Timestamp.now(),
+                            "objective" to goal
+                        )
+                    )
+                }
             }
-
-            val badgeUser = badgesUser[i]
         }
+
+        Log.d("updateProgressionBadges", "Finished updating badges for user: ${user.uid}")
+        emit(updatedBadges)
     }
 
+    private fun incrementUserXP(user: User, badgeXp: Long){
+        val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
+        val savedUser = sharedPreferences.getString("userDatabase", "")
 
+        val gson = Gson()
+        var userObject = gson.fromJson(savedUser, User::class.java)
+        var level = (userObject.progression["level"] as? Number)?.toInt() ?: 0
+        var xp = (userObject.progression["xp"] as? Number)?.toInt() ?: 0
+        var xpNeeded = (userObject.progression["xpNeeded"] as? Number)?.toInt() ?: 0
+        var rank = userObject.progression["rank"] as String
+
+        Log.i("xpBadge", badgeXp.toString())
+        xp += badgeXp.toInt()
+
+        if (xp >= xpNeeded) {
+            level += 1
+            xp -= xpNeeded
+            xpNeeded += 200
+        }
+
+        // Mise à jour du rang
+        rank = when (level) {
+            1 -> "Apprenti rêveur"
+            10 -> "Rêveur confirmé"
+            20 -> "Maître des rêves"
+            30 -> "Grand Sage des Songes"
+            50 -> "Légende Onirique"
+            else -> rank
+        }
+
+        userObject = userObject.copy(
+            progression = mapOf(
+                "level" to level,
+                "xp" to xp,
+                "rank" to rank,
+                "xpNeeded" to xpNeeded
+            )
+        )
+
+        val editor = sharedPreferences.edit()
+        val json = gson.toJson(userObject)
+        editor.putString("userDatabase", json)
+        editor.apply()
+
+        val userMap = userToMap(userObject)
+        db.collection("users")
+            .document(user.uid)
+            .update(userMap)
+            .addOnSuccessListener {
+                Log.d("DreamRepository", "User XP successfully updated!")
+            }
+            .addOnFailureListener { e ->
+                Log.w("DreamRepository", "Error updating user XP", e)
+            }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     fun updateUser(dream: Dream): Flow<Map<String, Any>> = flow {
         Log.i("UpdateUser", "est rentré dans updateUser")
         val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
@@ -377,14 +527,8 @@ class DreamRepository(private val context: Context) {
         Log.i("badges", allBadges.toString())
         Log.i("badgesUser", badgesUser.toString())
 
-        val newBadges: List<Badge> = checkIfUserHaveNewBadge(allBadges, userObject).toList().flatten()
-        Log.i("newBadges", newBadges.toString())
-
-        val updatedBadges: List<Badge> = updateUserBadges(newBadges, badgesUser).toList().flatten()
-        Log.i("updatedBadges", updatedBadges.toString())
-
-        //val updatedProgressionBadges = updateProgressionBadges(allBadges, badgesUser)
-        //Log.i("updatedBadgesProgression", updatedProgressionBadges.toString())
+        val updatedProgressionBadges = updateProgressionBadges(allBadges, badgesUser, userObject, dream.createdAt.seconds).toList().flatten()
+        Log.i("updatedBadgesProgression", updatedProgressionBadges.toString())
 
         // todo : mettre à jour les badges de l'utilisateur si il en a débloquer de nouveau
 
@@ -412,6 +556,7 @@ class DreamRepository(private val context: Context) {
         )
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun addDream(
         dream: Dream,
         onSuccess: () -> Unit,

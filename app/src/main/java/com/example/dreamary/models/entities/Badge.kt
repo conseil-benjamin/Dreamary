@@ -6,11 +6,12 @@ data class Badge(
     val description: String = "",
     val iconUrl: String = "",
     val rarity: String = "",
+    val color: String = "#FFFFFF",
     val category: String = "",
-    val color: String = "",
     val unlockCriteria: Map<String, Any> = emptyMap(),
-    val acutalProgression: Int = 0,
-    val objective: Int = 0,
+    val progression: Long = 0,
     val unlocked: Boolean = false,
-    val visibility: Boolean = true
+    val visibility: Boolean = true,
+    val objective : Long = 0,
+    val xp : Long = 0
 )
