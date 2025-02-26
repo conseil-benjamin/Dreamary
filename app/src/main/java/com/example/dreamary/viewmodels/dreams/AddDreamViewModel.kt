@@ -28,7 +28,7 @@ class AddDreamViewModel(private val repository: DreamRepository) : ViewModel() {
 
     fun addDream (navController: NavController, dream: Dream, coroutineScope: CoroutineScope, onSaved: () -> Unit, onFailure: () -> Unit) {
 
-        if (dream.title.isEmpty() || dream.content.isEmpty() || dream.emotions.isEmpty() || dream.dreamType.isEmpty()) {
+        if (dream.title.isEmpty()  || dream.emotions.isEmpty() || dream.dreamType.isEmpty() || (dream.content.isEmpty() && dream.audio["path"] == "")) {
             _dreamState.value = DreamResponse.Error("Veuillez renseigner au minimum un titre, un contenu, une émotion et un type de rêve")
             coroutineScope.launch {
                 SnackbarManager.showMessage("Veuillez renseigner au minimum un titre, un contenu et une émotion", R.drawable.error)

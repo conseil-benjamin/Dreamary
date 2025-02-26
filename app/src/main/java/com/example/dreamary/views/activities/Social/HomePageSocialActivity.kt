@@ -50,6 +50,12 @@ fun HomePageSocialPreview() {
     HomePageSocialActivity(navController = NavController(LocalContext.current))
 }
 
+
+@Composable
+fun HeaderSocial() {
+
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomePageSocialActivity(navController: NavController, viewModel: SocialViewModel = viewModel()) {
