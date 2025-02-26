@@ -16,7 +16,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.dreamary.R
+import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.ui.theme.DreamaryTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -30,7 +32,7 @@ fun MenuBurgerScreenPreview() {
         ) {
             MenuBurgerScreen(
                 onNavigateBack = {},
-                onNavigateToSection = {}
+                navController = NavController(LocalContext.current)
             )
         }
     }
@@ -39,8 +41,8 @@ fun MenuBurgerScreenPreview() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuBurgerScreen(
+    navController: NavController,
     onNavigateBack: () -> Unit,
-    onNavigateToSection: (String) -> Unit
 ) {
     val auth = Firebase.auth
     val context = LocalContext.current
@@ -75,7 +77,7 @@ fun MenuBurgerScreen(
                 ) {
                     UserInfoCard(
                         name = user?.displayName ?: "Unknown",
-                        onClick = { onNavigateToSection("profile") }
+                        onClick = { navController.navigate(NavRoutes.Profile.createRoute(user?.uid ?: "")) }
                     )
                 }
             }
@@ -90,19 +92,19 @@ fun MenuBurgerScreen(
                         icon = Icons.Default.Info,
                         title = "Journal des rêves",
                         subtitle = "Tous vos rêves",
-                        onClick = { onNavigateToSection("home") }
+                        onClick = { navController.navigate(NavRoutes.Home.route) }
                     )
                     SettingItem(
                         icon = Icons.Default.Info,
                         title = "Guide onirique",
                         subtitle = "Apprenez le rêve lucide",
-                        onClick = { onNavigateToSection("guide") }
+                        onClick = { navController.navigate(NavRoutes.Home.route) }
                     )
                     SettingItem(
                         icon = Icons.Default.Info,
                         title = "Paramètres",
                         subtitle = "Personnalisez votre expérience",
-                        onClick = { onNavigateToSection("settings") }
+                        onClick = { navController.navigate(NavRoutes.Settings.route) }
                     )
                 }
             }
@@ -117,17 +119,17 @@ fun MenuBurgerScreen(
                         icon = Icons.Default.Star,
                         title = "Premium",
                         subtitle = "Accédez à toutes les fonctionnalités",
-                        onClick = { onNavigateToSection("premium") }
+                        onClick = { navController.navigate(NavRoutes.Home.route) }
                     )
                     SettingItem(
                         icon = Icons.Default.Notifications,
                         title = "Notifications",
-                        onClick = { onNavigateToSection("notifications") }
+                        onClick = { navController.navigate(NavRoutes.Home.route) }
                     )
                     SettingItem(
                         icon = Icons.Default.Lock,
                         title = "Confidentialité",
-                        onClick = { onNavigateToSection("privacy") }
+                        onClick = { navController.navigate(NavRoutes.Home.route) }
                     )
                 }
             }
@@ -141,7 +143,7 @@ fun MenuBurgerScreen(
                     SettingItem(
                         icon = Icons.Default.Info,
                         title = "Aide & Support",
-                        onClick = { onNavigateToSection("help") }
+                        onClick = { navController.navigate(NavRoutes.Home.route) }
                     )
                 }
             }
@@ -156,7 +158,7 @@ fun MenuBurgerScreen(
                         auth.signOut()
                         context.getSharedPreferences("isLoggedIn", 0).edit()
                             .putBoolean("isLoggedIn", false).apply()
-                        onNavigateToSection("login")
+                        navController.navigate(NavRoutes.Login.route)
                     }
                 ) {
                     Row(

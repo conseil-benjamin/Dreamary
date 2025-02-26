@@ -128,16 +128,13 @@ fun NavigationManager() {
         ) {
             RegisterActivity(navController = navController)
         }
-        composable(NavRoutes.Profile.route) {
-            ProfileActivity(navController = navController)
-        }
         composable(NavRoutes.AddDream.route) {
             AddDreamActivity(navController = navController)
         }
         composable(NavRoutes.BurgerMenu.route) {
             MenuBurgerScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToSection = { navController.navigate(it) }
+                navController = navController
             )
         }
         composable(NavRoutes.UserMoreInformation.route) {
@@ -197,6 +194,12 @@ fun NavigationManager() {
             DetailsDreamActivity(
                 navController = navController,
                 dreamId = it.arguments?.getString("dreamId") ?: ""
+            )
+        }
+        composable(NavRoutes.Profile.route) {
+            ProfileActivity(
+                navController = navController,
+                userId = it.arguments?.getString("userId") ?: ""
             )
         }
         composable(NavRoutes.AllDreamsCalendar.route){

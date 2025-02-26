@@ -4,7 +4,6 @@ sealed class NavRoutes(val route: String) {
     data object Login : NavRoutes("login")
     data object Home : NavRoutes("home")
     data object Register : NavRoutes("register")
-    data object Profile : NavRoutes("profile")
     data object AddDream : NavRoutes("addDream")
     data object BurgerMenu : NavRoutes("burgerMenu")
     data object UserMoreInformation : NavRoutes("userMoreInformation")
@@ -13,6 +12,9 @@ sealed class NavRoutes(val route: String) {
     data object Onboarding : NavRoutes("onboarding")
     data object DreamDetail : NavRoutes("dreamDetail/{dreamId}") {
         fun createRoute(dreamId: String) = "dreamDetail/$dreamId"
+    }
+    data object Profile : NavRoutes("profile/{userId}") {
+        fun createRoute(userId: String) = "profile/$userId"
     }
     data object EditDream : NavRoutes("editDream")
     data object SplashScreen: NavRoutes("splashScreen")

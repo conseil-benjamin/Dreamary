@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.dreamary.R
 import com.example.dreamary.models.routes.NavRoutes
+import com.google.firebase.auth.FirebaseAuth
 
 @Preview(showBackground = true)
 @Composable
@@ -33,6 +34,8 @@ fun TopNavigationPreview() {
 
 @Composable
 fun TopNavigation(navController: NavController) {
+    val user = FirebaseAuth.getInstance().currentUser
+
     Row (
         modifier = Modifier
             .fillMaxWidth()
@@ -76,7 +79,7 @@ fun TopNavigation(navController: NavController) {
                 .size(24.dp)
                 .weight(1f)
                 .clickable{
-                    navController.navigate(NavRoutes.Profile.route)
+                    navController.navigate(NavRoutes.Profile.createRoute(user?.uid ?: ""))
                 },
             colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
         )

@@ -5,6 +5,7 @@ import java.util.Date
 import java.util.UUID
 
 data class User(
+    val id : String = "",
     val uid: String = UUID.randomUUID().toString(),
     val email: String = "",
     val username: String = "",

@@ -45,6 +45,7 @@ import com.example.dreamary.views.components.Loading
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileActivity(
+    userId: String,
     viewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModelFactory (AuthRepository(LocalContext.current), DreamRepository(LocalContext.current))
     ),
@@ -58,7 +59,7 @@ fun ProfileActivity(
     val isVisitor = currentUser?.uid != user?.uid
 
     LaunchedEffect(Unit) {
-        viewModel.getProfileData(currentUser?.uid ?: "")
+        viewModel.getProfileData(userId)
         viewModel.getUserBadges()
     }
 

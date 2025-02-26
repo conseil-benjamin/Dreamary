@@ -111,7 +111,7 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.play_store_512),
+                    painter = painterResource(id = R.drawable.dreamary),
                     contentDescription = null,
                     modifier = Modifier
                         .size(80.dp)
