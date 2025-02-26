@@ -1,5 +1,7 @@
 package com.example.dreamary.models.routes
 
+import android.net.Uri
+
 sealed class NavRoutes(val route: String) {
     data object Login : NavRoutes("login")
     data object Home : NavRoutes("home")
@@ -21,4 +23,11 @@ sealed class NavRoutes(val route: String) {
     data object SucessAddDream: NavRoutes("sucessAddDream")
     data object AllBadges : NavRoutes("allBadges")
     data object AllDreamsCalendar : NavRoutes("allDreamsCalendar")
+    data object ChatScreenFriends : NavRoutes("chatScreenFriend/{userId}/{userUrlProfilePicture}") {
+        fun createRoute(userId: String, userUrlProfilePicture: String): String {
+            val encodedUrl = Uri.encode(userUrlProfilePicture)
+            return "chatScreenFriend/$userId/$encodedUrl"
+        }
+    }
+
 }

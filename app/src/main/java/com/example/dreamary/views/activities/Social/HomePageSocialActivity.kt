@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,9 +51,15 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.dreamary.models.entities.Group
 import com.example.dreamary.models.entities.User
+import com.example.dreamary.models.repositories.AuthRepository
+import com.example.dreamary.models.repositories.DreamRepository
+import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.ui.theme.DreamaryTheme
 import com.example.dreamary.viewmodels.Social.SocialViewModel
+import com.example.dreamary.viewmodels.profile.ProfileViewModel
+import com.example.dreamary.viewmodels.profile.ProfileViewModelFactory
+import com.example.dreamary.viewmodels.profile.SocialViewModelFactory
 import com.example.dreamary.views.components.BottomNavigation
 import com.example.dreamary.views.components.Divider
 import com.example.dreamary.views.components.Loading
@@ -193,9 +202,15 @@ fun HeaderSocial(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomePageSocialActivity(navController: NavController, viewModel: SocialViewModel = viewModel()) {
+fun HomePageSocialActivity(
+    navController: NavController,
+    viewModel: SocialViewModel = viewModel(
+    factory = SocialViewModelFactory (SocialRepository(LocalContext.current))
+),
+    ) {
     val groups by viewModel.groups.collectAsState()
     val users by viewModel.users.collectAsState()
+    val friends by viewModel.listFriends.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     Log.i("c", groups.toString())
 
@@ -205,8 +220,11 @@ fun HomePageSocialActivity(navController: NavController, viewModel: SocialViewMo
     val currentUser = auth.currentUser
     Log.i("uid", currentUser!!.uid)
 
+    var socialChoose by remember { mutableStateOf("groupes") }
+
     LaunchedEffect(Unit) {
         viewModel.getGroupsForCurrentUser(currentUser.uid)
+        viewModel.getFriendsForCurrentUser(currentUser.uid)
     }
 
     DreamaryTheme {
@@ -223,70 +241,287 @@ fun HomePageSocialActivity(navController: NavController, viewModel: SocialViewMo
                     .padding(paddingValues)
                     .fillMaxSize()
             ) {
-                LazyColumn {
-                    item { HeaderSocial(
-                        research = research,
-                        onResearchChange = { research = it },
-                        onStopTyping = { viewModel.searchUsers(research) },
-                        users = users,
-                        navController = navController
-                    ) }
-                    item { Groupes(groups = groups) }
-                }
-
+                HeaderSocial(
+                    research = research,
+                    onResearchChange = { research = it },
+                    onStopTyping = { viewModel.searchUsers(research) },
+                    users = users,
+                    navController = navController
+                )
                 Divider()
+                BoutonGroupesAndFriends(onSocialChooseChange = { socialChoose = it })
+                if (socialChoose == "groupes"){
+                    ButtonSocial()
+                    LazyColumn {
+                        item { Groupes(groups = groups) }
+                    }
+                } else {
+                    LazyColumn {
+                        item {
+                            Friends(
+                                friends = friends,
+                                navController = navController
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun Groupes(groups: List<Group>) {
+fun BoutonGroupesAndFriends(
+    onSocialChooseChange: (String) -> Unit
+) {
+    Row (
+        modifier = Modifier.fillMaxWidth()
+    ){
+        Card(
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.cardElevation(4.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier
+                .weight(1f)
+                .padding(16.dp)
+                .clickable { onSocialChooseChange("groupes") }
+        ) {
+            Row (
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.users),
+                    contentDescription = "Groupes",
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = "Groupes",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+        Card(
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.cardElevation(4.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier
+                .weight(1f)
+                .padding(16.dp)
+                .clickable { onSocialChooseChange("friends") }
+        ) {
+            Row (
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.messages),
+                    contentDescription = "Amis",
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = "Amis",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+    }
+}
 
-    if (groups.isNotEmpty()) {
-        for (group in groups) {
+@Composable
+fun ButtonSocial() {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Row (
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.plus),
+                contentDescription = "Create group",
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = "Créer un groupe",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun Friends(
+    friends: List<User>,
+    navController: NavController
+) {
+    Text(
+        text = "Amis",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(16.dp)
+    )
+    if (friends.isNotEmpty()) {
+        for (friend in friends){
+        Card(
+            elevation = CardDefaults.cardElevation(4.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .clickable {
+                    navController.navigate(NavRoutes.ChatScreenFriends.createRoute(friend.uid, friend.profilePictureUrl))
+                }
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Column (
+                Column(
                     modifier = Modifier
                         .weight(1f)
+                        .padding(horizontal = 8.dp)
                 ) {
                     AsyncImage(
-                        model = group.image_url,
+                        model = friend.profilePictureUrl,
                         contentDescription = null,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(15.dp))
+                            .fillMaxSize()
                     )
                 }
-                Column (
+                Column(
                     modifier = Modifier
                         .weight(5f)
                 ) {
-                    Row (
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (true) {
-                            Text(
-                                text = group.name,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                        Icon(
-                            painter = painterResource(id = if (group.privacy == "private") R.drawable.lock else R.drawable.privacy_public),
-                            contentDescription = "Invite people",
-                            modifier = Modifier
-                                .size(16.dp)
+                        Text(
+                            text = friend.fullName,
+                            style = MaterialTheme.typography.titleMedium
                         )
                     }
-                    Text(
-                        text = "${group.members.size} membres",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = friend.username,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                 }
             }
         }
+    } } else {
+        Text(
+            text = "Vous n'avez pas encore d'amis",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier
+                .padding(16.dp),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun Groupes(groups: List<Group>) {
+
+    Text(
+        text = "Mes Groupes",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(16.dp)
+    )
+
+    if (groups.isNotEmpty()) {
+        for (group in groups) {
+            Card(
+                elevation = CardDefaults.cardElevation(4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 8.dp)
+                    ) {
+                        AsyncImage(
+                            model = group.image_url,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(15.dp))
+                        )
+                    }
+                    Column(
+                        modifier = Modifier
+                            .weight(5f)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (true) {
+                                Text(
+                                    text = group.name,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                            Icon(
+                                painter = painterResource(id = if (group.privacy == "private") R.drawable.lock else R.drawable.privacy_public),
+                                contentDescription = "Invite people",
+                                modifier = Modifier
+                                    .size(16.dp)
+                            )
+                        }
+                        Text(
+                            text = "${group.members.size} membres",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+        }
+    } else {
+        Text(
+            text = "Vous n'avez pas encore de groupe",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier
+                .padding(16.dp),
+            textAlign = TextAlign.Center
+        )
     }
 }

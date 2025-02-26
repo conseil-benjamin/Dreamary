@@ -3,6 +3,7 @@ package com.example.dreamary.navigation
 import MenuBurgerScreen
 import SettingsScreen
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -27,6 +28,7 @@ import com.example.dreamary.views.activities.AllDreamsCalendar.AllDreamsCalendar
 import com.example.dreamary.views.activities.Dreams.AddDreamActivity
 import com.example.dreamary.views.activities.Dreams.DetailsDreamActivity
 import com.example.dreamary.views.activities.Dreams.SuccessAddDream
+import com.example.dreamary.views.activities.Social.ChatScreenFriendActivity
 import com.example.dreamary.views.activities.profile.ProfileActivity
 import com.example.dreamary.views.activities.Social.HomePageSocialActivity
 import com.example.dreamary.views.activities.auth.LoginActivity
@@ -204,6 +206,13 @@ fun NavigationManager() {
         }
         composable(NavRoutes.AllDreamsCalendar.route){
             AllDreamsCalendar(navController = navController)
+        }
+        composable(NavRoutes.ChatScreenFriends.route) { it ->
+            ChatScreenFriendActivity(
+                navController = navController,
+                userId = it.arguments?.getString("userId") ?: "",
+                userUrlProfilePicture = it.arguments?.getString("userUrlProfilePicture")?.let { Uri.decode(it) } ?: ""
+            )
         }
     }
 }
