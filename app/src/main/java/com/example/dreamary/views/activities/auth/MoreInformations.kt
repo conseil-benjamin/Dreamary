@@ -290,8 +290,6 @@ fun MoreInformations (navController: NavController) {
                         )
                     }
                 )
-                // récupérer image de profil
-
                 Button(
                     onClick = {
                         coroutineScope.launch {

@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -49,20 +48,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.dreamary.models.entities.Conversation
 import com.example.dreamary.models.entities.Group
 import com.example.dreamary.models.entities.User
-import com.example.dreamary.models.repositories.AuthRepository
-import com.example.dreamary.models.repositories.DreamRepository
 import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.ui.theme.DreamaryTheme
 import com.example.dreamary.viewmodels.Social.SocialViewModel
-import com.example.dreamary.viewmodels.profile.ProfileViewModel
-import com.example.dreamary.viewmodels.profile.ProfileViewModelFactory
 import com.example.dreamary.viewmodels.profile.SocialViewModelFactory
 import com.example.dreamary.views.components.BottomNavigation
 import com.example.dreamary.views.components.Divider
 import com.example.dreamary.views.components.Loading
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -211,6 +208,7 @@ fun HomePageSocialActivity(
     val groups by viewModel.groups.collectAsState()
     val users by viewModel.users.collectAsState()
     val friends by viewModel.listFriends.collectAsState()
+    val conversations by viewModel.listConversations.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     Log.i("c", groups.toString())
 
@@ -225,6 +223,7 @@ fun HomePageSocialActivity(
     LaunchedEffect(Unit) {
         viewModel.getGroupsForCurrentUser(currentUser.uid)
         viewModel.getFriendsForCurrentUser(currentUser.uid)
+        viewModel.getConversationsForCurrentUser(currentUser.uid)
     }
 
     DreamaryTheme {
@@ -255,13 +254,120 @@ fun HomePageSocialActivity(
                     LazyColumn {
                         item { Groupes(groups = groups) }
                     }
-                } else {
+                } else if (socialChoose == "friends") {
                     LazyColumn {
                         item {
                             Friends(
                                 friends = friends,
-                                navController = navController
+                                navController = navController,
+                                onCreateConversation = { conversation ->
+                                    viewModel.createConversation(conversation)
+                                })
+                        }
+                    }
+                } else {
+                    Conversations(
+                        navController = navController,
+                        conversations = conversations,
+                        userId = currentUser.uid,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun Conversations(
+    navController: NavController,
+    conversations: List<Conversation>,
+    userId: String,
+) {
+    LazyColumn {
+        for (conversation in conversations) {
+            val timeStamp = conversation.lastMessageTimestamp.toDate().time
+            Log.i("timeStamp", timeStamp.toString())
+            val currentTime = System.currentTimeMillis()
+            val timePassed = (currentTime - timeStamp) / 1000
+            Log.i("timePassed", timePassed.toString())
+            val timePassedInMinutes = timePassed / 60
+            val timePassedInHours = timePassedInMinutes / 60
+            val timePassedInDays = timePassedInHours / 24
+
+            item{
+                Card(
+                    elevation = CardDefaults.cardElevation(4.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .clickable {
+                            navController.navigate(NavRoutes.ChatScreenFriends.createRoute(
+                                if (userId == conversation.user1) conversation.user2 else conversation.user1,
+                                if (userId == conversation.user1) conversation.profilePictureUser2 else conversation.profilePictureUser1,
+                                conversation.chatId
+                            ))
+                        }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            AsyncImage(
+                                model = if (userId == conversation.user1) conversation.profilePictureUser2 else conversation.profilePictureUser1,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(15.dp))
                             )
+                        }
+                        Column(
+                            modifier = Modifier
+                                .weight(5f)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (conversation.user1 == userId) {
+                                    Text(
+                                        text = conversation.user2,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                } else {
+                                    Text(
+                                        text = conversation.user1,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = conversation.lastMessage,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                                Text(
+                                    text = when {
+                                        timePassedInDays > 0 -> "$timePassedInDays jours"
+                                        timePassedInHours > 0 -> "$timePassedInHours heures"
+                                        timePassedInMinutes > 0 -> "$timePassedInMinutes minutes"
+                                        else -> "$timePassed secondes"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                         }
                     }
                 }
@@ -283,12 +389,12 @@ fun BoutonGroupesAndFriends(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier
                 .weight(1f)
-                .padding(16.dp)
+                .padding(8.dp)
                 .clickable { onSocialChooseChange("groupes") }
         ) {
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+            Column (
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .padding(8.dp)
                     .fillMaxWidth()
@@ -312,18 +418,47 @@ fun BoutonGroupesAndFriends(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier
                 .weight(1f)
-                .padding(16.dp)
-                .clickable { onSocialChooseChange("friends") }
+                .padding(8.dp)
+                .clickable { onSocialChooseChange("conversation") }
         ) {
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+            Column (
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .padding(8.dp)
                     .fillMaxWidth()
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.messages),
+                    contentDescription = "conversation",
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = "Messages",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+        Card(
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.cardElevation(4.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier
+                .weight(1f)
+                .padding(8.dp)
+                .clickable { onSocialChooseChange("friends") }
+        ) {
+            Column (
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.user),
                     contentDescription = "Amis",
                     modifier = Modifier.size(24.dp)
                 )
@@ -373,8 +508,10 @@ fun ButtonSocial() {
 @Composable
 fun Friends(
     friends: List<User>,
-    navController: NavController
+    navController: NavController,
+    onCreateConversation: (Conversation) -> Unit
 ) {
+    val auth = FirebaseAuth.getInstance()
     Text(
         text = "Amis",
         style = MaterialTheme.typography.titleMedium,
@@ -389,9 +526,6 @@ fun Friends(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .clickable {
-                    navController.navigate(NavRoutes.ChatScreenFriends.createRoute(friend.uid, friend.profilePictureUrl))
-                }
         ) {
             Row(
                 modifier = Modifier
@@ -413,7 +547,7 @@ fun Friends(
                 }
                 Column(
                     modifier = Modifier
-                        .weight(5f)
+                        .weight(3f)
                 ) {
                     Row(
                         modifier = Modifier
@@ -431,10 +565,40 @@ fun Friends(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = friend.username,
+                            text = "@${friend.username}",
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
+                }
+                Column (
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp)
+                ){
+                    Icon(
+                        painter = painterResource(id = R.drawable.comment),
+                        contentDescription = "Message",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable {
+                                // todo : d'abord créer la conversation et après rediriger vers la conversation en passant les variables friends
+                               onCreateConversation(
+                                   Conversation(
+                                    user1 = auth.currentUser!!.uid,
+                                    user2 = friend.uid,
+                                    profilePictureUser1 = friend.profilePictureUrl,
+                                    profilePictureUser2 = "",
+                                    lastMessage = "",
+                                    lastMessageTimestamp = Timestamp.now(),
+                                    lastSender = "",
+                                    unreadMessagesUser1 = 0,
+                                    unreadMessagesUser2 = 0,
+                                    chatId = auth.currentUser!!.uid + friend.uid,
+                                ),
+                               )
+                            }
+                    )
                 }
             }
         }

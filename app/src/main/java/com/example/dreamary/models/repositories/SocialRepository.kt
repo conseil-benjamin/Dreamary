@@ -2,9 +2,13 @@ package com.example.dreamary.models.repositories
 
 import android.content.Context
 import android.util.Log
+import androidx.navigation.NavController
+import com.example.dreamary.models.entities.Conversation
 import com.example.dreamary.models.entities.Group
+import com.example.dreamary.models.entities.Message
 import com.example.dreamary.models.entities.User
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +26,13 @@ class SocialRepository(private val context: Context) {
 
     private var _listFriends = MutableStateFlow<List<User>>(emptyList())
     var listFriends = _listFriends.asStateFlow()
+
+    private var _messagesList = MutableStateFlow<List<Message>>(emptyList())
+    var messages = _messagesList.asStateFlow()
+
+
+    private var _conversations = MutableStateFlow<List<Conversation>>(emptyList())
+    var listConversations = _conversations.asStateFlow()
 
     fun getGroupsForCurrentUser(userId: String): StateFlow<List<Group>> {
         try {
@@ -94,6 +105,99 @@ class SocialRepository(private val context: Context) {
         } catch (e: Exception) {
             println("Erreur lors de la récupération des amis : $e")
             return listFriends
+        }
+    }
+
+    fun getConversationsForCurrentUser(userId: String): StateFlow<List<Conversation>> {
+        try {
+            db.collection("chats")
+                .where(
+                    Filter.or(
+                        Filter.equalTo("user1", userId),
+                        Filter.equalTo("user2", userId)
+                    )
+                )
+                .get()
+                .addOnSuccessListener { documents ->
+                    val conversations = documents.map { document ->
+                        val conversation = document.toObject(Conversation::class.java)
+                        conversation.copy(
+                            id = document.id
+                        )
+                    }
+                    Log.i("conversations", conversations.toString())
+                    _conversations.value = conversations
+                }
+            return listConversations
+        } catch (e: Exception) {
+            println("Erreur lors de la récupération des conversations : $e")
+            return listConversations
+        }
+    }
+
+
+    fun getMessagesForCurrentUser(chatId: String): StateFlow<List<Message>> {
+        try {
+            Log.i("chatId", chatId)
+            db.collection("chats")
+                .document(chatId)
+                .collection("messages")
+                .get()
+                .addOnSuccessListener { documents ->
+                    Log.i("documents", documents.documents.toString())
+                    val messages = documents.map { document ->
+                        val conversation = document.toObject(Message::class.java)
+                        conversation.copy(
+                            id = document.id
+                        )
+                    }
+                    Log.i("messages", messages.toString())
+                    _messagesList.value = messages
+                }
+            return messages
+        } catch (e: Exception) {
+            println("Erreur lors de la récupération des amis : $e")
+            return messages
+        }
+    }
+
+    fun sendMessage(chatId: String, message: Message) {
+        val update = hashMapOf<String, Any>(
+            "lastMessage" to message.content,
+            "lastMessageTimestamp" to message.createdAt,
+            "lastSender" to message.senderId
+        )
+        try {
+            db.collection("chats")
+                .document(chatId)
+                .collection("messages")
+                .add(message)
+                .addOnSuccessListener {
+                    Log.i("message", "Message envoyé")
+                }
+
+            db.collection("chats")
+                .document(chatId)
+                .update(update)
+                .addOnSuccessListener {
+                    Log.i("miseajour", "Conversation mise à jour")
+                }
+        } catch (e: Exception) {
+            println("Erreur lors de l'envoi du message : $e")
+        }
+    }
+
+    fun createConversation(conversation: Conversation) {
+        try {
+            db.collection("chats")
+                .document(conversation.chatId)
+                .set(conversation)
+                .addOnSuccessListener {
+                    Log.i("conversation", "Conversation créée")
+
+                }
+        } catch (e: Exception) {
+            println("Erreur lors de la création de la conversation : $e")
         }
     }
 }

@@ -211,7 +211,8 @@ fun NavigationManager() {
             ChatScreenFriendActivity(
                 navController = navController,
                 userId = it.arguments?.getString("userId") ?: "",
-                userUrlProfilePicture = it.arguments?.getString("userUrlProfilePicture")?.let { Uri.decode(it) } ?: ""
+                userUrlProfilePicture = it.arguments?.getString("userUrlProfilePicture")?.let { Uri.decode(it) } ?: "",
+                chatId = it.arguments?.getString("chatId") ?: ""
             )
         }
     }

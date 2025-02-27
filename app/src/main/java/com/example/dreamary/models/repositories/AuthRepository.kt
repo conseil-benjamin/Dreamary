@@ -241,7 +241,8 @@ class AuthRepository(private val context: Context) {
         db.collection("users").document(userId)
             .update(fieldPath, value)
             .addOnSuccessListener {
-                db.collection("users").document(userId)
+                db.collection("users")
+                    .document(userId)
                     .get()
                     .addOnSuccessListener { document ->
                         if (document.exists()) {

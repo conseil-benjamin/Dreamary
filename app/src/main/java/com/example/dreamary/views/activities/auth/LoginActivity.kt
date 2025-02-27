@@ -132,7 +132,7 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = {
+                    label = {
                         Text(
                             text = "Email",
                             color = Color.White,
@@ -148,13 +148,6 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    placeholder = {
-                        Text(
-                            text = stringResource(id = R.string.login_field_password),
-                            color = Color.White,
-                            fontSize = 12.sp
-                        )
-                    },
                     trailingIcon = {
                         if(isPasswordVisible) {
                             // icone pour rendre le mot de passe invisible
@@ -176,6 +169,13 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                                 }
                             )
                         }
+                    },
+                    label = {
+                        Text(
+                            text = "Mot de passe",
+                            color = Color.White,
+                            fontSize = 12.sp
+                        )
                     },
                     visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     shape = RoundedCornerShape(16.dp),

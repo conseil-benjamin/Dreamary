@@ -23,10 +23,10 @@ sealed class NavRoutes(val route: String) {
     data object SucessAddDream: NavRoutes("sucessAddDream")
     data object AllBadges : NavRoutes("allBadges")
     data object AllDreamsCalendar : NavRoutes("allDreamsCalendar")
-    data object ChatScreenFriends : NavRoutes("chatScreenFriend/{userId}/{userUrlProfilePicture}") {
-        fun createRoute(userId: String, userUrlProfilePicture: String): String {
+    data object ChatScreenFriends : NavRoutes("chatScreenFriend/{userId}/{userUrlProfilePicture}/{chatId}") {
+        fun createRoute(userId: String, userUrlProfilePicture: String, chatId: String): String {
             val encodedUrl = Uri.encode(userUrlProfilePicture)
-            return "chatScreenFriend/$userId/$encodedUrl"
+            return "chatScreenFriend/$userId/$encodedUrl/$chatId"
         }
     }
 

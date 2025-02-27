@@ -143,11 +143,11 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    placeholder = {
+                    label = {
                         Text(
-                            text = stringResource(id = R.string.Register_input_name),
+                            text = "Nom",
                             color = Color.White,
-                            fontSize = 13.sp
+                            fontSize = 12.sp
                         )
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -160,11 +160,11 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = {
+                    label = {
                         Text(
                             text = "Email",
                             color = Color.White,
-                            fontSize = 13.sp
+                            fontSize = 12.sp
                         )
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -177,11 +177,11 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    placeholder = {
+                    label = {
                         Text(
-                            text = stringResource(id = R.string.login_field_password),
+                            text = "Mot de passe",
                             color = Color.White,
-                            fontSize = 13.sp
+                            fontSize = 12.sp
                         )
                     },
                     textStyle = TextStyle(color = Color.White),
@@ -217,11 +217,11 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    placeholder = {
+                    label = {
                         Text(
-                            text = stringResource(id = R.string.Register_input_confirm_password),
+                            text = "Confirmer mot de passe",
                             color = Color.White,
-                            fontSize = 13.sp
+                            fontSize = 12.sp
                         )
                     },
                     textStyle = TextStyle(color = Color.White),

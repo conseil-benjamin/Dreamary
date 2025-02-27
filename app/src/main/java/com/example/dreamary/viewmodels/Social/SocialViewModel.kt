@@ -5,7 +5,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.dreamary.models.entities.Conversation
 import com.example.dreamary.models.entities.Group
+import com.example.dreamary.models.entities.Message
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.SocialRepository
 import com.google.firebase.firestore.FirebaseFirestore
@@ -25,6 +27,9 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
 
     private var _listFriends = MutableStateFlow<List<User>>(emptyList())
     var listFriends = _listFriends.asStateFlow()
+
+    private var _conversations = MutableStateFlow<List<Conversation>>(emptyList())
+    var listConversations = _conversations.asStateFlow()
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getGroupsForCurrentUser(userId: String) {
@@ -53,6 +58,22 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
             socialRepository.searchUsers(searchValue).collect { users ->
                 _usersList.value = users
             }
+        }
+    }
+
+    fun getConversationsForCurrentUser(userId: String) {
+        viewModelScope.launch {
+            socialRepository.getConversationsForCurrentUser(userId).collect { conversations ->
+                _conversations.value = conversations
+            }
+        }
+    }
+
+    fun createConversation(conversation: Conversation) {
+        viewModelScope.launch {
+            socialRepository.createConversation(conversation)
+
+           // faire une redirection vers la conversation après l'avoir créé
         }
     }
 }
