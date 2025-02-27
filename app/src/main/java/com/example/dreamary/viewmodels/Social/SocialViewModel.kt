@@ -31,6 +31,9 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
     private var _conversations = MutableStateFlow<List<Conversation>>(emptyList())
     var listConversations = _conversations.asStateFlow()
 
+    private var _friendRequests = MutableStateFlow<List<User>>(emptyList())
+    var friendRequests = _friendRequests.asStateFlow()
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun getGroupsForCurrentUser(userId: String) {
         viewModelScope.launch {
@@ -65,6 +68,23 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
         viewModelScope.launch {
             socialRepository.getConversationsForCurrentUser(userId).collect { conversations ->
                 _conversations.value = conversations
+            }
+        }
+    }
+
+    fun getFriendRequestsForCurrentUser(userId: String) {
+        viewModelScope.launch {
+            socialRepository.getFriendRequestsForCurrentUser(userId).collect { friendRequests ->
+                _friendRequests.value = friendRequests
+            }
+        }
+    }
+
+    fun updateFriendRequest(userId: String, friendId: String, status: String) {
+        viewModelScope.launch {
+            socialRepository.updateFriendStatus(userId, friendId, status).collect { friendRequests ->
+                _friendRequests.value = friendRequests
+                _listFriends.value = _listFriends.value + friendRequests
             }
         }
     }

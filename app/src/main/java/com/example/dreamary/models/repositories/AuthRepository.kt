@@ -47,8 +47,8 @@ class AuthRepository(private val context: Context) {
                 .collection("friends")
                 .where(
                     Filter.and(
-                        Filter.equalTo("user1", userId),
-                        Filter.equalTo("user2", idFriend),
+                        Filter.equalTo("receveir", userId),
+                        Filter.equalTo("sender", idFriend),
                     )
                 )
                 .get()
@@ -89,8 +89,8 @@ class AuthRepository(private val context: Context) {
             .add(
                 hashMapOf(
                     "id" to idFriend,
-                    "user1" to idUser,
-                    "user2" to idFriend,
+                    "sender" to idUser,
+                    "receveir" to idFriend,
                     "status" to "pending"
                 )
             )
@@ -107,8 +107,8 @@ class AuthRepository(private val context: Context) {
             .add(
                 hashMapOf(
                     "id" to idUser,
-                    "user1" to idFriend,
-                    "user2" to idUser,
+                    "sender" to idUser,
+                    "receveir" to idFriend,
                     "status" to "pending"
                 )
             )

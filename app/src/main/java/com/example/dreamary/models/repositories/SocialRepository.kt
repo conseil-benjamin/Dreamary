@@ -7,6 +7,7 @@ import com.example.dreamary.models.entities.Conversation
 import com.example.dreamary.models.entities.Group
 import com.example.dreamary.models.entities.Message
 import com.example.dreamary.models.entities.User
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
@@ -30,9 +31,11 @@ class SocialRepository(private val context: Context) {
     private var _messagesList = MutableStateFlow<List<Message>>(emptyList())
     var messages = _messagesList.asStateFlow()
 
-
     private var _conversations = MutableStateFlow<List<Conversation>>(emptyList())
     var listConversations = _conversations.asStateFlow()
+
+    private var _friendRequests = MutableStateFlow<List<User>>(emptyList())
+    var friendRequests = _friendRequests.asStateFlow()
 
     fun getGroupsForCurrentUser(userId: String): StateFlow<List<Group>> {
         try {
@@ -87,7 +90,7 @@ class SocialRepository(private val context: Context) {
                 .get()
                 .await()
 
-            val friendsUid = snapshot.documents.mapNotNull { if (it.getString("status") == "accepted") it.getString("user2") else null }
+            val friendsUid = snapshot.documents.mapNotNull { if (it.getString("status") == "accepted" && it.getString("receveir") == userId) it.getString("sender") else if (it.getString("status") == "accepted" && it.getString("sender") == userId) it.getString("receveir") else null }
             Log.i("friends", friendsUid.toString())
 
             val friends = friendsUid.map { friendUid ->
@@ -135,6 +138,98 @@ class SocialRepository(private val context: Context) {
         }
     }
 
+    fun updateFriendStatus(userId: String, friendId: String, status: String): StateFlow<List<User>> {
+        try {
+            val update = hashMapOf<String, Any>(
+                "status" to status
+            )
+
+            db.collection("users")
+                .document(userId)
+                .collection("friends")
+                .whereEqualTo("receveir", userId)
+                .get()
+                .addOnSuccessListener { documents ->
+                    documents.forEach { document ->
+                        db.collection("users")
+                            .document(userId)
+                            .collection("friends")
+                            .document(document.id)
+                            .update(update)
+                            .addOnSuccessListener {
+                                Log.i("update", "Statut de l'ami mis à jour")
+                            }
+                    }
+                }
+
+            db.collection("users")
+                .document(friendId)
+                .collection("friends")
+                .whereEqualTo("sender", friendId)
+                .get()
+                .addOnSuccessListener { documents ->
+                    documents.forEach { document ->
+                        db.collection("users")
+                            .document(friendId)
+                            .collection("friends")
+                            .document(document.id)
+                            .update(update)
+                            .addOnSuccessListener {
+                                Log.i("update", "Statut de l'ami mis à jour")
+                            }
+                    }
+                }
+
+            val friendRequests = getFriendRequestsForCurrentUser(userId)
+            Log.i("friendRequests", friendRequests.toString())
+            _friendRequests.value = friendRequests.value
+            return friendRequests
+        } catch (e: Exception) {
+            println("Erreur lors de la mise à jour du statut de l'ami : $e")
+        }
+        return friendRequests
+    }
+
+    fun getFriendRequestsForCurrentUser(userId: String): StateFlow<List<User>> {
+        try {
+            Log.i("userId", userId)
+            db.collection("users")
+                .document(userId)
+                .collection("friends")
+                .where(
+                    Filter.and(
+                        Filter.equalTo("status", "pending"),
+                        Filter.equalTo("receveir", userId)
+                    )
+                )
+                .get()
+                .addOnSuccessListener { documents ->
+                    Log.i("documents", documents.documents.toString())
+                    val tasks = documents.mapNotNull { document ->
+                        val friendUid = document.getString("sender")
+                        friendUid?.let {
+                            db.collection("users")
+                                .document(it)
+                                .get()
+                                .continueWith { task ->
+                                    val user = task.result.toObject(User::class.java)
+                                    user?.copy(id = it)
+                                }
+                        }
+                    }
+
+                    Tasks.whenAllSuccess<User>(tasks)
+                        .addOnSuccessListener { users ->
+                            Log.i("friendRequests", users.toString())
+                            _friendRequests.value = users
+                        }
+                }
+            return friendRequests
+        } catch (e: Exception) {
+            println("Erreur lors de la récupération des demandes d'amis : $e")
+            return friendRequests
+        }
+    }
 
     fun getMessagesForCurrentUser(chatId: String): StateFlow<List<Message>> {
         try {

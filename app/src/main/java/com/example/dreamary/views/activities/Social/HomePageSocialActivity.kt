@@ -209,6 +209,7 @@ fun HomePageSocialActivity(
     val users by viewModel.users.collectAsState()
     val friends by viewModel.listFriends.collectAsState()
     val conversations by viewModel.listConversations.collectAsState()
+    val friendRequests by viewModel.friendRequests.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     Log.i("c", groups.toString())
 
@@ -224,6 +225,7 @@ fun HomePageSocialActivity(
         viewModel.getGroupsForCurrentUser(currentUser.uid)
         viewModel.getFriendsForCurrentUser(currentUser.uid)
         viewModel.getConversationsForCurrentUser(currentUser.uid)
+        viewModel.getFriendRequestsForCurrentUser(currentUser.uid)
     }
 
     DreamaryTheme {
@@ -258,11 +260,16 @@ fun HomePageSocialActivity(
                     LazyColumn {
                         item {
                             Friends(
+                                friendRequests = friendRequests,
                                 friends = friends,
                                 navController = navController,
                                 onCreateConversation = { conversation ->
                                     viewModel.createConversation(conversation)
-                                })
+                                },
+                                onUpdateFriendRequest = { userId, friendId, status ->
+                                    viewModel.updateFriendRequest(userId, friendId, status)
+                                }
+                                )
                         }
                     }
                 } else {
@@ -507,11 +514,100 @@ fun ButtonSocial() {
 
 @Composable
 fun Friends(
+    friendRequests: List<User>,
     friends: List<User>,
     navController: NavController,
-    onCreateConversation: (Conversation) -> Unit
+    onCreateConversation: (Conversation) -> Unit,
+    onUpdateFriendRequest: (String, String, String) -> Unit
 ) {
     val auth = FirebaseAuth.getInstance()
+    if (friendRequests.isNotEmpty()){
+        Text(
+            text = "Demandes d'amis",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(16.dp)
+        )
+        Column {
+            for (friendRequest in friendRequests){
+                Card (
+                    elevation = CardDefaults.cardElevation(4.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Column (
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp)
+                        ){
+                            AsyncImage(
+                                model = friendRequest.profilePictureUrl,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(15.dp))
+                                    .fillMaxSize()
+                            )
+                        }
+                        Column (
+                            modifier = Modifier
+                                .weight(5f)
+                        ) {
+                            Text(
+                                text = friendRequest.fullName,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = "@${friendRequest.username}",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                        Row (
+                            modifier = Modifier
+                                .weight(2f)
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.check_circle),
+                                contentDescription = "Accepter",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .padding(end = 16.dp)
+                                    .clickable {
+                                        onUpdateFriendRequest(
+                                            auth.currentUser!!.uid,
+                                            friendRequest.uid,
+                                            "accepted"
+                                        )
+                                    }
+                            )
+                            Icon(
+                                painter = painterResource(id = R.drawable.check_circle),
+                                contentDescription = "Refuser",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
+                                        onUpdateFriendRequest(
+                                            auth.currentUser!!.uid,
+                                            friendRequest.uid,
+                                            "refuse"
+                                        )
+                                    }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
     Text(
         text = "Amis",
         style = MaterialTheme.typography.titleMedium,
