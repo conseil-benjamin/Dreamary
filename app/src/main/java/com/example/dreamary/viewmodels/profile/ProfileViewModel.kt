@@ -17,6 +17,9 @@ class ProfileViewModel(private val repository: AuthRepository,private val dreamR
     private var _userBadges = MutableStateFlow<List<Badge>>(emptyList())
     var userBadges = _userBadges.asStateFlow()
 
+    private val _friend = MutableStateFlow<String?>(null)
+    var friend = _friend.asStateFlow()
+
     fun getProfileData(idUSer : String) {
         viewModelScope.launch{
             repository.getProfileData(idUSer).collect { user ->
@@ -32,6 +35,20 @@ class ProfileViewModel(private val repository: AuthRepository,private val dreamR
                 _userBadges.value = user
                 Log.d("ProfileViewModel", "User badges: $user")
             }
+        }
+    }
+
+    fun verifyIfWeAreFriends(idUser: String, idFriend: String) {
+        viewModelScope.launch {
+            repository.verifyIfWeAreFriends(idUser, idFriend).collect { user ->
+                _friend.value = user
+            }
+        }
+    }
+
+    fun sendFriendRequest(idUser: String, idFriend: String) {
+        viewModelScope.launch {
+            repository.sendFriendRequest(idUser, idFriend)
         }
     }
 

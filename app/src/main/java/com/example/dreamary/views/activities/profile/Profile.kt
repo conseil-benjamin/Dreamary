@@ -53,6 +53,7 @@ fun ProfileActivity(
 ) {
     val user by viewModel.userData.collectAsState()
     val badges by viewModel.userBadges.collectAsState()
+    val isAlreadyFriend by viewModel.friend.collectAsState()
     Log.d("ProfileActivity", "User data: $user")
 
     val currentUser = FirebaseAuth.getInstance().currentUser
@@ -61,6 +62,7 @@ fun ProfileActivity(
     LaunchedEffect(Unit) {
         viewModel.getProfileData(userId)
         viewModel.getUserBadges()
+        viewModel.verifyIfWeAreFriends(currentUser?.uid ?: "", userId)
     }
 
     Scaffold(
@@ -91,7 +93,14 @@ fun ProfileActivity(
         ) {
             // Header avec dégradé
             item {
-                Header(user = user, isVisitor = isVisitor)
+                Header(
+                    user = user,
+                    isVisitor = isVisitor,
+                    isAlreadyFriend = isAlreadyFriend,
+                    onSendFriendRequest = {
+                        viewModel.sendFriendRequest(currentUser?.uid ?: "", userId)
+                    }
+                    )
             }
 
             item {
@@ -130,7 +139,9 @@ fun ProfileActivity(
 private fun Header(
     modifier: Modifier = Modifier,
     user: User?,
-    isVisitor: Boolean
+    isVisitor: Boolean,
+    isAlreadyFriend: String?,
+    onSendFriendRequest: () -> Unit
 ) {
     Box(
         modifier = modifier
@@ -209,9 +220,11 @@ private fun Header(
                     }
                 }
 
-                if (isVisitor) {
+                if (isVisitor && isAlreadyFriend == "notFriend") {
                     Button(
-                        onClick = { /* TODO */ },
+                        onClick = {
+                            onSendFriendRequest()
+                                  },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.surface
                         )
@@ -220,6 +233,46 @@ private fun Header(
                             text = "Ajouter",
                             color = MaterialTheme.colorScheme.primary
                         )
+                    }
+                } else if (isVisitor && isAlreadyFriend == "accepted") {
+                    Card {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.check_circle),
+                                contentDescription = "Envoyer un message",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(24.dp)
+                            )
+                            Text(
+                                text = "Amis",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+                } else if (isVisitor && isAlreadyFriend == "pending") {
+                    Card {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.pending),
+                                contentDescription = "Envoyer un message",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(24.dp)
+                            )
+                            Text(
+                                text = "En attente",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
             }

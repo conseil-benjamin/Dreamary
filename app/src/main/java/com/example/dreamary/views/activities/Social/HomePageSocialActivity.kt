@@ -532,42 +532,49 @@ fun Friends(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Column(
+                Row (
                     modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp)
+                        .clickable{
+                            navController.navigate(NavRoutes.Profile.createRoute(friend.uid))
+                        }
                 ) {
-                    AsyncImage(
-                        model = friend.profilePictureUrl,
-                        contentDescription = null,
+                    Column(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(15.dp))
-                            .fillMaxSize()
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(3f)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                            .weight(1f)
+                            .padding(horizontal = 8.dp)
                     ) {
-                        Text(
-                            text = friend.fullName,
-                            style = MaterialTheme.typography.titleMedium
+                        AsyncImage(
+                            model = friend.profilePictureUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(15.dp))
+                                .fillMaxSize()
                         )
                     }
-                    Row(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                            .weight(3f)
                     ) {
-                        Text(
-                            text = "@${friend.username}",
-                            style = MaterialTheme.typography.titleMedium
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = friend.fullName,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "@${friend.username}",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
                     }
                 }
                 Column (

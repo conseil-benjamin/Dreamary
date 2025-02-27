@@ -22,16 +22,104 @@ import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.routes.NavRoutes
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.userProfileChangeRequest
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.tasks.await
 
 class AuthRepository(private val context: Context) {
     private val auth = Firebase.auth
     private val db = FirebaseFirestore.getInstance()
     private val _userData = MutableStateFlow<User?>(null)
     var userData = _userData.asStateFlow()
+
+    private val _friend = MutableStateFlow<String?>(null)
+    var friend = _friend.asStateFlow()
+
+    suspend fun verifyIfWeAreFriends(idUser: String, idFriend: String): StateFlow<String> {
+        try {
+            val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+            val userId = userFirebase.getString("uid", "").toString()
+            val snapshot = db.collection("users")
+                .document(userId)
+                .collection("friends")
+                .where(
+                    Filter.and(
+                        Filter.equalTo("user1", userId),
+                        Filter.equalTo("user2", idFriend),
+                    )
+                )
+                .get()
+                .await()
+
+            if (snapshot.documents.isNotEmpty()) {
+                 _friend.value = snapshot.documents[0].getString("status")
+            } else {
+                val snapshot2 = db.collection("users")
+                    .document(userId)
+                    .collection("friends")
+                    .where(
+                        Filter.and(
+                            Filter.equalTo("user1", idFriend),
+                            Filter.equalTo("user2", userId),
+                        )
+                    )
+                    .get()
+                    .await()
+
+                if (snapshot2.documents.isNotEmpty()) {
+                    Log.i("status", snapshot2.documents[0].getString("status").toString())
+                    _friend.value = snapshot2.documents[0].getString("status")
+                } else {
+                    _friend.value = "notFriend"
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DreamRepository", "Error verifying friendship", e)
+        }
+        return friend as StateFlow<String>
+    }
+
+    fun sendFriendRequest(idUser: String, idFriend: String) {
+        db.collection("users")
+            .document(idUser)
+            .collection("friends")
+            .add(
+                hashMapOf(
+                    "id" to idFriend,
+                    "user1" to idUser,
+                    "user2" to idFriend,
+                    "status" to "pending"
+                )
+            )
+            .addOnSuccessListener {
+                Log.i("FriendRequest", "Friend request sent")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FriendRequest", "Error sending friend request", e)
+            }
+
+        db.collection("users")
+            .document(idFriend)
+            .collection("friends")
+            .add(
+                hashMapOf(
+                    "id" to idUser,
+                    "user1" to idFriend,
+                    "user2" to idUser,
+                    "status" to "pending"
+                )
+            )
+            .addOnSuccessListener {
+                Log.i("FriendRequest", "Friend request sent")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FriendRequest", "Error sending friend request", e)
+            }
+    }
+
 
     fun createAccountWithEmail(
         context: Context,
