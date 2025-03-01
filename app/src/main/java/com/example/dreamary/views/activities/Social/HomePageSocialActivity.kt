@@ -1,11 +1,18 @@
 package com.example.dreamary.views.activities.Social
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +23,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -26,34 +38,45 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.example.dreamary.R
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.dreamary.R
 import com.example.dreamary.models.entities.Conversation
 import com.example.dreamary.models.entities.Group
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.ui.theme.DreamaryTheme
+import com.example.dreamary.utils.SnackbarManager
 import com.example.dreamary.viewmodels.Social.SocialViewModel
 import com.example.dreamary.viewmodels.profile.SocialViewModelFactory
 import com.example.dreamary.views.components.BottomNavigation
@@ -62,221 +85,153 @@ import com.example.dreamary.views.components.Loading
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
 @Composable
-fun HomePageSocialPreview() {
-    HomePageSocialActivity(navController = NavController(LocalContext.current))
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HeaderSocial(
-    research: String = "",
-    onResearchChange: (String) -> Unit = {},
-    onStopTyping: (String) -> Unit,
-    users: List<User> = emptyList(),
-    navController: NavController
+private fun ShowConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    text: String,
+    title: String,
+    confirmText: String,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    var debounceJob by remember { mutableStateOf<Job?>(null) }
-    var expanded by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        // Titre + Icone
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Social",
-                style = MaterialTheme.typography.titleLarge
-            )
-
-            Icon(
-                painter = painterResource(id = R.drawable.invite_people),
-                contentDescription = "Invite people",
-                modifier = Modifier.size(24.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Barre de recherche avec Dropdown
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(shape = RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surface)
-        ) {
-            OutlinedTextField(
-                value = research,
-                onValueChange = {
-                    onResearchChange(it)
-
-                    // Annule l'ancien délai et en lance un nouveau
-                    debounceJob?.cancel()
-                    debounceJob = coroutineScope.launch {
-                        delay(1000) // Attendre 1 seconde avant de déclencher l'action
-                        if (it.isNotEmpty()) {
-                            expanded = true
-                            onStopTyping(it)
-                        } else {
-                            expanded = false
-                        }
-                    }
-                },
-                placeholder = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.search),
-                            contentDescription = "Search",
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(id = R.string.Social_Research_input),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = MaterialTheme.typography.bodySmall.fontSize
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(), // Important pour relier le menu au TextField
-                shape = RoundedCornerShape(8.dp),
-                singleLine = true
-            )
-
-            // Menu déroulant
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .fillMaxWidth()
-            ) {
-                if (users.isEmpty() && research.isNotEmpty() && expanded) {
-                    DropdownMenuItem(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = { Text(
-                            text = "Aucun utilisateur trouvé",
-                            textAlign = TextAlign.Center,
-                        ) },
-                        onClick = { expanded = false }
-                    )
-                } else {
-                    users.forEach { user ->
-                        DropdownMenuItem(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = { Text(user.username) },
-                            onClick = {
-                                expanded = false
-                                navController.navigate(
-                                    NavRoutes.Profile.createRoute(user.uid)
-                                )
-                            }
-                        )
-                    }
-                }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(text) },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text(confirmText)
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Annuler")
             }
         }
-    }
+    )
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomePageSocialActivity(
     navController: NavController,
     viewModel: SocialViewModel = viewModel(
-    factory = SocialViewModelFactory (SocialRepository(LocalContext.current))
-),
-    ) {
+        factory = SocialViewModelFactory(SocialRepository(LocalContext.current))
+    ),
+) {
     val groups by viewModel.groups.collectAsState()
     val users by viewModel.users.collectAsState()
     val friends by viewModel.listFriends.collectAsState()
     val conversations by viewModel.listConversations.collectAsState()
     val friendRequests by viewModel.friendRequests.collectAsState()
+    val userData by viewModel.userData.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    Log.i("c", groups.toString())
 
     var research by remember { mutableStateOf("") }
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabTitles = listOf("Groupes", "Messages", "Amis")
 
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
-    Log.i("uid", currentUser!!.uid)
-
-    var socialChoose by remember { mutableStateOf("groupes") }
 
     LaunchedEffect(Unit) {
-        viewModel.getGroupsForCurrentUser(currentUser.uid)
-        viewModel.getFriendsForCurrentUser(currentUser.uid)
-        viewModel.getConversationsForCurrentUser(currentUser.uid)
-        viewModel.getFriendRequestsForCurrentUser(currentUser.uid)
+        viewModel.getProfileData(currentUser?.uid ?: "")
+        viewModel.getGroupsForCurrentUser(currentUser?.uid ?: "")
+        viewModel.getFriendsForCurrentUser(currentUser?.uid ?: "")
+        viewModel.getConversationsForCurrentUser(currentUser?.uid ?: "")
+        viewModel.getFriendRequestsForCurrentUser(currentUser?.uid ?: "")
+    }
+
+    LaunchedEffect(friendRequests) {
+        viewModel.getFriendsForCurrentUser(currentUser?.uid ?: "")
+    }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        SnackbarManager.snackbarMessages.collect { snackbarMessage ->
+            snackbarHostState.showSnackbar(
+                message = snackbarMessage.message,
+                actionLabel = snackbarMessage.actionLabel,
+                withDismissAction = true,
+                duration = SnackbarDuration.Short
+            )
+        }
     }
 
     DreamaryTheme {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            bottomBar = { BottomNavigation(navController = navController) }
+            bottomBar = { BottomNavigation(navController = navController) },
+            topBar = {
+                SocialAppBar(
+                    research = research,
+                    onResearchChange = { research = it },
+                    onStopTyping = { viewModel.searchUsers(research) },
+                    users = users,
+                    navController = navController,
+                    hasRequests = friendRequests.isNotEmpty()
+                )
+            }
         ) { paddingValues ->
             if (isLoading) {
                 Loading()
                 return@Scaffold
             }
+
             Column(
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
             ) {
-                HeaderSocial(
-                    research = research,
-                    onResearchChange = { research = it },
-                    onStopTyping = { viewModel.searchUsers(research) },
-                    users = users,
-                    navController = navController
-                )
-                Divider()
-                BoutonGroupesAndFriends(onSocialChooseChange = { socialChoose = it })
-                if (socialChoose == "groupes"){
-                    ButtonSocial()
-                    LazyColumn {
-                        item { Groupes(groups = groups) }
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    tabTitles.forEachIndexed { index, title ->
+                        SocialTab(
+                            title = title,
+                            selected = selectedTab == index,
+                            hasNotification = index == 2 && friendRequests.isNotEmpty(),
+                            onClick = { selectedTab = index }
+                        )
                     }
-                } else if (socialChoose == "friends") {
-                    LazyColumn {
-                        item {
-                            Friends(
-                                friendRequests = friendRequests,
-                                friends = friends,
-                                navController = navController,
-                                onCreateConversation = { conversation ->
-                                    viewModel.createConversation(conversation)
-                                },
-                                onUpdateFriendRequest = { userId, friendId, status ->
-                                    viewModel.updateFriendRequest(userId, friendId, status)
-                                }
-                                )
-                        }
-                    }
-                } else {
-                    Conversations(
+                }
+
+                when (selectedTab) {
+                    0 -> GroupsContent(groups = groups, navController = navController)
+                    1 -> ConversationsContent(
                         navController = navController,
                         conversations = conversations,
-                        userId = currentUser.uid,
+                        userId = currentUser?.uid ?: ""
+                    )
+                    2 -> FriendsContent(
+                        userData = userData,
+                        friendRequests = friendRequests,
+                        friends = friends,
+                        navController = navController,
+                        onCreateConversation = { conversation ->
+                            viewModel.createConversation(conversation, onConversationCreated = {
+                                navController.navigate(
+                                    NavRoutes.ChatScreenFriends.createRoute(
+                                        conversation.userId2,
+                                        conversation.profilePictureUser2,
+                                        conversation.chatId
+                                    )
+                                )
+                            })
+                        },
+                        onUpdateFriendRequest = { userId, friendId, status ->
+                            viewModel.updateFriendRequest(userId, friendId, status)
+                        },
+                        onFriendDelete = { friendId ->
+                            viewModel.deleteFriend(currentUser?.uid ?: "", friendId)
+                        }
                     )
                 }
             }
@@ -285,510 +240,883 @@ fun HomePageSocialActivity(
 }
 
 @Composable
-fun Conversations(
-    navController: NavController,
-    conversations: List<Conversation>,
-    userId: String,
+fun SocialTab(
+    title: String,
+    selected: Boolean,
+    hasNotification: Boolean = false,
+    onClick: () -> Unit
 ) {
-    LazyColumn {
-        for (conversation in conversations) {
-            val timeStamp = conversation.lastMessageTimestamp.toDate().time
-            Log.i("timeStamp", timeStamp.toString())
-            val currentTime = System.currentTimeMillis()
-            val timePassed = (currentTime - timeStamp) / 1000
-            Log.i("timePassed", timePassed.toString())
-            val timePassedInMinutes = timePassed / 60
-            val timePassedInHours = timePassedInMinutes / 60
-            val timePassedInDays = timePassedInHours / 24
-
-            item{
-                Card(
-                    elevation = CardDefaults.cardElevation(4.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .clickable {
-                            navController.navigate(NavRoutes.ChatScreenFriends.createRoute(
-                                if (userId == conversation.user1) conversation.user2 else conversation.user1,
-                                if (userId == conversation.user1) conversation.profilePictureUser2 else conversation.profilePictureUser1,
-                                conversation.chatId
-                            ))
-                        }
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(horizontal = 8.dp)
-                        ) {
-                            AsyncImage(
-                                model = if (userId == conversation.user1) conversation.profilePictureUser2 else conversation.profilePictureUser1,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(15.dp))
-                            )
-                        }
-                        Column(
-                            modifier = Modifier
-                                .weight(5f)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                if (conversation.user1 == userId) {
-                                    Text(
-                                        text = conversation.user2,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                } else {
-                                    Text(
-                                        text = conversation.user1,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                }
-                            }
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = conversation.lastMessage,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                                Text(
-                                    text = when {
-                                        timePassedInDays > 0 -> "$timePassedInDays jours"
-                                        timePassedInHours > 0 -> "$timePassedInHours heures"
-                                        timePassedInMinutes > 0 -> "$timePassedInMinutes minutes"
-                                        else -> "$timePassed secondes"
-                                    },
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun BoutonGroupesAndFriends(
-    onSocialChooseChange: (String) -> Unit
-) {
-    Row (
-        modifier = Modifier.fillMaxWidth()
-    ){
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            elevation = CardDefaults.cardElevation(4.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier
-                .weight(1f)
-                .padding(8.dp)
-                .clickable { onSocialChooseChange("groupes") }
-        ) {
-            Column (
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth()
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.users),
-                    contentDescription = "Groupes",
-                    modifier = Modifier.size(24.dp)
-                )
-                Text(
-                    text = "Groupes",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-        }
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            elevation = CardDefaults.cardElevation(4.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier
-                .weight(1f)
-                .padding(8.dp)
-                .clickable { onSocialChooseChange("conversation") }
-        ) {
-            Column (
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth()
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.messages),
-                    contentDescription = "conversation",
-                    modifier = Modifier.size(24.dp)
-                )
-                Text(
-                    text = "Messages",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-        }
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            elevation = CardDefaults.cardElevation(4.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier
-                .weight(1f)
-                .padding(8.dp)
-                .clickable { onSocialChooseChange("friends") }
-        ) {
-            Column (
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth()
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.user),
-                    contentDescription = "Amis",
-                    modifier = Modifier.size(24.dp)
-                )
-                Text(
-                    text = "Amis",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ButtonSocial() {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Row (
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .padding(8.dp)
+    val indicator = @Composable {
+        Box(
+            Modifier
                 .fillMaxWidth()
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.plus),
-                contentDescription = "Create group",
-                modifier = Modifier.size(24.dp)
-            )
+                .height(3.dp)
+                .background(
+                    color = if (selected) MaterialTheme.colorScheme.primary
+                    else Color.Transparent
+                )
+        )
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .fillMaxWidth()
+    ) {
+        if (hasNotification) {
+            BadgedBox(
+                badge = {
+                    Badge(
+                        modifier = Modifier.size(8.dp),
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                }
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                    ),
+                    color = if (selected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface
+                )
+            }
+        } else {
             Text(
-                text = "Créer un groupe",
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(start = 8.dp)
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                ),
+                color = if (selected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurface
             )
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Friends(
-    friendRequests: List<User>,
-    friends: List<User>,
+fun SocialAppBar(
+    research: String = "",
+    onResearchChange: (String) -> Unit = {},
+    onStopTyping: (String) -> Unit,
+    users: List<User> = emptyList(),
     navController: NavController,
-    onCreateConversation: (Conversation) -> Unit,
-    onUpdateFriendRequest: (String, String, String) -> Unit
+    hasRequests: Boolean = false
 ) {
-    val auth = FirebaseAuth.getInstance()
-    if (friendRequests.isNotEmpty()){
-        Text(
-            text = "Demandes d'amis",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(16.dp)
-        )
-        Column {
-            for (friendRequest in friendRequests){
-                Card (
-                    elevation = CardDefaults.cardElevation(4.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Row (
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Column (
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(horizontal = 8.dp)
-                        ){
-                            AsyncImage(
-                                model = friendRequest.profilePictureUrl,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(15.dp))
-                                    .fillMaxSize()
-                            )
-                        }
-                        Column (
-                            modifier = Modifier
-                                .weight(5f)
-                        ) {
-                            Text(
-                                text = friendRequest.fullName,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                text = "@${friendRequest.username}",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                        Row (
-                            modifier = Modifier
-                                .weight(2f)
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.check_circle),
-                                contentDescription = "Accepter",
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .padding(end = 16.dp)
-                                    .clickable {
-                                        onUpdateFriendRequest(
-                                            auth.currentUser!!.uid,
-                                            friendRequest.uid,
-                                            "accepted"
-                                        )
-                                    }
-                            )
-                            Icon(
-                                painter = painterResource(id = R.drawable.check_circle),
-                                contentDescription = "Refuser",
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clickable {
-                                        onUpdateFriendRequest(
-                                            auth.currentUser!!.uid,
-                                            friendRequest.uid,
-                                            "refuse"
-                                        )
-                                    }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-    Text(
-        text = "Amis",
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(16.dp)
-    )
-    if (friends.isNotEmpty()) {
-        for (friend in friends){
-        Card(
-            elevation = CardDefaults.cardElevation(4.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    val coroutineScope = rememberCoroutineScope()
+    var debounceJob by remember { mutableStateOf<Job?>(null) }
+    var expanded by remember { mutableStateOf(false) }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.background,
+        shadowElevation = 4.dp
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
+            // Title + Icon
             Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Social",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+//                BadgedBox(
+//                    badge = {
+//                        // Ensure AnimatedVisibility is correctly scoped
+//                        AnimatedVisibility(
+//                            visible = hasRequests,
+//                            enter = fadeIn(),
+//                            exit = fadeOut()
+//                        ) {
+//                            Badge(
+//                                modifier = Modifier.size(8.dp),
+//                                containerColor = MaterialTheme.colorScheme.error
+//                            )
+//                        }
+//                    }
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.invite_people),
+//                        contentDescription = "Invite people",
+//                        modifier = Modifier
+//                            .size(28.dp)
+//                            .clip(CircleShape)
+//                            .clickable { /* Handle invite click */ }
+//                            .padding(4.dp),
+//                        tint = MaterialTheme.colorScheme.primary
+//                    )
+//                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Search bar with Dropdown
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .clip(shape = RoundedCornerShape(12.dp))
+                    .shadow(4.dp, RoundedCornerShape(12.dp))
             ) {
-                Row (
-                    modifier = Modifier
-                        .clickable{
-                            navController.navigate(NavRoutes.Profile.createRoute(friend.uid))
-                        }
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp)
-                    ) {
-                        AsyncImage(
-                            model = friend.profilePictureUrl,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(15.dp))
-                                .fillMaxSize()
-                        )
-                    }
-                    Column(
-                        modifier = Modifier
-                            .weight(3f)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = friend.fullName,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "@${friend.username}",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                    }
-                }
-                Column (
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp)
-                ){
-                    Icon(
-                        painter = painterResource(id = R.drawable.comment),
-                        contentDescription = "Message",
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable {
-                                // todo : d'abord créer la conversation et après rediriger vers la conversation en passant les variables friends
-                               onCreateConversation(
-                                   Conversation(
-                                    user1 = auth.currentUser!!.uid,
-                                    user2 = friend.uid,
-                                    profilePictureUser1 = friend.profilePictureUrl,
-                                    profilePictureUser2 = "",
-                                    lastMessage = "",
-                                    lastMessageTimestamp = Timestamp.now(),
-                                    lastSender = "",
-                                    unreadMessagesUser1 = 0,
-                                    unreadMessagesUser2 = 0,
-                                    chatId = auth.currentUser!!.uid + friend.uid,
-                                ),
-                               )
+                OutlinedTextField(
+                    value = research,
+                    onValueChange = {
+                        onResearchChange(it)
+
+                        // Cancel old delay and start a new one
+                        debounceJob?.cancel()
+                        debounceJob = coroutineScope.launch {
+                            delay(500) // Wait 0.5 seconds before triggering the action
+                            if (it.isNotEmpty()) {
+                                expanded = true
+                                onStopTyping(it)
+                            } else {
+                                expanded = false
                             }
+                        }
+                    },
+                    placeholder = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.search),
+                                contentDescription = "Search",
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(id = R.string.Social_Research_input),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(), // Important to link the menu to TextField
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
+                )
+
+                // Dropdown menu
+                if (expanded) {
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .fillMaxWidth()
+                    ) {
+                        if (users.isEmpty() && research.isNotEmpty()) {
+                            DropdownMenuItem(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = {
+                                    Text(
+                                        text = "Aucun utilisateur trouvé",
+                                        textAlign = TextAlign.Center,
+                                    )
+                                },
+                                onClick = { expanded = false }
+                            )
+                        } else {
+                            users.forEach { user ->
+                                DropdownMenuItem(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            AsyncImage(
+                                                model = user.profilePictureUrl,
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                                    .clip(CircleShape)
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            )
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Column {
+                                                Text(
+                                                    text = user.username,
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                )
+                                                Text(
+                                                    text = user.fullName,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
+                                    },
+                                    onClick = {
+                                        expanded = false
+                                        navController.navigate(
+                                            NavRoutes.Profile.createRoute(user.uid)
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
-    } } else {
-        Text(
-            text = "Vous n'avez pas encore d'amis",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .padding(16.dp),
-            textAlign = TextAlign.Center
-        )
     }
 }
 
 @Composable
-fun Groupes(groups: List<Group>) {
+fun GroupsContent(groups: List<Group>, navController: NavController) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 8.dp)
+    ) {
+        item {
+            CreateGroupButton()
+        }
 
-    Text(
-        text = "Mes Groupes",
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(16.dp)
-    )
+        item {
+            SectionTitle(title = "Mes Groupes", count = groups.size)
+        }
 
-    if (groups.isNotEmpty()) {
-        for (group in groups) {
-            Card(
-                elevation = CardDefaults.cardElevation(4.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+        if (groups.isNotEmpty()) {
+            items(groups.size) { index ->
+                GroupCard(group = groups[index], navController = navController)
+            }
+        } else {
+            item {
+                EmptyStateMessage(message = "Vous n'avez pas encore de groupe")
+            }
+        }
+    }
+}
+
+@Composable
+fun ConversationsContent(
+    navController: NavController,
+    conversations: List<Conversation>,
+    userId: String,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 8.dp)
+    ) {
+        if (conversations.isNotEmpty()) {
+            items(conversations.size) { index ->
+                ConversationCard(
+                    conversation = conversations[index],
+                    userId = userId,
+                    navController = navController
+                )
+            }
+        } else {
+            item {
+                EmptyStateMessage(message = "Vous n'avez pas encore de conversations")
+            }
+        }
+    }
+}
+
+@Composable
+fun FriendsContent(
+    userData: User?,
+    friendRequests: List<User>,
+    friends: List<User>,
+    navController: NavController,
+    onCreateConversation: (Conversation) -> Unit,
+    onUpdateFriendRequest: (String, String, String) -> Unit,
+    onFriendDelete: (String) -> Unit
+) {
+    val auth = FirebaseAuth.getInstance()
+    Log.i("friends", friendRequests.toString())
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 8.dp)
+    ) {
+        if (friendRequests.isNotEmpty()) {
+            item {
+                SectionTitle(
+                    title = "Demandes d'amis",
+                    count = friendRequests.size,
+                    showCount = true
+                )
+            }
+
+            items(friendRequests.size) { index ->
+                FriendRequestCard(
+                    user = friendRequests[index],
+                    onAccept = {
+                        onUpdateFriendRequest(
+                            auth.currentUser?.uid ?: "",
+                            friendRequests[index].uid,
+                            "accepted"
+                        )
+                    },
+                    onDecline = {
+                        onUpdateFriendRequest(
+                            auth.currentUser?.uid ?: "",
+                            friendRequests[index].uid,
+                            "refuse"
+                        )
+                    }
+                )
+            }
+        }
+
+        item {
+            SectionTitle(title = "Amis", count = friends.size)
+        }
+
+        if (friends.isNotEmpty()) {
+            items(friends.size) { index ->
+                FriendCard(
+                    friend = friends[index],
+                    navController = navController,
+                    onMessageClick = {
+                        onCreateConversation(
+                            Conversation(
+                                user1 = userData,
+                                user2 = friends[index],
+                                profilePictureUser1 = friends[index].profilePictureUrl,
+                                profilePictureUser2 = userData?.profilePictureUrl ?: "",
+                                lastMessage = "",
+                                lastMessageTimestamp = Timestamp.now(),
+                                lastSender = "",
+                                unreadMessagesUser1 = 0,
+                                unreadMessagesUser2 = 0,
+                                chatId = userData?.uid.toString(),
+                                userId1 = auth.currentUser?.uid ?: "",
+                                userId2 = friends[index].uid
+                            )
+                        )
+                    },
+                    onFriendDelete = { friendId ->
+                        onFriendDelete(friendId)
+                    }
+                )
+            }
+        } else {
+            item {
+                EmptyStateMessage(message = "Vous n'avez pas encore d'amis")
+            }
+        }
+    }
+}
+
+@Composable
+fun SectionTitle(title: String, count: Int, showCount: Boolean = false) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.Bold
+            )
+        )
+
+        if (showCount && count > 0) {
+            Badge(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .padding(4.dp),
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Text(
+                    text = count.toString(),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CreateGroupButton() {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .height(60.dp)
+            .clickable { /* Handle create group click */ }
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.plus),
+                contentDescription = "Create group",
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "Créer un groupe",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+@Composable
+fun GroupCard(group: Group, navController: NavController) {
+    Card(
+        elevation = CardDefaults.cardElevation(2.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable { /* Navigate to group details */ }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = group.image_url,
+                contentDescription = "Group image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp)
-                    ) {
-                        AsyncImage(
-                            model = group.image_url,
-                            contentDescription = null,
+                    Text(
+                        text = group.name,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Icon(
+                        painter = painterResource(
+                            id = if (group.privacy == "private") R.drawable.lock
+                            else R.drawable.privacy_public
+                        ),
+                        contentDescription = "Privacy status",
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "${group.members.size} membres",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ConversationCard(
+    conversation: Conversation,
+    userId: String,
+    navController: NavController
+) {
+    val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val dateFormatter = remember { SimpleDateFormat("dd/MM", Locale.getDefault()) }
+
+    val timestamp = conversation.lastMessageTimestamp.toDate()
+    val currentTime = Date()
+    val isToday = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(timestamp) ==
+            SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(currentTime)
+
+    val formattedTime = if (isToday) {
+        timeFormatter.format(timestamp)
+    } else {
+        dateFormatter.format(timestamp)
+    }
+
+    val otherUser = if (userId == conversation.user1?.uid) conversation.user2 else conversation.user1
+    val otherUserPicture = if (userId == conversation.user1?.uid) conversation.user2.profilePictureUrl else conversation.user1?.profilePictureUrl
+
+    Card(
+        elevation = CardDefaults.cardElevation(2.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable {
+                navController.navigate(
+                    NavRoutes.ChatScreenFriends.createRoute(
+                        otherUser?.uid ?: "",
+                        otherUserPicture.toString(),
+                        conversation.chatId
+                    )
+                )
+            }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = otherUserPicture,
+                contentDescription = "Profile picture",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = otherUser?.username ?: "",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Text(
+                        text = formattedTime,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Message preview with unread indicator
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Add unread indicator if needed
+                    val hasUnread = (userId == conversation.userId1 && conversation.unreadMessagesUser1 > 0) ||
+                            (userId == conversation.userId2 && conversation.unreadMessagesUser2 > 0)
+
+                    if (hasUnread) {
+                        Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(15.dp))
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .padding(end = 8.dp)
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Column(
-                        modifier = Modifier
-                            .weight(5f)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (true) {
-                                Text(
-                                    text = group.name,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                            Icon(
-                                painter = painterResource(id = if (group.privacy == "private") R.drawable.lock else R.drawable.privacy_public),
-                                contentDescription = "Invite people",
-                                modifier = Modifier
-                                    .size(16.dp)
-                            )
-                        }
-                        Text(
-                            text = "${group.members.size} membres",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
+
+                    Text(
+                        text = if (conversation.lastMessage.isNotEmpty())
+                            conversation.lastMessage
+                        else "Démarrer une conversation",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (hasUnread)
+                            MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (hasUnread) FontWeight.SemiBold else FontWeight.Normal,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
-    } else {
-        Text(
-            text = "Vous n'avez pas encore de groupe",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .padding(16.dp),
-            textAlign = TextAlign.Center
-        )
     }
 }
+
+@Composable
+fun FriendRequestCard(
+    user: User,
+    onAccept: () -> Unit,
+    onDecline: () -> Unit
+) {
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    if (showConfirmDialog) {
+        ShowConfirmDialog(
+            onConfirm = onDecline,
+            onDismiss = { showConfirmDialog = false },
+            text = "Vous êtes sur le point de refuser la demande d'ami de ${user.username}",
+            title = "Refuser la demande d'ami",
+            confirmText = "Refuser"
+        )
+    }
+
+    Card(
+        elevation = CardDefaults.cardElevation(2.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = user.profilePictureUrl,
+                contentDescription = "Profile picture",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = user.fullName,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+
+                Text(
+                    text = "@${user.username}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Accept button
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable { onAccept() },
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.check_circle),
+                        contentDescription = "Accept friend request",
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Decline button
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.error)
+                        .clickable {
+                            showConfirmDialog = true
+                                   },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.delete),
+                        contentDescription = "Decline friend request",
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+
+                }
+
+            }
+        }
+    }
+}
+
+
+@Composable
+fun FriendCard(
+    friend: User,
+    navController: NavController,
+    onMessageClick: () -> Unit,
+    onFriendDelete: (String) -> Unit
+) {
+    var showDropdownMoreActions by remember { mutableStateOf(false) }
+
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    if (showConfirmDialog) {
+        ShowConfirmDialog(
+            onConfirm = { onFriendDelete(friend.uid) },
+            onDismiss = { showConfirmDialog = false },
+            text = "Vous êtes sur le point de supprimer votre ami.",
+            title = "Supprimer l'ami",
+            confirmText = "Supprimer"
+        )
+    }
+
+    Card(
+        elevation = CardDefaults.cardElevation(2.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = friend.profilePictureUrl,
+                contentDescription = "Profile picture",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable {
+                        navController.navigate(
+                            NavRoutes.Profile.createRoute(friend.uid)
+                        )
+                    }
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = friend.fullName,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+
+                Text(
+                    text = "@${friend.username}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                painter = painterResource(id = R.drawable.comment),
+                contentDescription = "Send message",
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { onMessageClick() },
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+            Icon(
+                painter = painterResource(id = R.drawable.dots),
+                contentDescription = "More options",
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable {
+                        showDropdownMoreActions = !showDropdownMoreActions
+                    },
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+            if (showDropdownMoreActions) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "Supprimer l'ami",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .clickable{
+                                    showConfirmDialog = true
+                                }
+                        )
+                    },
+                    onClick = { showDropdownMoreActions = false }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyStateMessage(message: String) {
+    Text(
+        text = message,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(16.dp)
+    )
+}
+
+

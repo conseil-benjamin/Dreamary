@@ -12,6 +12,7 @@ data class User(
     val fullName: String = "",
     val bio: String = "",
     val profilePictureUrl: String = "",
+    val tokenFcm: String = "",
     val metadata: Map<String, Any> = mapOf(
         "accountStatus" to "",
         "lastDreamDate" to Date(),

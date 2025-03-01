@@ -2,6 +2,7 @@ package com.example.dreamary.models.repositories
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -24,6 +25,9 @@ import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +41,33 @@ class AuthRepository(private val context: Context) {
 
     private val _friend = MutableStateFlow<String?>(null)
     var friend = _friend.asStateFlow()
+
+    private val _profilePictureUri  = MutableStateFlow<String?>(null)
+    val profilePictureUri = _profilePictureUri
+
+    fun uploadProfilePicture(uri: Uri, context: Context): StateFlow<String> {
+        val currentUser = auth.currentUser
+        val userId = currentUser?.uid
+        Log.i("ProfilePicture", "User ID: $userId")
+        val storage = Firebase.storage
+        val profilePicRef = storage.reference.child("profilePictures/${userId}/profilePicture.jpg")
+        Log.i("ProfilePicture", "Uploading profile picture")
+        Log.i("ProfilePicture", "URI: $uri")
+        Log.i("ProfilePicture", "Profile picture reference: $profilePicRef")
+        profilePicRef.putFile(uri)
+            .addOnSuccessListener {
+                Log.i("ProfilePicture", "Profile picture uploaded")
+                profilePicRef.downloadUrl.addOnSuccessListener { url ->
+                    Log.i("ProfilePicture", "Profile picture URL: $url")
+                    _profilePictureUri.value = url.toString()
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ProfilePicture", "Error uploading profile picture", e)
+            }
+        Log.i("ProfilePicture", profilePictureUri.value.toString())
+        return profilePictureUri as StateFlow<String>
+    }
 
     suspend fun verifyIfWeAreFriends(idUser: String, idFriend: String): StateFlow<String> {
         try {
@@ -62,8 +93,8 @@ class AuthRepository(private val context: Context) {
                     .collection("friends")
                     .where(
                         Filter.and(
-                            Filter.equalTo("user1", idFriend),
-                            Filter.equalTo("user2", userId),
+                            Filter.equalTo("receveir", idFriend),
+                            Filter.equalTo("sender", userId),
                         )
                     )
                     .get()
@@ -257,6 +288,14 @@ class AuthRepository(private val context: Context) {
     @SuppressLint("CommitPrefEdits")
     fun saveUserData (context: Context, navController: NavController, newMember: Boolean, screen: String){
         val user = auth.currentUser
+
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            Log.d("Token", token)
+            Firebase.firestore.collection("users")
+                .document(user?.uid.toString())
+                .update("tokenFcm", token)
+        }
+
         user?.let {
             val displayName = it.displayName
             val email = it.email

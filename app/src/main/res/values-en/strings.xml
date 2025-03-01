@@ -53,4 +53,5 @@
     <string name="AddDream_label_environment">Environment</string>
     <string name="AddDream_label_emotions">"Emotions felt "</string>
     <string name="AddDream_label_typeOfDream">Type of dream</string>
+    <string name="MoreInformations_error_profile_picture">Please select an image</string>
 </resources>

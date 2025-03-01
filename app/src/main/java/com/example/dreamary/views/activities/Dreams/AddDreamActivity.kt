@@ -96,6 +96,7 @@ import java.util.Calendar
 import androidx.compose.ui.text.input.ImeAction
 import coil.compose.AsyncImage
 import com.example.dreamary.models.routes.NavRoutes
+import com.example.dreamary.views.components.DreamTextFieldCustom
 import com.example.dreamary.views.components.Loading
 import kotlin.math.abs
 
@@ -1169,7 +1170,7 @@ fun DescribeDream(
         onTextChange = { onValueChangeTitle(it) },
         modifier = Modifier
             .fillMaxWidth(),
-        placeHolder = "Titre du rêve",
+        label = "Titre du rêve",
         maxCharacters = 30,
         maxLine = 1,
         height = 100,
@@ -1181,7 +1182,7 @@ fun DescribeDream(
         onTextChange = { onValueChangeContent(it) },
         modifier = Modifier
             .fillMaxWidth(),
-        placeHolder = "Contenu du rêve...",
+        label = "Contenu du rêve",
         maxCharacters = 2000,
         maxLine = 10,
         height = 250,
@@ -1587,72 +1588,13 @@ fun AutoAnalyse (
     DreamTextFieldCustom(
         analysisText = analysisText,
         onTextChange = { onTextChange(it) },
-        placeHolder = "Écris ton ressenti et ton analyse ici...",
+        label = "Écris ton ressenti et ton analyse ici...",
         maxCharacters = 500,
         maxLine = 5,
         height = 100,
         maxHeight = 200
     )
 }
-
-@Composable
-fun DreamTextFieldCustom(
-    analysisText: String,
-    onTextChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    placeHolder: String,
-    maxCharacters: Int,
-    maxLine: Int,
-    height: Int,
-    maxHeight: Int
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        OutlinedTextField(
-            value = analysisText,
-            onValueChange = { newText: String ->
-                if (newText.length <= maxCharacters) onTextChange(newText)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = height.dp, max = maxHeight.dp),
-            textStyle = TextStyle(
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            ),
-            placeholder = { Text(placeHolder) },
-            shape = MaterialTheme.shapes.medium,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = Color.Gray,
-                cursorColor = MaterialTheme.colorScheme.primary
-            ),
-            maxLines = maxLine,
-            singleLine = false,
-            keyboardOptions = KeyboardOptions.Default.copy(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = { /* Fermer le clavier si nécessaire */ }
-            )
-        )
-
-        Text(
-            text = "${analysisText.length} / $maxCharacters",
-            style = MaterialTheme.typography.bodySmall,
-            color = if (analysisText.length >= maxCharacters) Color.Red else Color.Gray,
-            modifier = Modifier
-                .align(Alignment.End)
-                .padding(top = 4.dp)
-        )
-    }
-}
-
-
 
 @Composable
 fun Share  () {

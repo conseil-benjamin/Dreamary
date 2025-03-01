@@ -1,20 +1,31 @@
 package com.example.dreamary.models.repositories
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.navigation.NavController
+import com.example.dreamary.R
 import com.example.dreamary.models.entities.Conversation
 import com.example.dreamary.models.entities.Group
 import com.example.dreamary.models.entities.Message
 import com.example.dreamary.models.entities.User
+import com.example.dreamary.utils.SnackbarManager
+import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class SocialRepository(private val context: Context) {
@@ -36,6 +47,27 @@ class SocialRepository(private val context: Context) {
 
     private var _friendRequests = MutableStateFlow<List<User>>(emptyList())
     var friendRequests = _friendRequests.asStateFlow()
+
+    private var _userData = MutableStateFlow<User?>(null)
+    var userData = _userData.asStateFlow()
+
+    private val newConversationFlow = MutableStateFlow<List<Conversation>>(emptyList())
+
+    fun getProfileData(idUSer : String): StateFlow<User> {
+        try {
+            db.collection("users")
+                .document(idUSer)
+                .get()
+                .addOnSuccessListener { document ->
+                    val user = document.toObject(User::class.java)
+                    _userData.value = user
+                }
+            return userData as StateFlow<User>
+        } catch (e: Exception) {
+            println("Erreur lors de la récupération des données de l'utilisateur : $e")
+            return userData as StateFlow<User>
+        }
+    }
 
     fun getGroupsForCurrentUser(userId: String): StateFlow<List<Group>> {
         try {
@@ -113,24 +145,28 @@ class SocialRepository(private val context: Context) {
 
     fun getConversationsForCurrentUser(userId: String): StateFlow<List<Conversation>> {
         try {
-            db.collection("chats")
-                .where(
-                    Filter.or(
-                        Filter.equalTo("user1", userId),
-                        Filter.equalTo("user2", userId)
-                    )
-                )
+            Log.i("userId", userId)
+            val list = mutableListOf<Conversation>()
+
+            val query = db.collection("chats")
+                .where(Filter.or(
+                    Filter.equalTo("userId1", userId),
+                    Filter.equalTo("userId2", userId)
+                ))
                 .get()
-                .addOnSuccessListener { documents ->
-                    val conversations = documents.map { document ->
-                        val conversation = document.toObject(Conversation::class.java)
-                        conversation.copy(
-                            id = document.id
-                        )
-                    }
-                    Log.i("conversations", conversations.toString())
-                    _conversations.value = conversations
+
+            query.addOnSuccessListener { documents ->
+                documents.forEach { document ->
+                    val conversation = document.toObject(Conversation::class.java)
+                    list.add(conversation.copy(id = document.id))
                 }
+
+                // Tri manuel
+                list.sortByDescending { it.lastMessageTimestamp }
+                Log.i("conversations", list.toString())
+                _conversations.value = list
+            }
+
             return listConversations
         } catch (e: Exception) {
             println("Erreur lors de la récupération des conversations : $e")
@@ -138,16 +174,18 @@ class SocialRepository(private val context: Context) {
         }
     }
 
-    fun updateFriendStatus(userId: String, friendId: String, status: String): StateFlow<List<User>> {
+    suspend fun deleteFriend(userId: String, friendId: String): StateFlow<List<User>> {
         try {
-            val update = hashMapOf<String, Any>(
-                "status" to status
-            )
-
             db.collection("users")
                 .document(userId)
                 .collection("friends")
-                .whereEqualTo("receveir", userId)
+                .where(
+                    Filter.and(
+                        Filter.equalTo("status", "accepted"),
+                        Filter.equalTo("sender", friendId),
+                        Filter.equalTo("receveir", userId)
+                    )
+                )
                 .get()
                 .addOnSuccessListener { documents ->
                     documents.forEach { document ->
@@ -155,9 +193,9 @@ class SocialRepository(private val context: Context) {
                             .document(userId)
                             .collection("friends")
                             .document(document.id)
-                            .update(update)
+                            .delete()
                             .addOnSuccessListener {
-                                Log.i("update", "Statut de l'ami mis à jour")
+                                Log.i("delete", "Ami supprimé")
                             }
                     }
                 }
@@ -165,7 +203,13 @@ class SocialRepository(private val context: Context) {
             db.collection("users")
                 .document(friendId)
                 .collection("friends")
-                .whereEqualTo("sender", friendId)
+                .where(
+                    Filter.and(
+                        Filter.equalTo("status", "accepted"),
+                        Filter.equalTo("sender", friendId),
+                        Filter.equalTo("receveir", userId)
+                    )
+                )
                 .get()
                 .addOnSuccessListener { documents ->
                     documents.forEach { document ->
@@ -173,22 +217,105 @@ class SocialRepository(private val context: Context) {
                             .document(friendId)
                             .collection("friends")
                             .document(document.id)
-                            .update(update)
+                            .delete()
                             .addOnSuccessListener {
-                                Log.i("update", "Statut de l'ami mis à jour")
+                                Log.i("delete", "Ami supprimé")
                             }
                     }
                 }
 
-            val friendRequests = getFriendRequestsForCurrentUser(userId)
-            Log.i("friendRequests", friendRequests.toString())
-            _friendRequests.value = friendRequests.value
-            return friendRequests
+            val friends = getFriendsForCurrentUser(userId)
+            _listFriends.value = friends.value
+            Log.i("delete", friends.toString())
+            SnackbarManager.showMessage("Ami supprimé avec succès !", R.drawable.success)
+            return listFriends
         } catch (e: Exception) {
-            println("Erreur lors de la mise à jour du statut de l'ami : $e")
+            println("Erreur lors de la suppression de l'ami : $e")
         }
-        return friendRequests
+        return listFriends
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun updateFriendStatus(userId: String, friendId: String, status: String): StateFlow<List<User>> {
+        try {
+            val update = hashMapOf<String, Any>(
+                "status" to status
+            )
+
+            val tasks = mutableListOf<Task<Void>>()
+
+            // Update côté receiver
+            db.collection("users")
+                .document(userId)
+                .collection("friends")
+                .where(
+                    Filter.and(
+                        Filter.equalTo("status", "pending"),
+                        Filter.equalTo("sender", friendId),
+                        Filter.equalTo("receveir", userId)
+                    )
+                )
+                .get()
+                .addOnSuccessListener { documents ->
+                    documents.forEach { document ->
+                        val task = db.collection("users")
+                            .document(userId)
+                            .collection("friends")
+                            .document(document.id)
+                            .update(update)
+                            .addOnSuccessListener {
+                                Log.i("update", "Statut receiver mis à jour")
+                            }
+                        tasks.add(task)
+                    }
+                }
+
+            // Update côté sender
+            db.collection("users")
+                .document(friendId)
+                .collection("friends")
+                .where(
+                    Filter.and(
+                        Filter.equalTo("status", "pending"),
+                        Filter.equalTo("sender", friendId),
+                        Filter.equalTo("receveir", userId)
+                    )
+                )
+                .get()
+                .addOnSuccessListener { documents ->
+                    documents.forEach { document ->
+                        val task = db.collection("users")
+                            .document(friendId)
+                            .collection("friends")
+                            .document(document.id)
+                            .update(update)
+                            .addOnSuccessListener {
+                                Log.i("update", "Statut sender mis à jour")
+                            }
+                        tasks.add(task)
+                    }
+
+                    // Attendre que toutes les requêtes soient terminées
+                    Tasks.whenAllComplete(tasks)
+                        .addOnSuccessListener {
+                            Log.i("update", "Toutes les mises à jour terminées")
+
+                            // Récupération des demandes à jour
+                            val friendRequests = getFriendRequestsForCurrentUser(userId)
+                            _friendRequests.value = friendRequests.value
+                        }
+                        .addOnFailureListener {
+                            Log.e("update", "Erreur lors des mises à jour")
+                        }
+                }
+            return friendRequests
+
+        } catch (e: Exception) {
+            Log.e("update", "Erreur lors de la mise à jour : $e")
+            return friendRequests
+        }
+    }
+
 
     fun getFriendRequestsForCurrentUser(userId: String): StateFlow<List<User>> {
         try {
@@ -237,17 +364,21 @@ class SocialRepository(private val context: Context) {
             db.collection("chats")
                 .document(chatId)
                 .collection("messages")
-                .get()
-                .addOnSuccessListener { documents ->
-                    Log.i("documents", documents.documents.toString())
-                    val messages = documents.map { document ->
-                        val conversation = document.toObject(Message::class.java)
-                        conversation.copy(
-                            id = document.id
-                        )
+                .orderBy("createdAt")
+                .addSnapshotListener {
+                    documents, e ->
+                    if (e != null) {
+                        Log.w("messages", "Erreur lors de la récupération des messages", e)
+                        return@addSnapshotListener
                     }
-                    Log.i("messages", messages.toString())
+
+                    val messages = documents?.map { document ->
+                        val message = document.toObject(Message::class.java)
+                        message.copy(id = document.id)
+                    } ?: emptyList()
                     _messagesList.value = messages
+
+                    Log.i("messages", messages.toString())
                 }
             return messages
         } catch (e: Exception) {
@@ -282,17 +413,56 @@ class SocialRepository(private val context: Context) {
         }
     }
 
-    fun createConversation(conversation: Conversation) {
+    fun createConversation(conversation: Conversation): StateFlow<List<Conversation>> {
         try {
+            db.collection("chats")
+                .where(
+                    Filter.or(
+                        Filter.or(
+                            Filter.equalTo("userId1", conversation.userId1),
+                            Filter.equalTo("userId2", conversation.userId1)
+                        )
+                    )
+                )
+                .get()
+                .addOnSuccessListener {
+                    if (it.isEmpty) {
+                        Log.i("conversation", "Conversation inexistante")
+                    } else {
+                        Log.i("conversation", "Conversation existante")
+                        val documentSnapshot = it.documents[0]
+                        val newConversation = documentSnapshot.toObject(Conversation::class.java)
+                        newConversation?.let {
+                            newConversationFlow.value = listOf(it)
+                        }
+                        return@addOnSuccessListener
+                    }
+                }
+
+            Log.i("conversation", conversation.toString())
+
             db.collection("chats")
                 .document(conversation.chatId)
                 .set(conversation)
                 .addOnSuccessListener {
                     Log.i("conversation", "Conversation créée")
-
                 }
+
+            db.collection("chats")
+                .document(conversation.chatId)
+                .get()
+                .addOnSuccessListener { documentSnapshot ->
+                    val newConversation = documentSnapshot.toObject(Conversation::class.java)
+                    newConversation?.let {
+                        newConversationFlow.value = listOf(it)
+                    }
+                }
+
+            return newConversationFlow.asStateFlow()
         } catch (e: Exception) {
-            println("Erreur lors de la création de la conversation : $e")
+            Log.e("conversation", "Erreur : $e")
         }
+        return newConversationFlow.asStateFlow()
     }
+
 }

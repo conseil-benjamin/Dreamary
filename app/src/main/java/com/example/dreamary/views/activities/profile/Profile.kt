@@ -54,6 +54,7 @@ fun ProfileActivity(
     val user by viewModel.userData.collectAsState()
     val badges by viewModel.userBadges.collectAsState()
     val isAlreadyFriend by viewModel.friend.collectAsState()
+    var sendFriendRequest by remember { mutableStateOf(false) }
     Log.d("ProfileActivity", "User data: $user")
 
     val currentUser = FirebaseAuth.getInstance().currentUser
@@ -98,8 +99,10 @@ fun ProfileActivity(
                     isVisitor = isVisitor,
                     isAlreadyFriend = isAlreadyFriend,
                     onSendFriendRequest = {
+                        sendFriendRequest = true
                         viewModel.sendFriendRequest(currentUser?.uid ?: "", userId)
-                    }
+                    },
+                    sendFriendRequest = sendFriendRequest
                     )
             }
 
@@ -122,15 +125,15 @@ fun ProfileActivity(
                 )
             }
 
-            // Section Succès
-            item {
-                AchievementsSection()
-            }
-
-            // Section Collections
-            item {
-                CollectionsSection()
-            }
+//            // Section Succès
+//            item {
+//                AchievementsSection()
+//            }
+//
+//            // Section Collections
+//            item {
+//                CollectionsSection()
+//            }
         }
     }
 }
@@ -141,7 +144,8 @@ private fun Header(
     user: User?,
     isVisitor: Boolean,
     isAlreadyFriend: String?,
-    onSendFriendRequest: () -> Unit
+    onSendFriendRequest: () -> Unit,
+    sendFriendRequest: Boolean = false
 ) {
     Box(
         modifier = modifier
@@ -175,28 +179,48 @@ private fun Header(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surface
                     ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = user?.username?.take(2)?.uppercase() ?: "",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.primary
+                        if(user?.profilePictureUrl != null){
+                            AsyncImage(
+                                model = user.profilePictureUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize(),
                             )
+                        } else {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = user?.username?.take(2)?.uppercase() ?: "",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
 
                     Column {
+                        Row (
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        ) {
+                            Text(
+                                text = user?.fullName ?: "",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                            Text(
+                                text = "- @${user?.username}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                         Text(
-                            text = user?.fullName ?: "",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                        Text(
-                            text = "@${user?.username}",
+                            text = user?.bio ?: "",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                         )
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -219,60 +243,61 @@ private fun Header(
                         }
                     }
                 }
+            }
 
-                if (isVisitor && isAlreadyFriend == "notFriend") {
-                    Button(
-                        onClick = {
-                            onSendFriendRequest()
-                                  },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
+
+            if (isVisitor && isAlreadyFriend == "notFriend" && !sendFriendRequest) {
+                Button(
+                    onClick = {
+                        onSendFriendRequest()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Text(
+                        text = "Ajouter",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            } else if (isVisitor && isAlreadyFriend == "accepted") {
+                Card {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.check_circle),
+                            contentDescription = "Envoyer un message",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(24.dp)
+                        )
                         Text(
-                            text = "Ajouter",
-                            color = MaterialTheme.colorScheme.primary
+                            text = "Amis",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
-                } else if (isVisitor && isAlreadyFriend == "accepted") {
-                    Card {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.check_circle),
-                                contentDescription = "Envoyer un message",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(24.dp)
-                            )
-                            Text(
-                                text = "Amis",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    }
-                } else if (isVisitor && isAlreadyFriend == "pending") {
-                    Card {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.pending),
-                                contentDescription = "Envoyer un message",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(24.dp)
-                            )
-                            Text(
-                                text = "En attente",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
+                }
+            } else if (isVisitor && isAlreadyFriend == "pending") {
+                Card {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.pending),
+                            contentDescription = "Envoyer un message",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(24.dp)
+                        )
+                        Text(
+                            text = "En attente",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 }
             }

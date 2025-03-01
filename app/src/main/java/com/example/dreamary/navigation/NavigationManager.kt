@@ -1,6 +1,7 @@
 package com.example.dreamary.navigation
 
 import MenuBurgerScreen
+import MoreInformations
 import SettingsScreen
 import android.content.Context
 import android.net.Uri
@@ -32,7 +33,6 @@ import com.example.dreamary.views.activities.Social.ChatScreenFriendActivity
 import com.example.dreamary.views.activities.profile.ProfileActivity
 import com.example.dreamary.views.activities.Social.HomePageSocialActivity
 import com.example.dreamary.views.activities.auth.LoginActivity
-import com.example.dreamary.views.activities.auth.MoreInformations
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
 import com.example.dreamary.views.activities.onboardingScreen.OnboardingScreen

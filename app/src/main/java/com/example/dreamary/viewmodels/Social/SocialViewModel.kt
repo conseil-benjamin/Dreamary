@@ -12,6 +12,7 @@ import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.SocialRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -34,11 +35,22 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
     private var _friendRequests = MutableStateFlow<List<User>>(emptyList())
     var friendRequests = _friendRequests.asStateFlow()
 
+    private var _userData = MutableStateFlow<User?>(null)
+    var userData = _userData.asStateFlow()
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun getGroupsForCurrentUser(userId: String) {
         viewModelScope.launch {
             socialRepository.getGroupsForCurrentUser(userId).collect { groups ->
                 _groupsList.value = groups
+            }
+        }
+    }
+
+    fun getProfileData(userId: String) {
+        viewModelScope.launch{
+            socialRepository.getProfileData(userId).collect { user ->
+                _userData.value = user
             }
         }
     }
@@ -80,20 +92,32 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun updateFriendRequest(userId: String, friendId: String, status: String) {
         viewModelScope.launch {
             socialRepository.updateFriendStatus(userId, friendId, status).collect { friendRequests ->
                 _friendRequests.value = friendRequests
-                _listFriends.value = _listFriends.value + friendRequests
             }
         }
     }
 
-    fun createConversation(conversation: Conversation) {
+    fun deleteFriend(userId: String, friendId: String) {
         viewModelScope.launch {
-            socialRepository.createConversation(conversation)
+            socialRepository.deleteFriend(userId, friendId).collect { friends ->
+                _listFriends.value = friends
+            }
+        }
+    }
 
-           // faire une redirection vers la conversation après l'avoir créé
+    fun createConversation(conversation: Conversation, onConversationCreated: (String) -> Unit) {
+        viewModelScope.launch {
+            socialRepository.createConversation(conversation).collect { conversations ->
+                _conversations.value = conversations
+                if (conversations.isNotEmpty()) {
+                    Log.i("navigation", "Redirection vers la conversation ${conversations[0].chatId}")
+                    onConversationCreated(conversations[0].chatId)
+                }
+            }
         }
     }
 }
