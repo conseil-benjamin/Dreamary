@@ -19,6 +19,7 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,8 +32,10 @@ import java.util.Calendar
 import java.util.Date
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.ZoneId
+import java.util.UUID
 
 class DreamRepository(private val context: Context) {
     private val db = Firebase.firestore
@@ -266,11 +269,9 @@ class DreamRepository(private val context: Context) {
 
             // todo : marche pas n'ajoute pas les xp au profil de l'utilisateur
 
-            if (unlocked && !existingBadge?.unlocked!!) {
-                coroutineScope {
-                    launch {
-                        incrementUserXP(user, badge.xp)
-                    }
+            if (unlocked && (existingBadge?.unlocked ?: false) == false) {
+                withContext(Dispatchers.IO) {
+                    incrementUserXP(user, badge.xp)
                 }
             }
 
@@ -344,7 +345,7 @@ class DreamRepository(private val context: Context) {
         emit(updatedBadges)
     }
 
-    private fun incrementUserXP(user: User, badgeXp: Long){
+    private suspend fun incrementUserXP(user: User, badgeXp: Long): User {
         val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
         val savedUser = sharedPreferences.getString("userDatabase", "")
 
@@ -353,7 +354,7 @@ class DreamRepository(private val context: Context) {
         var level = (userObject.progression["level"] as? Number)?.toInt() ?: 0
         var xp = (userObject.progression["xp"] as? Number)?.toInt() ?: 0
         var xpNeeded = (userObject.progression["xpNeeded"] as? Number)?.toInt() ?: 0
-        var rank = userObject.progression["rank"] as String
+        var rank = userObject.progression["rank"] as? String ?: ""
 
         Log.i("xpBadge", badgeXp.toString())
         xp += badgeXp.toInt()
@@ -364,7 +365,6 @@ class DreamRepository(private val context: Context) {
             xpNeeded += 200
         }
 
-        // Mise à jour du rang
         rank = when (level) {
             1 -> "Apprenti rêveur"
             10 -> "Rêveur confirmé"
@@ -392,16 +392,13 @@ class DreamRepository(private val context: Context) {
         db.collection("users")
             .document(user.uid)
             .update(userMap)
-            .addOnSuccessListener {
-                Log.d("DreamRepository", "User XP successfully updated!")
-            }
-            .addOnFailureListener { e ->
-                Log.w("DreamRepository", "Error updating user XP", e)
-            }
+            .await()
+
+        return userObject
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun updateUser(dream: Dream): Flow<Map<String, Any>> = flow {
+    fun updateUser(dream: Dream, type: String): Flow<Map<String, Any>> = flow {
         Log.i("UpdateUser", "est rentré dans updateUser")
         val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
         val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
@@ -418,15 +415,15 @@ class DreamRepository(private val context: Context) {
         val actualStreak = userObject.dreamStats["currentStreak"] as Int
         var longestStreak = userObject.dreamStats["longestStreak"] as Int
         var nbDreams = userObject.dreamStats["totalDreams"] as Int
+        // todo : gérer le cas ou l'utilisateur change de type de rêve et donc on devra décrémenter le nombre de cauchemars si l'ancien est un cauchemar
         val nbLucidDream = if (dream.lucid) userObject.dreamStats["lucidDreams"] as Int + 1 else userObject.dreamStats["lucidDreams"] as Int
-        Log.i("nbLucidDream", nbLucidDream.toString())
         val nbNightmares = if (dream.dreamType == "Cauchemar") userObject.dreamStats["nightmares"] as Int + 1 else userObject.dreamStats["nightmares"] as Int
         var xpGained = 0
 
-        if (actualStreak >= 3) {
+        if (actualStreak >= 3 && type == "add") {
             xp += 100
             xpGained += 100
-        } else {
+        } else if (actualStreak < 3 && type == "add") {
             xp += 50
             xpGained += 50
         }
@@ -458,10 +455,10 @@ class DreamRepository(private val context: Context) {
         var currentStreak: Int = 0
         Log.i("cal", cal1.toString())
         Log.i("cal", cal2.toString())
-        if ((cal1.get(Calendar.DAY_OF_MONTH) != cal2.get(Calendar.DAY_OF_MONTH))) {
+        if ((cal1.get(Calendar.DAY_OF_MONTH) != cal2.get(Calendar.DAY_OF_MONTH)) && type == "add") {
             Log.i("cal", "oaduadad")
             currentStreak = userObject.dreamStats["currentStreak"] as Int + 1
-        } else if ((cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)) && nbDreams == 0) {
+        } else if ((cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)) && nbDreams == 0 && type == "add") {
             Log.i("cal", "oaduadad")
             currentStreak = userObject.dreamStats["currentStreak"] as Int +1
         } else {
@@ -487,8 +484,6 @@ class DreamRepository(private val context: Context) {
                 "lastDreamDate" to Timestamp.now(),
                 "isPremium" to (userObject.metadata["isPremium"] as? Boolean ?: false),
                 "lastLogin" to (userObject.metadata["lastLogin"] as? Timestamp ?: Timestamp.now()),
-                "createdAt" to (userObject.metadata["createdAt"] as? Timestamp ?: Timestamp.now()
-                )
             ),
             preferences = mapOf(
                 "notifications" to (userObject.preferences["notifications"] as? Boolean ?: true),
@@ -558,6 +553,99 @@ class DreamRepository(private val context: Context) {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
+    fun updateDream(
+        dream: Dream,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit,
+    ): Flow<DreamResponse> = flow {
+        val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+        Log.i("dream5", dream.toString())
+
+        try {
+            if (dream.audio["path"] != "" && dream.audio["url"] == "") {
+                Log.i("filePath", dream.audio.toString())
+                val filePath = dream.audio["path"] as String
+                var storage = Firebase.storage
+                val storageRef = storage.reference
+                val currentUser = Firebase.auth.currentUser
+                val file = File(filePath)
+                val audioRef =
+                    storageRef.child("audio/${currentUser?.uid}/dream_${System.currentTimeMillis()}.mp3")
+
+                val uriFile = Uri.fromFile(file)
+
+                // Attend que l'upload soit terminé
+                val uploadTask = audioRef.putFile(uriFile).await()
+
+                // Attend l'URL
+                val uri = audioRef.downloadUrl.await()
+                (dream.audio as MutableMap<String, Any>)["url"] = uri.toString()
+
+                Log.d("AudioRecorder", "Fichier audio téléchargé avec succès à l'URL: $uri")
+                Log.i("filePath", dream.audio.toString())
+            } else {
+                Log.i("filePath", "No audio file or already uploaded")
+            }
+            Log.d("dream5", dream.toString())
+
+            db.collection("users")
+                .document(dream.userId)
+                .collection("dreams")
+                .document(dream.id)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        db.collection("users")
+                            .document(dream.userId)
+                            .collection("dreams")
+                            .document(dream.id)
+                            .set(dream)
+                            .addOnSuccessListener {
+                                Log.d("DreamRepository", "DocumentSnapshot successfully written!")
+                                onSuccess()
+                            }
+                            .addOnFailureListener { e ->
+                                Log.w("DreamRepository", "Error writing document", e)
+                                onFailure(e)
+                            }
+                    } else {
+                        Log.d("DreamRepository", "Document does not exist, cannot update")
+                        onFailure(Exception("Document does not exist, cannot update"))
+                    }
+                }
+
+            coroutineScope {
+                Log.d("DreamRepository", "Updating user")
+                try {
+                    updateUser(dream, "update")
+                        .collect { updatedUser ->
+                            Log.i("DreamRepository", updatedUser.toString())
+                            Log.d("DreamRepository", "Processing updated user")
+                            Log.d("DreamRepository", updatedUser.get("uid").toString())
+                            Log.d("firebase", userFirebase.getString("uid", "").toString())
+                            db.collection("users")
+                                .document(userFirebase.getString("uid", "").toString())
+                                .update(updatedUser)
+                                .addOnSuccessListener {
+                                    Log.d("DreamRepository", "DocumentSnapshot successfully updated!")
+                                    onSuccess()
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.w("DreamRepository", "Error updating document", e)
+                                }
+                        }
+                } catch (e: Exception) {
+                    Log.e("DreamRepository", "Error in updateUser process", e)
+                }
+            }
+        } catch (
+            e: Exception
+        ) {
+            emit(DreamResponse.Error(e.message ?: "Une erreur est survenue"))
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     fun addDream(
         dream: Dream,
         onSuccess: () -> Unit,
@@ -591,22 +679,26 @@ class DreamRepository(private val context: Context) {
                 Log.i("filePath", "No audio file")
             }
             Log.d("dream5", dream.toString())
-            dream.id = Timestamp.now().toString() + dream.userId
+            dream.id = UUID.randomUUID().toString()
 
-            db.collection("dreams")
-                .add(dream)
-                .addOnSuccessListener { documentReference ->
-                    println("DocumentSnapshot added with ID: ${documentReference.id}")
+            db.collection("users")
+                .document(dream.userId)
+                .collection("dreams")
+                .document(dream.id)
+                .set(dream)
+                .addOnSuccessListener {
+                    Log.d("DreamRepository", "DocumentSnapshot successfully written!")
+                    onSuccess()
                 }
                 .addOnFailureListener { e ->
-                    println("Error adding document: $e")
+                    Log.w("DreamRepository", "Error writing document", e)
                     onFailure(e)
                 }
 
             coroutineScope {
                 Log.d("DreamRepository", "Updating user")
                     try {
-                        updateUser(dream)
+                        updateUser(dream, "add")
                             .collect { updatedUser ->
                                 Log.i("DreamRepository", updatedUser.toString())
                                 Log.d("DreamRepository", "Processing updated user")
@@ -684,7 +776,9 @@ class DreamRepository(private val context: Context) {
         onFailure: (Exception) -> Unit
     ): Flow<List<Dream>> = flow {
         try {
-            val dreams = db.collection("dreams")
+            val dreams = db.collection("users")
+                .document(userId)
+                .collection("dreams")
                 .whereEqualTo("userId", userId)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .limit(2)
@@ -707,34 +801,22 @@ class DreamRepository(private val context: Context) {
         }
     }
 
-    fun getDreams(): Flow<List<Dream>> = flow {
+    fun getDreamById(idDream: String, userId: String): StateFlow<Dream?> {
         try {
-            val dreams = db.collection("dreams")
+            Log.i("dreamId", idDream)
+            db.collection("users")
+                .document(userId)
+                .collection("dreams")
+                .whereEqualTo("id", idDream)
                 .get()
-                .await()
-                .documents
-                .mapNotNull { document ->
-                    document.toObject(Dream::class.java)?.copy(id = document.id)
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        val dream = document.toObject(Dream::class.java)
+                        _dream.value = dream
+                    }
                 }
-            emit(dreams)
-        } catch (e: Exception) {
-            Log.e("DreamRepository", "Error retrieving dreams", e)
-            emit(emptyList())
-        }
-    }
-
-    fun getDreamById(idDream: String): StateFlow<Dream?> {
-        try {
-            db.collection("dreams")
-                .document(idDream)
-                .get()
-                .addOnSuccessListener { document ->
-                    val dream = document.toObject(Dream::class.java)
-                    _dream.value = dream
-                    Log.d("DreamRepository", "Dream data retrieved: $dream")
-                }
-                .addOnFailureListener { e ->
-                    Log.e("DreamRepository", "Error getting user data", e)
+                .addOnFailureListener() { e ->
+                    Log.e("DreamRepository", "Error retrieving dream", e)
                 }
         } catch (e: Exception) {
             Log.e("DreamRepository", "Error retrieving dream", e)

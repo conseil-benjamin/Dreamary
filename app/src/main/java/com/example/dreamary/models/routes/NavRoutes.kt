@@ -18,7 +18,9 @@ sealed class NavRoutes(val route: String) {
     data object Profile : NavRoutes("profile/{userId}") {
         fun createRoute(userId: String) = "profile/$userId"
     }
-    data object EditDream : NavRoutes("editDream")
+    data object EditDream : NavRoutes("editDream/{dreamId}") {
+        fun createRoute(dreamId: String) = "editDream/$dreamId"
+    }
     data object SplashScreen: NavRoutes("splashScreen")
     data object SucessAddDream: NavRoutes("sucessAddDream")
     data object AllBadges : NavRoutes("allBadges")
@@ -29,5 +31,4 @@ sealed class NavRoutes(val route: String) {
             return "chatScreenFriend/$userId/$encodedUrl/$chatId"
         }
     }
-
 }

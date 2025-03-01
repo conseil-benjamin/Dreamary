@@ -28,6 +28,7 @@ import com.example.dreamary.viewmodels.auth.LoginViewModelFactory
 import com.example.dreamary.views.activities.AllDreamsCalendar.AllDreamsCalendar
 import com.example.dreamary.views.activities.Dreams.AddDreamActivity
 import com.example.dreamary.views.activities.Dreams.DetailsDreamActivity
+import com.example.dreamary.views.activities.Dreams.EditDreamActivity
 import com.example.dreamary.views.activities.Dreams.SuccessAddDream
 import com.example.dreamary.views.activities.Social.ChatScreenFriendActivity
 import com.example.dreamary.views.activities.profile.ProfileActivity
@@ -213,6 +214,12 @@ fun NavigationManager() {
                 userId = it.arguments?.getString("userId") ?: "",
                 userUrlProfilePicture = it.arguments?.getString("userUrlProfilePicture")?.let { Uri.decode(it) } ?: "",
                 chatId = it.arguments?.getString("chatId") ?: ""
+            )
+        }
+        composable(NavRoutes.EditDream.route){
+            EditDreamActivity(
+                navController = navController,
+                dreamId = it.arguments?.getString("dreamId") ?: ""
             )
         }
     }

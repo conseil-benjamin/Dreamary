@@ -47,7 +47,7 @@ fun AllDreamsCalendar(
     val dreams by viewModel.dreams.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.getDreams()
+        //viewModel.getDreams()
     }
 
     Scaffold(

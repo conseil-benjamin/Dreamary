@@ -224,6 +224,31 @@ class SocialRepository(private val context: Context) {
                     }
                 }
 
+            db.collection("chats")
+                .where(
+                    Filter.or(
+                        Filter.and(
+                            Filter.equalTo("userId1", userId),
+                            Filter.equalTo("userId2", friendId)
+                        ),
+                        Filter.and(
+                            Filter.equalTo("userId1", friendId),
+                            Filter.equalTo("userId2", userId)
+                        )
+                    )
+                )
+                .get()
+                .addOnSuccessListener { documents ->
+                    documents.forEach { document ->
+                        db.collection("chats")
+                            .document(document.id)
+                            .delete()
+                            .addOnSuccessListener {
+                                Log.i("delete", "Conversation supprimée")
+                            }
+                    }
+                }
+
             val friends = getFriendsForCurrentUser(userId)
             _listFriends.value = friends.value
             Log.i("delete", friends.toString())

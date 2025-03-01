@@ -13,11 +13,11 @@ class AllDreamsCalendarViewModel(private val dreamRepository: DreamRepository): 
     private var _dreams = MutableStateFlow(emptyList<Dream>())
     var dreams = _dreams.asStateFlow()
 
-    fun getDreams() {
-        viewModelScope.launch{
-            dreamRepository.getDreams().collect{ dreams ->
-                _dreams.value = dreams
-            }
-        }
-    }
+//    fun getDreams(userId: String){ {
+//        viewModelScope.launch{
+//            dreamRepository.getDreamsForCurrentUser(userId, onFailure =).collect{ dreams ->
+//                _dreams.value = dreams
+//            }
+//        }
+//    }
 }

@@ -56,8 +56,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextAlign
 import coil.compose.AsyncImage
 import com.example.dreamary.models.entities.Dream
+import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModel
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -76,9 +79,10 @@ fun DetailsDreamActivity(
     val dream = viewModel.dream.collectAsState(initial = Dream()).value
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val currentUserUid = Firebase.auth.currentUser?.uid ?: ""
 
     LaunchedEffect(dreamId) {
-        viewModel.getDreamById(dreamId)
+        viewModel.getDreamById(dreamId, currentUserUid)
     }
 
     DreamaryTheme {
@@ -105,7 +109,9 @@ fun DetailsDreamActivity(
                                     .size(24.dp)
                             )
                         }
-                        IconButton(onClick = { /* TODO: Edit */ }) {
+                        IconButton(onClick = {
+                            navController.navigate(NavRoutes.EditDream.createRoute(dreamId))
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.edit),
                                 contentDescription = "Modifier",
