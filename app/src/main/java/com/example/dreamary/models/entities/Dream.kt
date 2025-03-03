@@ -16,7 +16,7 @@ data class Dream(
     val emotions: List<String> = emptyList(),
     val userId: String = "",
     val createdAt: Timestamp = Timestamp.now(),
-
+    val sharedWith: Share = Share(emptyList(), emptyList()),
     var audio: Map<String, Any> = mapOf(
         "fileName" to "",
         "duration" to 0,

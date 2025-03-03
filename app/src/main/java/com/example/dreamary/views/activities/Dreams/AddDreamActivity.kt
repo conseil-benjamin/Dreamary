@@ -304,6 +304,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
         emotions = pickedEmotions,
         userId = currentUser?.uid ?: "",
         createdAt = Timestamp.now(),
+        sharedWith = listPeopleShareWith,
         audio = mutableMapOf(
             "fileName" to "",
             "duration" to 0,
@@ -395,6 +396,10 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 
     LaunchedEffect(title, content) {
         dream = dream.copy(title = title, content = content)
+    }
+
+    LaunchedEffect(listPeopleShareWith) {
+        dream = dream.copy(sharedWith = listPeopleShareWith)
     }
 
     var analysisText by remember { mutableStateOf("") }

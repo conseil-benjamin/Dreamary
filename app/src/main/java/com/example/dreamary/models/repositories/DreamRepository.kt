@@ -645,6 +645,101 @@ class DreamRepository(private val context: Context) {
         }
     }
 
+    // le document ciblé n'est pas bon
+    private suspend fun shareDreamWithUsers(dream: Dream) {
+        Log.d("DreamRepository", "Sharing dream with users")
+        Log.i("dream5", dream.toString())
+        Log.d("DreamRepository", "Dream shared with: ${dream.sharedWith.users}")
+        for (user in dream.sharedWith.users) {
+            Log.d("DreamRepository", "Sharing dream with user ${user.uid}")
+
+            val message = mapOf(
+                "content" to "Nouveau rêve partagé !",
+                "createdAt" to Timestamp.now(),
+                "senderId" to dream.userId,
+                "dreamId" to dream.id,
+                "receiverId" to user.uid,
+                "seen" to false,
+                "type" to "dream",
+                "dream" to dream
+            )
+
+            val querySnapshot = db.collection("chats")
+                .where(
+                    Filter.or(
+                        Filter.and(
+                            Filter.equalTo("userId1", dream.userId),
+                            Filter.equalTo("userId2", user.uid)
+                        ),
+                        Filter.and(
+                            Filter.equalTo("userId1", user.uid),
+                            Filter.equalTo("userId2", dream.userId)
+                        )
+                    )
+                )
+                .get()
+                .await()
+
+            if (querySnapshot.documents.isNotEmpty()) {
+                Log.d("DreamRepository", "Conversation already exists")
+
+                querySnapshot.documents.first().reference.collection("messages")
+                    .add(message)
+                    .await()
+
+                Log.d("DreamRepository", "Dream shared with user ${user.uid}")
+
+                // todo: mettre à jour le dernier message et le timestamp du dernier message
+
+                db.collection("chats")
+                    .document(querySnapshot.documents.first().id)
+                    .update(
+                        mapOf(
+                            "lastSender" to dream.userId,
+                            "lastMessageTimestamp" to Timestamp.now(),
+                            "lastMessage" to "Nouveau rêve partagé !",
+                            "unreadMessageUser1" to 0,
+                            "unreadMessageUser2" to 1,
+                        )
+                    )
+                    .await()
+
+                Log.d("DreamRepository", "Conversation updated")
+            } else {
+                Log.d("DreamRepository", "Creating new conversation")
+
+                val userDream = db.collection("users").document(dream.userId).get().await()
+
+                // todo : voir si on peut pas changer la manière de créer le chatId car pas ouf pour l'instant
+
+                val conversationRef = db.collection("chats").document()
+                conversationRef.set(
+                    mapOf(
+                        "userId1" to dream.userId,
+                        "userId2" to user.uid,
+                        "users" to listOf(dream.userId, user.uid),
+                        "createdAt" to Timestamp.now(),
+                        "chatId" to dream.userId + user.uid,
+                        "user1" to user,
+                        "user2" to userDream.toObject(User::class.java),
+                        "lastSender" to dream.userId,
+                        "lastMessageTimestamp" to Timestamp.now(),
+                        "lastMessage" to "Nouveau rêve partagé !",
+                        "unreadMessageUser1" to 0,
+                        "unreadMessageUser2" to 1,
+                    )
+                ).await()
+
+                conversationRef.collection("messages")
+                    .add(message)
+                    .await()
+
+                Log.d("DreamRepository", "New conversation created and dream shared with user ${user.uid}")
+            }
+        }
+    }
+
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun addDream(
         dream: Dream,
@@ -694,6 +789,12 @@ class DreamRepository(private val context: Context) {
                     Log.w("DreamRepository", "Error writing document", e)
                     onFailure(e)
                 }
+
+            // todo : récupérer la conversation qu'on à déjà avec l'utilisateur et ajouter le message dedans
+            // todo : si la conversation n'existe pas la créer
+            // todo : pour faire ceci j'ai besoin de récupérer les userId des deux personnes
+            Log.d("DreamRepository", dream.sharedWith.users.toString())
+            shareDreamWithUsers(dream)
 
             coroutineScope {
                 Log.d("DreamRepository", "Updating user")

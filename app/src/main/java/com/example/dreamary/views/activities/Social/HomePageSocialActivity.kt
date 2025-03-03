@@ -221,8 +221,8 @@ fun HomePageSocialActivity(
                                 navController.navigate(
                                     NavRoutes.ChatScreenFriends.createRoute(
                                         conversation.userId2,
-                                        conversation.profilePictureUser2,
-                                        conversation.chatId
+                                        conversation.user2.profilePictureUrl,
+                                        conversation.userId2
                                     )
                                 )
                             })
@@ -612,7 +612,7 @@ fun FriendsContent(
                                 lastSender = "",
                                 unreadMessagesUser1 = 0,
                                 unreadMessagesUser2 = 0,
-                                chatId = userData?.uid.toString(),
+                                chatId = userData?.uid.toString() + friends[index].uid,
                                 userId1 = auth.currentUser?.uid ?: "",
                                 userId2 = friends[index].uid
                             )
