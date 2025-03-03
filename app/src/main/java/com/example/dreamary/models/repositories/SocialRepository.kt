@@ -10,6 +10,7 @@ import com.example.dreamary.R
 import com.example.dreamary.models.entities.Conversation
 import com.example.dreamary.models.entities.Group
 import com.example.dreamary.models.entities.Message
+import com.example.dreamary.models.entities.Share
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.utils.SnackbarManager
 import com.google.android.gms.tasks.Task
@@ -53,6 +54,9 @@ class SocialRepository(private val context: Context) {
 
     private val newConversationFlow = MutableStateFlow<List<Conversation>>(emptyList())
 
+    private var _share = MutableStateFlow<Share?>(null)
+    var share = _share.asStateFlow()
+
     fun getProfileData(idUSer : String): StateFlow<User> {
         try {
             db.collection("users")
@@ -69,20 +73,23 @@ class SocialRepository(private val context: Context) {
         }
     }
 
-    fun getGroupsForCurrentUser(userId: String): StateFlow<List<Group>> {
+    suspend fun getGroupsForCurrentUser(userId: String): StateFlow<List<Group>> {
         try {
+            Log.i("userIdGr", userId)
             db.collection("group")
                 .whereArrayContains("members", userId)
                 .get()
-                .addOnSuccessListener { documents ->
-                    val groups = documents.map { document ->
-                        val group = document.toObject(Group::class.java)
-                        group.copy(
-                            id = document.id
-                        )
-                    }
-                    _groupsList.value = groups
+                .await()
+                .documents.mapNotNull { document ->
+                    val group = document.toObject(Group::class.java)
+                    group?.copy(id = document.id)
                 }
+                .let {
+                    _groupsList.value = it
+                    Log.i("groups", it.toString())
+                }
+
+            Log.i("groupsGr", groups.toString())
             return groups
         } catch (e: Exception) {
             println("Erreur lors de l'ajout du rêve : $e")
@@ -490,4 +497,20 @@ class SocialRepository(private val context: Context) {
         return newConversationFlow.asStateFlow()
     }
 
+    suspend fun getFriendsAndGroupForCurrentUser(userId: String): StateFlow<Share> {
+        try {
+            val friends = getFriendsForCurrentUser(userId)
+            val groups = getGroupsForCurrentUser(userId)
+
+            Log.i("friends", friends.value.toString())
+            Log.i("groups", groups.value.toString())
+
+            _share.value = Share(friends.value, groups.value)
+
+            return share as StateFlow<Share>
+        } catch (e: Exception) {
+            println("Erreur lors de la récupération des groupes : $e")
+        }
+        return share as StateFlow<Share>
+    }
 }

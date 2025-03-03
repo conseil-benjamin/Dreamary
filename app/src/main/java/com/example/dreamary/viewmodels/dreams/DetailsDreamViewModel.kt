@@ -8,21 +8,27 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.dreamary.R
 import com.example.dreamary.models.entities.Dream
+import com.example.dreamary.models.entities.Share
 import com.example.dreamary.models.entities.Tag
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.DreamRepository
+import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.models.states.DreamResponse
 import com.example.dreamary.utils.SnackbarManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class DetailsDreamViewModel(private val repository: DreamRepository) : ViewModel() {
+class DetailsDreamViewModel(private val repository: DreamRepository, private val socialRepository: SocialRepository) : ViewModel() {
     private var _dream = MutableStateFlow<Dream?>(null)
     var dream = _dream.asStateFlow()
 
     private val _dreamState = MutableLiveData<DreamResponse>(DreamResponse.Loading)
+
+    private var _friendsAndGroup =  MutableStateFlow<Share>(Share( emptyList(), emptyList()))
+    var friendsAndGroup: StateFlow<Share> = _friendsAndGroup
 
     fun getDreamById(idDream: String, userId: String){
         viewModelScope.launch {
@@ -98,4 +104,15 @@ class DetailsDreamViewModel(private val repository: DreamRepository) : ViewModel
                 }
         }
     }
+
+    fun getFriendsAndGroupForCurrentUser(userId: String) {
+        viewModelScope.launch {
+            socialRepository.getFriendsAndGroupForCurrentUser(userId)
+                .collect { friendsAndGroup ->
+                    Log.d("FriendsAndGroup", "Friends and group: $friendsAndGroup")
+                    _friendsAndGroup.value = friendsAndGroup
+                }
+        }
+    }
+
 }

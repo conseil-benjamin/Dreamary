@@ -73,10 +73,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import com.example.dreamary.models.entities.Tag
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModel
@@ -84,6 +86,10 @@ import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.views.components.CustomDropdown
 import java.util.Calendar
 import coil.compose.AsyncImage
+import com.example.dreamary.models.entities.Group
+import com.example.dreamary.models.entities.Share
+import com.example.dreamary.models.entities.User
+import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.views.components.DreamTextFieldCustom
 import com.example.dreamary.views.components.Loading
@@ -143,9 +149,133 @@ private fun ConfirmDialog(
     )
 }
 
+
+
+// todo : faire en sorte de récupérer la liste à jour des personnes et groupes avec qui partager
+// todo : mettre en couleur les personnes sélectionnées
+// todo : revoir la logique de sélection et déselection des personnes et groupes
+@Composable
+private fun ShareDreamWithPeople(
+    onChanges: (Share) -> Unit,
+    usersAndGroups: Share,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    text: String,
+    title: String,
+    listPeopleShareWith: Share
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        ) {
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp,
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            LazyColumn (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ){
+                item {
+                    Text(text)
+                    Column (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        usersAndGroups.users.forEach { user ->
+                            Card(
+                                modifier = Modifier.padding(8.dp),
+                                shape = MaterialTheme.shapes.medium,
+//                                elevation = 4.dp
+                            ) {
+                                Column(
+                                    modifier = Modifier.clickable {
+                                        onChanges(
+                                            Share(
+                                                if (listPeopleShareWith.users.contains(user)) {
+                                                    listPeopleShareWith.users - user
+                                                } else {
+                                                    listPeopleShareWith.users + user
+                                                },
+                                                listPeopleShareWith.groups
+                                            )
+                                        )
+                                    }
+                                ) {
+                                    if (user.username != null) {
+                                        Text(
+                                            text = user.username,
+                                            color = if (listPeopleShareWith.users.contains(user)) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurface
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        usersAndGroups.groups.forEach { group ->
+                            Card(
+                                modifier = Modifier.padding(8.dp),
+                                shape = MaterialTheme.shapes.medium,
+//                                elevation = 4.dp
+                            ) {
+                                Column(
+                                    modifier = Modifier.clickable {
+                                        onChanges(
+                                            Share(
+                                                listPeopleShareWith.users,
+                                                if (listPeopleShareWith.groups.contains(group)) {
+                                                    listPeopleShareWith.groups - group
+                                                } else {
+                                                    listPeopleShareWith.groups + group
+                                                }
+                                            )
+                                        )
+                                    }
+                                ) {
+                                    if (group.name != null) {
+                                        Text(
+                                            text = group.name,
+                                            color = if (listPeopleShareWith.groups.contains(group)) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurface
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Button(onClick = onDismiss) {
+                            Text("Annuler")
+                        }
+                        Button(onClick = onConfirm) {
+                            Text("Confirmer")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 @Composable
 fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel = viewModel(
-    factory = AddDreamViewModelFactory (DreamRepository(LocalContext.current))
+    factory = AddDreamViewModelFactory (DreamRepository(LocalContext.current), SocialRepository(
+        LocalContext.current))
 )) {
     var dreamTypeChoose by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("")}
@@ -156,6 +286,9 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     val context = LocalContext.current
 
     var showConfirmLeaveActivity by remember { mutableStateOf(false) }
+
+    var listPeopleShareWith:Share by remember { mutableStateOf(Share(listOf<User>(), listOf<Group>())) }
+    val listFriendsAndGroup:Share by viewModel.friendsAndGroup.collectAsState()
 
     BackHandler {
         showConfirmLeaveActivity = true
@@ -319,6 +452,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     }
 
     LaunchedEffect(Unit) {
+        viewModel.getFriendsAndGroupForCurrentUser(currentUser?.uid ?: "")
         val sharedPrefs = context.getSharedPreferences("tags", Context.MODE_PRIVATE)
         val storedSet = sharedPrefs.getStringSet(currentUser?.uid, setOf()) ?: setOf()
 
@@ -670,7 +804,12 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                         )
                     }
                     item {
-                        Share()
+                        Share(
+                            listFriendsAndGroup = listFriendsAndGroup,
+                            listPeopleShareWith = listPeopleShareWith,
+                            onChanges = { listPeopleShareWith = it },
+                            onClear = { listPeopleShareWith = Share(listOf(), listOf()) },
+                        )
                     }
                 }
             }
@@ -1585,13 +1724,40 @@ fun AutoAnalyse (
 }
 
 @Composable
-fun Share  () {
+fun Share (
+    listFriendsAndGroup: Share,
+    onChanges: (Share) -> Unit,
+    listPeopleShareWith: Share,
+    onClear: () -> Unit
+) {
+    val showModalShare = remember { mutableStateOf(false) }
+    Log.d("Share", listPeopleShareWith.toString())
+
+    if (showModalShare.value) {
+        ShareDreamWithPeople(
+            usersAndGroups = listFriendsAndGroup,
+            onDismiss = {
+                showModalShare.value = false
+                onClear()
+                        },
+            onConfirm = {
+                showModalShare.value = false
+            },
+            text = "Partager le rêve avec",
+            title = "Partager le rêve",
+            onChanges = { onChanges(it) },
+            listPeopleShareWith = listPeopleShareWith
+        )
+    }
+
     Button(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
             .height(48.dp),
-        onClick = { /*TODO*/ }
+        onClick = {
+            showModalShare.value = true
+        }
     ) {
         Row (
             verticalAlignment = Alignment.CenterVertically,

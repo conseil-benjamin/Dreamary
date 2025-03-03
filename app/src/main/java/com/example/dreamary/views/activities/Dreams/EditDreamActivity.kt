@@ -58,7 +58,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.zIndex
+import com.example.dreamary.models.entities.Group
+import com.example.dreamary.models.entities.Share
 import com.example.dreamary.models.entities.Tag
+import com.example.dreamary.models.entities.User
+import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.dreams.DetailsDreamViewModel
@@ -117,7 +121,7 @@ private fun ConfirmDialog(
 
 @Composable
 fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamViewModel = viewModel(
-    factory = DetailsDreamViewModelFactory (DreamRepository(LocalContext.current))
+    factory = DetailsDreamViewModelFactory (DreamRepository(LocalContext.current), SocialRepository(LocalContext.current))
 ), dreamId: String
 ) {
     var dreamTypeChoose by remember { mutableStateOf("") }
@@ -467,6 +471,8 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
     }
 
     LaunchedEffect(Unit) {
+
+        viewModel.getFriendsAndGroupForCurrentUser(currentUser?.uid ?: "")
         viewModel.getDreamById(dreamId, currentUser?.uid ?: "")
         Log.d("Dream15", dreamRecupered.toString())
         dream = dreamRecupered ?: dream
@@ -478,10 +484,19 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
                 content = it.content
                 dreamTypeChoose = it.dreamType
                 pickedEmotions.addAll(it.emotions)
-                dreamRecupered!!.tags["characters"]?.let { tagsPersonnes = it }
-                dreamRecupered!!.tags["places"]?.let { tagsLieux = it }
-                dreamRecupered!!.tags["themes"]?.let { tagsActions = it }
-                dreamRecupered!!.tags["symbols"]?.let { tagsSymboles = it }
+                dreamRecupered!!.tags["characters"]?.let { tagsPersonnes = it + tagsPersonnes.filter { tag -> tag !in it } }
+                selectedTags = it.tags["characters"] as List<String> + it.tags["places"] as List<String> + it.tags["themes"] as List<String> + it.tags["symbols"] as List<String> + it.tags["divers"] as List<String>
+                selectedTags.forEach { tag ->
+                    val randomIndex = (colorsBackground.indices).random()
+                    val backgroundColor = colorsBackground[randomIndex]
+                    val contentColor = colorsContent[randomIndex]
+                    selectedTagColors = selectedTagColors.toMutableMap().apply {
+                        put(tag, Pair(backgroundColor, contentColor))
+                    }
+                }
+                dreamRecupered!!.tags["places"]?.let { tagsLieux = it + tagsLieux.filter { tag -> tag !in it } }
+                dreamRecupered!!.tags["themes"]?.let { tagsActions = it + tagsActions.filter { tag -> tag !in it } }
+                dreamRecupered!!.tags["symbols"]?.let { tagsSymboles = it + tagsSymboles.filter { tag -> tag !in it } }
                 noiseLevel = it.sleepContext["noiseLevel"] as String
                 nbReveils = it.sleepContext["nbReveils"] as String
                 temperature = it.sleepContext["temperature"] as Long
@@ -524,6 +539,9 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
     }
 
     val savingInProgress = remember { mutableStateOf(false) }
+
+    var listPeopleShareWith: Share by remember { mutableStateOf(Share(listOf<User>(), listOf<Group>())) }
+    val listFriendsAndGroup: Share by viewModel.friendsAndGroup.collectAsState()
 
     DreamaryTheme {
         Box(modifier = Modifier
@@ -599,10 +617,12 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
                             selectedTagsColors = selectedTagColors,
                             onTagSelected = { tag ->
                                 if (tag in selectedTags) {
+                                    Log.d("SelectedTags", "Removing $tag")
                                     // Si le tag est déjà sélectionné, on le retire et on supprime sa couleur associée
                                     selectedTags = selectedTags - tag
                                     selectedTagColors = selectedTagColors.toMutableMap().apply { remove(tag) }
                                 } else {
+                                    Log.d("SelectedTags", "Adding $tag")
                                     // Si c'est une nouvelle sélection, on attribue une couleur aléatoire
                                     val randomIndex = (colorsBackground.indices).random()
                                     val backgroundColor = colorsBackground[randomIndex]
@@ -682,7 +702,12 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
                         )
                     }
                     item {
-                        Share()
+                        Share(
+                            listFriendsAndGroup = listFriendsAndGroup,
+                            onChanges = { listPeopleShareWith = it },
+                            onClear = { listPeopleShareWith = Share(listOf(), listOf()) },
+                            listPeopleShareWith = listPeopleShareWith
+                        )
                     }
                 }
             }

@@ -11,4 +11,5 @@ data class Message(
     val seen : Boolean = false,
     val type : String = "text",
     val dreamId: String = "",
+    val dream: Dream? = null
 )

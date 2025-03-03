@@ -56,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextAlign
 import coil.compose.AsyncImage
 import com.example.dreamary.models.entities.Dream
+import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModel
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
@@ -73,7 +74,7 @@ fun DetailsDreamActivity(
     navController: NavController,
     dreamId: String,
     viewModel: DetailsDreamViewModel = viewModel(
-        factory = DetailsDreamViewModelFactory (DreamRepository(LocalContext.current))
+        factory = DetailsDreamViewModelFactory (DreamRepository(LocalContext.current), SocialRepository(LocalContext.current))
     ),
     ) {
     val dream = viewModel.dream.collectAsState(initial = Dream()).value

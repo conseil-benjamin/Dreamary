@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.dreamary.models.entities.Conversation
 import com.example.dreamary.models.entities.Group
 import com.example.dreamary.models.entities.Message
+import com.example.dreamary.models.entities.Share
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.SocialRepository
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,6 +38,9 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
 
     private var _userData = MutableStateFlow<User?>(null)
     var userData = _userData.asStateFlow()
+
+    private var _friendsAndGroup =  MutableStateFlow<Share>(Share( emptyList(), emptyList()))
+    var friendsAndGroup: StateFlow<Share> = _friendsAndGroup
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getGroupsForCurrentUser(userId: String) {
@@ -118,6 +122,16 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
                     onConversationCreated(conversations[0].chatId)
                 }
             }
+        }
+    }
+
+    fun getFriendsAndGroupForCurrentUser(userId: String) {
+        viewModelScope.launch {
+            socialRepository.getFriendsAndGroupForCurrentUser(userId)
+                .collect { friendsAndGroup ->
+
+                    _friendsAndGroup.value = friendsAndGroup
+                }
         }
     }
 }
