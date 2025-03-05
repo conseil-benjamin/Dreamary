@@ -83,6 +83,7 @@ fun DetailsDreamActivity(
     val currentUserUid = Firebase.auth.currentUser?.uid ?: ""
 
     LaunchedEffect(dreamId) {
+        Log.i("dreamId", dreamId)
         viewModel.getDreamById(dreamId, currentUserUid)
     }
 

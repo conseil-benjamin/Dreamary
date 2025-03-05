@@ -552,6 +552,9 @@ class DreamRepository(private val context: Context) {
         )
     }
 
+    // todo : faire comme pour addDream donc pouvoir partager le rêve juste avant faire un check pour vérifier que l'user est pas déjà dedans
+    // todo : on ne doit pas pouvoir reset les rêves partagés ca serait un bordel sinon
+    // todo : mais plutot que le mec puisse supprimer son message directement ça serait mieux
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateDream(
         dream: Dream,
@@ -645,15 +648,16 @@ class DreamRepository(private val context: Context) {
         }
     }
 
-    // le document ciblé n'est pas bon
     private suspend fun shareDreamWithUsers(dream: Dream) {
         Log.d("DreamRepository", "Sharing dream with users")
         Log.i("dream5", dream.toString())
         Log.d("DreamRepository", "Dream shared with: ${dream.sharedWith.users}")
         for (user in dream.sharedWith.users) {
             Log.d("DreamRepository", "Sharing dream with user ${user.uid}")
+            val uuid = UUID.randomUUID().toString()
 
             val message = mapOf(
+                "id" to uuid,
                 "content" to "Nouveau rêve partagé !",
                 "createdAt" to Timestamp.now(),
                 "senderId" to dream.userId,
@@ -709,17 +713,16 @@ class DreamRepository(private val context: Context) {
                 Log.d("DreamRepository", "Creating new conversation")
 
                 val userDream = db.collection("users").document(dream.userId).get().await()
+                val uuid = UUID.randomUUID().toString()
 
-                // todo : voir si on peut pas changer la manière de créer le chatId car pas ouf pour l'instant
-
-                val conversationRef = db.collection("chats").document()
+                val conversationRef = db.collection("chats").document(uuid)
                 conversationRef.set(
                     mapOf(
                         "userId1" to dream.userId,
                         "userId2" to user.uid,
                         "users" to listOf(dream.userId, user.uid),
                         "createdAt" to Timestamp.now(),
-                        "chatId" to dream.userId + user.uid,
+                        "chatId" to uuid,
                         "user1" to user,
                         "user2" to userDream.toObject(User::class.java),
                         "lastSender" to dream.userId,

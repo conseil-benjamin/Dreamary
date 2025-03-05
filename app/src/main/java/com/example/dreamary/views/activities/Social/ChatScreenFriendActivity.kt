@@ -72,6 +72,7 @@ import com.google.firebase.auth.auth
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 @Composable
 fun HeaderChat(
@@ -196,6 +197,7 @@ fun DateDivider(date: String) {
 
 @Composable
 fun ListOfMessages(
+    navController: NavController,
     messages: List<Message>,
     userId: String,
     listState: LazyListState
@@ -244,7 +246,8 @@ fun ListOfMessages(
                     ) {
                         MessageBubble(
                             message = item,
-                            isCurrentUser = isCurrentUser
+                            isCurrentUser = isCurrentUser,
+                            navController = navController
                         )
                     }
                 }
@@ -274,7 +277,8 @@ fun ListOfMessages(
 @Composable
 fun MessageBubble(
     message: Message,
-    isCurrentUser: Boolean
+    isCurrentUser: Boolean,
+    navController: NavController
 ) {
     val bubbleShape = RoundedCornerShape(
         topStart = 16.dp,
@@ -300,25 +304,88 @@ fun MessageBubble(
         horizontalAlignment = if (isCurrentUser) Alignment.End else Alignment.Start,
         modifier = Modifier.widthIn(max = 280.dp)
     ) {
-        Card(
-            shape = bubbleShape,
-            colors = CardDefaults.cardColors(containerColor = bubbleColor),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-        ) {
+        if(message.dreamId !== ""){
+            Card(
+                shape = bubbleShape,
+                colors = CardDefaults.cardColors(containerColor = bubbleColor),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                modifier = Modifier
+                    .clickable{
+                        navController.navigate(NavRoutes.DreamDetail.createRoute(message.dream?.id.toString()))
+                    }
+            ) {
+                Text(
+                    text = message.content,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
+                    modifier = Modifier.padding(12.dp)
+                )
+                Text(
+                    text = message.dream?.title ?: "",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
+                    modifier = Modifier.padding(12.dp)
+                )
+                Text(
+                    text = message.dream?.content ?: "",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
+                    modifier = Modifier
+                        .padding(12.dp),
+                    maxLines = 3
+                )
+                Row {
+                    message.dream?.emotions?.take(2)?.forEach { emotion ->
+                        Card(
+                            modifier = Modifier
+                                .padding(8.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        ) {
+                            Text(
+                                text = emotion,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(8.dp),
+                            )
+                        }
+                    }
+                }
+                Text(
+                    text= "Cliquez sur le message pour accéder au rêve en détails",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(8.dp),
+                )
+            }
+
             Text(
-                text = message.content,
-                style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
-                modifier = Modifier.padding(12.dp)
+                text = timeString,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                ),
+                modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 2.dp, bottom = 8.dp)
+            )
+        } else {
+            Card(
+                shape = bubbleShape,
+                colors = CardDefaults.cardColors(containerColor = bubbleColor),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Text(
+                    text = message.content,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+
+            Text(
+                text = timeString,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                ),
+                modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 2.dp, bottom = 8.dp)
             )
         }
-
-        Text(
-            text = timeString,
-            style = MaterialTheme.typography.labelSmall.copy(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            ),
-            modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 2.dp, bottom = 8.dp)
-        )
     }
 }
 
@@ -397,6 +464,7 @@ fun MessageField(
                     if (message.isNotEmpty()) {
                         onMessageSend(
                             Message(
+                                id = UUID.randomUUID().toString(),
                                 senderId = sender,
                                 receiverId = receiver,
                                 content = message,
@@ -445,6 +513,7 @@ fun ChatScreenFriendActivity(
     val isLoading by viewModel.isLoading.collectAsState()
 
     LaunchedEffect(Unit) {
+        Log.i("chatId232", chatId)
         viewModel.getMessagesForCurrentUser(chatId)
         viewModel.getFriendInformation(userId)
     }
@@ -491,6 +560,7 @@ fun ChatScreenFriendActivity(
                         .background(MaterialTheme.colorScheme.background)
                 ) {
                     ListOfMessages(
+                        navController = navController,
                         messages = messages,
                         userId = Firebase.auth.currentUser?.uid ?: "",
                         listState = lazyListState

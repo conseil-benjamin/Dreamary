@@ -217,12 +217,12 @@ fun HomePageSocialActivity(
                         friends = friends,
                         navController = navController,
                         onCreateConversation = { conversation ->
-                            viewModel.createConversation(conversation, onConversationCreated = {
+                            viewModel.createConversation(conversation, onConversationCreated = { chatId ->
                                 navController.navigate(
                                     NavRoutes.ChatScreenFriends.createRoute(
                                         conversation.userId2,
                                         conversation.user2.profilePictureUrl,
-                                        conversation.userId2
+                                        chatId
                                     )
                                 )
                             })
@@ -605,8 +605,6 @@ fun FriendsContent(
                             Conversation(
                                 user1 = userData,
                                 user2 = friends[index],
-                                profilePictureUser1 = friends[index].profilePictureUrl,
-                                profilePictureUser2 = userData?.profilePictureUrl ?: "",
                                 lastMessage = "",
                                 lastMessageTimestamp = Timestamp.now(),
                                 lastSender = "",

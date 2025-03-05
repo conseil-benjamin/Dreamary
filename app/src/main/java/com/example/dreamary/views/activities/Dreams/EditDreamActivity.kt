@@ -140,6 +140,9 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
         showConfirmLeaveActivity = true
     }
 
+    var listPeopleShareWithEdit:Share by remember { mutableStateOf(Share(listOf<User>(), listOf<Group>())) }
+    val listFriendsAndGroupEdit:Share by viewModel.friendsAndGroup.collectAsState()
+
     var dream by remember { mutableStateOf(Dream(
         id = dreamId,
         title = title,
@@ -151,6 +154,7 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
         emotions = pickedEmotions,
         userId = currentUser?.uid ?: "",
         createdAt = Timestamp.now(),
+        sharedWith = listPeopleShareWithEdit,
         audio = mutableMapOf(
             "fileName" to "",
             "duration" to 0,

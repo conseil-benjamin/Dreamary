@@ -25,10 +25,10 @@ class DetailsDreamViewModel(private val repository: DreamRepository, private val
     private var _dream = MutableStateFlow<Dream?>(null)
     var dream = _dream.asStateFlow()
 
-    private val _dreamState = MutableLiveData<DreamResponse>(DreamResponse.Loading)
-
     private var _friendsAndGroup =  MutableStateFlow<Share>(Share( emptyList(), emptyList()))
     var friendsAndGroup: StateFlow<Share> = _friendsAndGroup
+
+    private val _dreamState = MutableLiveData<DreamResponse>(DreamResponse.Loading)
 
     fun getDreamById(idDream: String, userId: String){
         viewModelScope.launch {

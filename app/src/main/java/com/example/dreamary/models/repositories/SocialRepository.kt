@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 
 class SocialRepository(private val context: Context) {
     val db = FirebaseFirestore.getInstance()
@@ -348,7 +349,6 @@ class SocialRepository(private val context: Context) {
         }
     }
 
-
     fun getFriendRequestsForCurrentUser(userId: String): StateFlow<List<User>> {
         try {
             Log.i("userId", userId)
@@ -425,6 +425,8 @@ class SocialRepository(private val context: Context) {
             "lastMessageTimestamp" to message.createdAt,
             "lastSender" to message.senderId
         )
+        Log.i("chatIdSendMessage", chatId)
+        Log.i("chatIdSendMessage", message.toString())
         try {
             db.collection("chats")
                 .document(chatId)
@@ -445,57 +447,64 @@ class SocialRepository(private val context: Context) {
         }
     }
 
-    fun createConversation(conversation: Conversation): StateFlow<List<Conversation>> {
+    suspend fun createConversation(conversation: Conversation): StateFlow<List<Conversation>> {
         try {
-            db.collection("chats")
-                .where(
-                    Filter.or(
-                        Filter.or(
-                            Filter.equalTo("userId1", conversation.userId1),
-                            Filter.equalTo("userId2", conversation.userId1)
-                        )
-                    )
-                )
-                .get()
-                .addOnSuccessListener {
-                    if (it.isEmpty) {
-                        Log.i("conversation", "Conversation inexistante")
-                    } else {
-                        Log.i("conversation", "Conversation existante")
-                        val documentSnapshot = it.documents[0]
-                        val newConversation = documentSnapshot.toObject(Conversation::class.java)
-                        newConversation?.let {
-                            newConversationFlow.value = listOf(it)
-                        }
-                        return@addOnSuccessListener
-                    }
-                }
-
             Log.i("conversation", conversation.toString())
 
-            db.collection("chats")
-                .document(conversation.chatId)
-                .set(conversation)
-                .addOnSuccessListener {
-                    Log.i("conversation", "Conversation créée")
-                }
-
-            db.collection("chats")
-                .document(conversation.chatId)
+            val querySnapshot = db.collection("chats")
+                .where(
+                    Filter.or(
+                        Filter.and(
+                            Filter.equalTo("userId1", conversation.userId1),
+                            Filter.equalTo("userId2", conversation.userId2)
+                        ),
+                        Filter.and(
+                            Filter.equalTo("userId1", conversation.userId2),
+                            Filter.equalTo("userId2", conversation.userId1)
+                        )
+                    ),
+                )
                 .get()
-                .addOnSuccessListener { documentSnapshot ->
-                    val newConversation = documentSnapshot.toObject(Conversation::class.java)
-                    newConversation?.let {
-                        newConversationFlow.value = listOf(it)
-                    }
-                }
+                .await()
 
-            return newConversationFlow.asStateFlow()
+            if (querySnapshot.isEmpty) {
+                Log.i("conversation", "Conversation inexistante")
+                // Si la conversation n'existe pas, on la crée
+                val uuid = UUID.randomUUID().toString()
+                conversation.chatId = uuid
+
+                db.collection("chats")
+                    .document(uuid)
+                    .set(conversation)
+                    .await()
+
+                Log.i("conversation", "Conversation créée")
+
+                // Récupérer la conversation après création
+                val documentSnapshot = db.collection("chats").document(uuid).get().await()
+                val newConversation = documentSnapshot.toObject(Conversation::class.java)
+                Log.i("newConversation", newConversation.toString())
+                newConversation?.let {
+                    newConversationFlow.value = listOf(it)
+                }
+            } else {
+                Log.i("conversation", "Conversation existante")
+                // Si la conversation existe déjà, on la charge depuis Firestore
+                val documentSnapshot = querySnapshot.documents[0]
+                val existingConversation = documentSnapshot.toObject(Conversation::class.java)
+                Log.i("existingConversation", existingConversation.toString())
+                existingConversation?.let {
+                    newConversationFlow.value = listOf(it)
+                }
+            }
+
         } catch (e: Exception) {
             Log.e("conversation", "Erreur : $e")
         }
+
         return newConversationFlow.asStateFlow()
     }
+
 
     suspend fun getFriendsAndGroupForCurrentUser(userId: String): StateFlow<Share> {
         try {
