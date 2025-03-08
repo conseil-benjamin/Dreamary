@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.dreamary.models.entities.Badge
 import com.example.dreamary.models.entities.Dream
+import com.example.dreamary.models.entities.Share
 import com.example.dreamary.models.entities.Tag
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.states.DreamResponse
@@ -617,6 +618,9 @@ class DreamRepository(private val context: Context) {
                     }
                 }
 
+            Log.i("sharedWithUpdate", dream.sharedWith.toString())
+            shareDreamWithUsers(dream, "update")
+
             coroutineScope {
                 Log.d("DreamRepository", "Updating user")
                 try {
@@ -648,11 +652,37 @@ class DreamRepository(private val context: Context) {
         }
     }
 
-    private suspend fun shareDreamWithUsers(dream: Dream) {
+    private suspend fun shareDreamWithUsers(dream: Dream, typeOfShare: String) {
         Log.d("DreamRepository", "Sharing dream with users")
         Log.i("dream5", dream.toString())
         Log.d("DreamRepository", "Dream shared with: ${dream.sharedWith.users}")
-        for (user in dream.sharedWith.users) {
+
+        var newUserToSendDream: Share = Share()
+        var sharedWithInBdd: Share = Share()
+        if (typeOfShare === "update") {
+            val snapshot = db.collection("users")
+                .document(dream.userId)
+                .collection("dreams")
+                .document(dream.id)
+                .get()
+                .await()
+
+              sharedWithInBdd = snapshot.toObject(Dream::class.java)?.sharedWith!!
+            for (user in dream.sharedWith.users) {
+                Log.i("sharedWithUpdate", user.toString())
+                if (!sharedWithInBdd.users.contains(user)) {
+                    Log.i("sharedWithUpdate", "add")
+                    newUserToSendDream.users = newUserToSendDream.users + user
+                }
+            }
+        }
+        Log.i("sharedWithInBdd", sharedWithInBdd.toString())
+        Log.i("newUserSendDream", newUserToSendDream.toString())
+
+            val shareUserList = if (typeOfShare === "update") newUserToSendDream else dream.sharedWith
+            Log.i("sharedWithUpdateListFinale", shareUserList.toString())
+
+            for (user in shareUserList.users) {
             Log.d("DreamRepository", "Sharing dream with user ${user.uid}")
             val uuid = UUID.randomUUID().toString()
 
@@ -740,6 +770,18 @@ class DreamRepository(private val context: Context) {
                 Log.d("DreamRepository", "New conversation created and dream shared with user ${user.uid}")
             }
         }
+        if (typeOfShare === "update"){
+            Log.i("sharedWithUpdateListFinale", newUserToSendDream.toString())
+            Log.i("sharedWithUpdateListFinale", sharedWithInBdd.toString())
+            val userListToUpdate: Share = Share(sharedWithInBdd.users + newUserToSendDream.users, emptyList())
+            Log.i("sharedWithUpdateListFinale", userListToUpdate.toString())
+            db.collection("users")
+                .document(dream.userId)
+                .collection("dreams")
+                .document(dream.id)
+                .update("sharedWith", userListToUpdate)
+                .await()
+        }
     }
 
 
@@ -797,7 +839,7 @@ class DreamRepository(private val context: Context) {
             // todo : si la conversation n'existe pas la créer
             // todo : pour faire ceci j'ai besoin de récupérer les userId des deux personnes
             Log.d("DreamRepository", dream.sharedWith.users.toString())
-            shareDreamWithUsers(dream)
+            shareDreamWithUsers(dream, "add")
 
             coroutineScope {
                 Log.d("DreamRepository", "Updating user")

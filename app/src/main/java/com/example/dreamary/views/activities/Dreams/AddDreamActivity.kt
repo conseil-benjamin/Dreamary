@@ -162,7 +162,8 @@ private fun ShareDreamWithPeople(
     onDismiss: () -> Unit,
     text: String,
     title: String,
-    listPeopleShareWith: Share
+    listPeopleShareWith: Share,
+    peopleAlreadySharedWith: Share
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -194,19 +195,42 @@ private fun ShareDreamWithPeople(
                             ) {
                                 Column(
                                     modifier = Modifier.clickable {
-                                        onChanges(
-                                            Share(
-                                                if (listPeopleShareWith.users.contains(user)) {
-                                                    listPeopleShareWith.users - user
-                                                } else {
-                                                    listPeopleShareWith.users + user
-                                                },
-                                                listPeopleShareWith.groups
+                                        if (!peopleAlreadySharedWith.users.contains(user)){
+                                            onChanges(
+                                                Share(
+                                                    if (listPeopleShareWith.users.contains(user)) {
+                                                        listPeopleShareWith.users - user
+                                                    } else {
+                                                        listPeopleShareWith.users + user
+                                                    },
+                                                    listPeopleShareWith.groups
+                                                )
                                             )
-                                        )
+                                        }
                                     }
                                 ) {
-                                    if (user.username != null) {
+                                    Log.i("ShareDreamWithPeople", "user: $user")
+                                    Log.i("ShareDreamWithPeople", "peopleAlreadySharedWith: $peopleAlreadySharedWith")
+                                    if (peopleAlreadySharedWith.users.contains(user)){
+                                        Row (
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .padding(8.dp)
+                                                .fillMaxWidth()
+                                        ){
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.check_circle),
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(24.dp)
+                                            )
+                                            Text(
+                                                text = user.username,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                    else if (user.username != null) {
                                         Text(
                                             text = user.username,
                                             color = if (listPeopleShareWith.users.contains(user)) {
@@ -289,7 +313,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 
     var listPeopleShareWith:Share by remember { mutableStateOf(Share(listOf<User>(), listOf<Group>())) }
     val listFriendsAndGroup:Share by viewModel.friendsAndGroup.collectAsState()
-
+    val peopleAlreadySharedWith: Share = Share(emptyList(), emptyList())
     BackHandler {
         showConfirmLeaveActivity = true
     }
@@ -810,6 +834,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                     }
                     item {
                         Share(
+                            peopleAlreadySharedWith = peopleAlreadySharedWith,
                             listFriendsAndGroup = listFriendsAndGroup,
                             listPeopleShareWith = listPeopleShareWith,
                             onChanges = { listPeopleShareWith = it },
@@ -1730,6 +1755,7 @@ fun AutoAnalyse (
 
 @Composable
 fun Share (
+    peopleAlreadySharedWith: Share,
     listFriendsAndGroup: Share,
     onChanges: (Share) -> Unit,
     listPeopleShareWith: Share,
@@ -1751,7 +1777,8 @@ fun Share (
             text = "Partager le rêve avec",
             title = "Partager le rêve",
             onChanges = { onChanges(it) },
-            listPeopleShareWith = listPeopleShareWith
+            listPeopleShareWith = listPeopleShareWith,
+            peopleAlreadySharedWith = peopleAlreadySharedWith
         )
     }
 

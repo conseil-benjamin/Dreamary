@@ -420,6 +420,8 @@ class SocialRepository(private val context: Context) {
     }
 
     fun sendMessage(chatId: String, message: Message) {
+        // todo: faire en sorte qu'on puisse mettre à jour correctement le nombre de messages
+        // todo: non lu pour chaque utilisateur
         val update = hashMapOf<String, Any>(
             "lastMessage" to message.content,
             "lastMessageTimestamp" to message.createdAt,

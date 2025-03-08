@@ -141,7 +141,7 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
     }
 
     var listPeopleShareWithEdit:Share by remember { mutableStateOf(Share(listOf<User>(), listOf<Group>())) }
-    val listFriendsAndGroupEdit:Share by viewModel.friendsAndGroup.collectAsState()
+    var peopleAlreadySharedWith:Share by remember { mutableStateOf(Share(listOf<User>(), listOf<Group>())) }
 
     var dream by remember { mutableStateOf(Dream(
         id = dreamId,
@@ -246,6 +246,10 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
 
     LaunchedEffect(title, content) {
         dream = dream.copy(title = title, content = content)
+    }
+
+    LaunchedEffect(listPeopleShareWithEdit) {
+        dream = dream.copy(sharedWith = listPeopleShareWithEdit)
     }
 
     var analysisText by remember { mutableStateOf("") }
@@ -516,6 +520,7 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
                 url = it.audio["url"] as String
                 analysisText = it.analysis
                 createdAt = it.createdAt
+                peopleAlreadySharedWith = it.sharedWith
         }
 
         val sharedPrefs = context.getSharedPreferences("tags", Context.MODE_PRIVATE)
@@ -707,10 +712,11 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
                     }
                     item {
                         Share(
+                            peopleAlreadySharedWith = peopleAlreadySharedWith,
                             listFriendsAndGroup = listFriendsAndGroup,
-                            onChanges = { listPeopleShareWith = it },
-                            onClear = { listPeopleShareWith = Share(listOf(), listOf()) },
-                            listPeopleShareWith = listPeopleShareWith
+                            onChanges = { listPeopleShareWithEdit = it },
+                            onClear = { listPeopleShareWithEdit = Share(listOf(), listOf()) },
+                            listPeopleShareWith = listPeopleShareWithEdit
                         )
                     }
                 }
@@ -779,6 +785,10 @@ fun TopbarUpdateActivity (navController: NavController, viewModel: DetailsDreamV
                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
+
+            // todo : faire en sorte que lorsqu'on sélectionne un ami cela le coche pas directement
+            // todo: comme si on lui avait déjà partagé le rêve
+            // todo : mais plutot met à jour la liste avant d'update le rêve
             onClick = {
                 Log.d("test1232", dream.toString())
                 savingInProgress.value = true

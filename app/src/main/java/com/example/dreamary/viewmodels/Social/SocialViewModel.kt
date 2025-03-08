@@ -52,6 +52,7 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
     }
 
     fun getProfileData(userId: String) {
+        _isLoading.value = true
         viewModelScope.launch{
             socialRepository.getProfileData(userId).collect { user ->
                 _userData.value = user
@@ -92,6 +93,7 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
         viewModelScope.launch {
             socialRepository.getFriendRequestsForCurrentUser(userId).collect { friendRequests ->
                 _friendRequests.value = friendRequests
+                _isLoading.value = false
             }
         }
     }

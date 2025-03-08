@@ -501,6 +501,10 @@ fun GroupsContent(groups: List<Group>, navController: NavController) {
         }
 
         item {
+            JoinGroupInput()
+        }
+
+        item {
             SectionTitle(title = "Mes Groupes", count = groups.size)
         }
 
@@ -701,6 +705,49 @@ fun CreateGroupButton() {
             )
         }
     }
+}
+
+@Composable
+fun JoinGroupInput() {
+    var input by remember { mutableStateOf("") }
+    var isError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    Row (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            modifier = Modifier
+                .weight(2f),
+            value = input,
+            onValueChange = {
+                input = it
+                isError = false
+                errorMessage = ""
+            },
+            label = { Text("Code du groupe privé") },
+            isError = isError,
+            supportingText = {
+                if (isError) {
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        )
+        Button(
+            onClick = { /* Handle join group click */ },
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .weight(1f),
+        ) {
+            Text(text = "Rejoindre")
+        }
+    }
+
 }
 
 @Composable
