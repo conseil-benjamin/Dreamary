@@ -127,6 +127,7 @@ fun GridBadges(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllBadges(
+    userId: String,
     navController : NavController,
     viewModel: AllBadgesVIewModel = viewModel(
         factory = AllBadgesViewModelFactory (DreamRepository(LocalContext.current))
@@ -135,7 +136,7 @@ fun AllBadges(
     val userBadges by viewModel.userBadges.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.getUserBadges()
+        viewModel.getUserBadges(userId)
     }
 
     LaunchedEffect(userBadges) {

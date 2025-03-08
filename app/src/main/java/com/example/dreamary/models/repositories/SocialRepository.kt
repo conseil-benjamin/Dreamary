@@ -74,6 +74,37 @@ class SocialRepository(private val context: Context) {
         }
     }
 
+    suspend fun updateUnreadMessages(chatId: String, userId: String) {
+        try {
+            val update = hashMapOf<String, Any>(
+                "unreadMessagesUser1" to 0,
+                "unreadMessagesUser2" to 0
+            )
+
+            db.collection("chats")
+                .document(chatId)
+                .get()
+                .await()
+                .toObject(Conversation::class.java)
+                ?.let { conversation ->
+                    if (conversation.userId1 == userId) {
+                        update["unreadMessagesUser1"] = 0
+                    } else {
+                        update["unreadMessagesUser2"] = 0
+                    }
+                }
+
+            db.collection("chats")
+                .document(chatId)
+                .update(update)
+                .addOnSuccessListener {
+                    Log.i("update", "Messages lus")
+                }
+        } catch (e: Exception) {
+            println("Erreur lors de la mise à jour des messages non lus : $e")
+        }
+    }
+
     suspend fun getGroupsForCurrentUser(userId: String): StateFlow<List<Group>> {
         try {
             Log.i("userIdGr", userId)
@@ -419,13 +450,15 @@ class SocialRepository(private val context: Context) {
         }
     }
 
-    fun sendMessage(chatId: String, message: Message) {
+    suspend fun sendMessage(chatId: String, message: Message) {
         // todo: faire en sorte qu'on puisse mettre à jour correctement le nombre de messages
         // todo: non lu pour chaque utilisateur
         val update = hashMapOf<String, Any>(
             "lastMessage" to message.content,
             "lastMessageTimestamp" to message.createdAt,
-            "lastSender" to message.senderId
+            "lastSender" to message.senderId,
+            "unreadMessagesUser1" to 0,
+            "unreadMessagesUser2" to 0
         )
         Log.i("chatIdSendMessage", chatId)
         Log.i("chatIdSendMessage", message.toString())
@@ -436,6 +469,21 @@ class SocialRepository(private val context: Context) {
                 .add(message)
                 .addOnSuccessListener {
                     Log.i("message", "Message envoyé")
+                }
+
+            db.collection("chats")
+                .document(chatId)
+                .get()
+                .await()
+                .toObject(Conversation::class.java)
+                ?.let { conversation ->
+                    if (conversation.userId1 == message.senderId) {
+                        update["unreadMessagesUser1"] = conversation.unreadMessagesUser1
+                        update["unreadMessagesUser2"] = conversation.unreadMessagesUser2 + 1
+                    } else {
+                        update["unreadMessagesUser1"] = conversation.unreadMessagesUser1 + 1
+                        update["unreadMessagesUser2"] = conversation.unreadMessagesUser2
+                    }
                 }
 
             db.collection("chats")

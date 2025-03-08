@@ -516,6 +516,7 @@ fun ChatScreenFriendActivity(
         Log.i("chatId232", chatId)
         viewModel.getMessagesForCurrentUser(chatId)
         viewModel.getFriendInformation(userId)
+        viewModel.updateUnreadMessages(chatId, userId)
     }
 
     LaunchedEffect(messages) {

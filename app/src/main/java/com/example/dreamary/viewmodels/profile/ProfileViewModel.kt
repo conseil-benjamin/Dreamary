@@ -28,10 +28,10 @@ class ProfileViewModel(private val repository: AuthRepository,private val dreamR
         }
     }
 
-    fun getUserBadges() {
+    fun getUserBadges(userId: String) {
         viewModelScope.launch{
             Log.d("ProfileViewModel", "Lancement")
-            dreamRepository.getUserBadgesViewModel().collect { user ->
+            dreamRepository.getUserBadgesViewModel(userId).collect { user ->
                 _userBadges.value = user
                 Log.d("ProfileViewModel", "User badges: $user")
             }

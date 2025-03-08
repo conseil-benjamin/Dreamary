@@ -190,6 +190,7 @@ fun NavigationManager() {
 //        }
         composable(NavRoutes.AllBadges.route){
             AllBadges(
+                userId = it.arguments?.getString("userId") ?: "",
                 navController = navController
             )
         }

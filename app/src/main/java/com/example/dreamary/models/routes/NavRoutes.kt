@@ -23,7 +23,9 @@ sealed class NavRoutes(val route: String) {
     }
     data object SplashScreen: NavRoutes("splashScreen")
     data object SucessAddDream: NavRoutes("sucessAddDream")
-    data object AllBadges : NavRoutes("allBadges")
+    data object AllBadges : NavRoutes("allBadges/{userId}") {
+        fun createRoute(userId: String) = "allBadges/$userId"
+    }
     data object AllDreamsCalendar : NavRoutes("allDreamsCalendar")
     data object ChatScreenFriends : NavRoutes("chatScreenFriend/{userId}/{userUrlProfilePicture}/{chatId}") {
         fun createRoute(userId: String, userUrlProfilePicture: String, chatId: String): String {

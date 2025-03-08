@@ -48,4 +48,10 @@ class ChatScreenFriendViewModel(private val socialRepository: SocialRepository) 
             }
         }
     }
+
+    fun updateUnreadMessages(chatId: String, userId: String) {
+        viewModelScope.launch {
+            socialRepository.updateUnreadMessages(chatId, userId)
+        }
+    }
 }

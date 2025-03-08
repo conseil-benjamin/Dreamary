@@ -12,9 +12,9 @@ class AllBadgesVIewModel(private val dreamRepository: DreamRepository) : ViewMod
     private var _userBadges = MutableStateFlow<List<Badge>>(emptyList())
     var userBadges = _userBadges.asStateFlow()
 
-    fun getUserBadges() {
+    fun getUserBadges(userId: String) {
         viewModelScope.launch{
-            dreamRepository.getUserBadgesViewModel().collect { user ->
+            dreamRepository.getUserBadgesViewModel(userId).collect { user ->
                 _userBadges.value = user
             }
         }

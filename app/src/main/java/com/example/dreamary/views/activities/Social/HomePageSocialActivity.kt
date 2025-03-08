@@ -905,22 +905,15 @@ fun ConversationCard(
 
                 // Message preview with unread indicator
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     // Add unread indicator if needed
                     val hasUnread = (userId == conversation.userId1 && conversation.unreadMessagesUser1 > 0) ||
                             (userId == conversation.userId2 && conversation.unreadMessagesUser2 > 0)
 
-                    if (hasUnread) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                                .padding(end = 8.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
+                    Log.i("unread", hasUnread.toString())
 
                     Text(
                         text = if (conversation.lastMessage.isNotEmpty())
@@ -934,6 +927,23 @@ fun ConversationCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+
+                    if (hasUnread) {
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .padding(end = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (userId == conversation.userId1) conversation.unreadMessagesUser1.toString() else conversation.unreadMessagesUser2.toString(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
                 }
             }
         }

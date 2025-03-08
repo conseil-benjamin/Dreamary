@@ -46,12 +46,9 @@ class DreamRepository(private val context: Context) {
     private val _dream = MutableStateFlow<Dream?>(null)
     var dream = _dream.asStateFlow()
 
-    suspend fun getUserBadgesViewModel(): StateFlow<List<Badge>> {
+    suspend fun getUserBadgesViewModel(userId: String): StateFlow<List<Badge>> {
         try {
             Log.i("getUserBadges", "est rentré dans getUserBadges")
-            val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
-            val userId = userFirebase.getString("uid", "").toString()
-            Log.i("userId", userId.toString())
 
             val snapshot = db.collection("users")
                 .document(userId)
@@ -100,10 +97,6 @@ class DreamRepository(private val context: Context) {
         }
         return userBadges
     }
-
-    /**
-     * todo : essayer avec un utilisateur qui n'a pas de collections badge encore
-     */
 
     private fun getUserBadges(): Flow<List<Badge>> = flow {
         try {
@@ -186,16 +179,18 @@ class DreamRepository(private val context: Context) {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun updateProgressionBadges(
+    suspend fun updateProgressionBadges(
         allBadges: List<Badge>,
         badgesUser: List<Badge>,
         user: User,
         latestDreamTimestamp: Long
-    ): Flow<List<Badge>> = flow {
+    ): User {
         var updatedBadges = badgesUser.toMutableList()
         val newBadges = mutableListOf<Badge>()
         val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
+        var userUpdated = user
 
+        Log.i("userUpdated1", userUpdated.toString())
         Log.d("updateProgressionBadges", "Starting to process badges for user: ${user.uid}")
         Log.i("cacaAllBadges", "All badges: $allBadges")
 
@@ -268,12 +263,9 @@ class DreamRepository(private val context: Context) {
             val updatedProgression = (existingBadge?.progression ?: 0) + newProgression
             val unlocked = updatedProgression >= goal
 
-            // todo : marche pas n'ajoute pas les xp au profil de l'utilisateur
-
-            if (unlocked && (existingBadge?.unlocked ?: false) == false) {
-                withContext(Dispatchers.IO) {
-                    incrementUserXP(user, badge.xp)
-                }
+            if (unlocked && existingBadge?.unlocked != true) {
+                Log.d("salut:::::::", "Badge ${badge.name} unlocked")
+                userUpdated = incrementUserXP(user, badge.xp)
             }
 
             Log.d("updateProgressionBadges", "Updated progression for ${badge.name}: $updatedProgression, Unlocked: $unlocked")
@@ -343,60 +335,59 @@ class DreamRepository(private val context: Context) {
         }
 
         Log.d("updateProgressionBadges", "Finished updating badges for user: ${user.uid}")
-        emit(updatedBadges)
+        return userUpdated
     }
 
     private suspend fun incrementUserXP(user: User, badgeXp: Long): User {
-        val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
-        val savedUser = sharedPreferences.getString("userDatabase", "")
+        val userRef = db.collection("users").document(user.uid)
 
-        val gson = Gson()
-        var userObject = gson.fromJson(savedUser, User::class.java)
+        // Récupérer l'utilisateur depuis Firestore
+        val snapshot = userRef.get().await()
+        val userObject = snapshot.toObject(User::class.java) ?: return user
+
+        // Extraire la progression actuelle
         var level = (userObject.progression["level"] as? Number)?.toInt() ?: 0
         var xp = (userObject.progression["xp"] as? Number)?.toInt() ?: 0
-        var xpNeeded = (userObject.progression["xpNeeded"] as? Number)?.toInt() ?: 0
+        var xpNeeded = (userObject.progression["xpNeeded"] as? Number)?.toInt() ?: 1000
         var rank = userObject.progression["rank"] as? String ?: ""
 
-        Log.i("xpBadge", badgeXp.toString())
+        // Ajouter l'XP du badge
         xp += badgeXp.toInt()
+        Log.i("xpBadge", "Ajout de $badgeXp XP - Nouveau total: $xp / $xpNeeded")
 
-        if (xp >= xpNeeded) {
-            level += 1
+        // Monter de niveau si nécessaire
+        while (xp >= xpNeeded) {
+            level++
             xp -= xpNeeded
             xpNeeded += 200
         }
 
-        rank = when (level) {
-            1 -> "Apprenti rêveur"
-            10 -> "Rêveur confirmé"
-            20 -> "Maître des rêves"
-            30 -> "Grand Sage des Songes"
-            50 -> "Légende Onirique"
-            else -> rank
+        // Définir le rang selon le niveau
+        rank = when {
+            level >= 50 -> "Légende Onirique"
+            level >= 30 -> "Grand Sage des Songes"
+            level >= 20 -> "Maître des rêves"
+            level >= 10 -> "Rêveur confirmé"
+            else -> "Apprenti rêveur"
         }
 
-        userObject = userObject.copy(
+        // Mettre à jour l'utilisateur avec les nouvelles valeurs
+        val xpGained = user.progression["xpGained"] as? Number ?: (0 + badgeXp.toInt())
+        val updatedUser = user.copy(
             progression = mapOf(
                 "level" to level,
                 "xp" to xp,
                 "rank" to rank,
-                "xpNeeded" to xpNeeded
+                "xpNeeded" to xpNeeded,
+                "xpGained" to xpGained
             )
         )
 
-        val editor = sharedPreferences.edit()
-        val json = gson.toJson(userObject)
-        editor.putString("userDatabase", json)
-        editor.apply()
+        Log.i("updatedUserIncrement", "User updated: $updatedUser")
 
-        val userMap = userToMap(userObject)
-        db.collection("users")
-            .document(user.uid)
-            .update(userMap)
-            .await()
-
-        return userObject
+        return updatedUser
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateUser(dream: Dream, type: String): Flow<Map<String, Any>> = flow {
@@ -411,6 +402,7 @@ class DreamRepository(private val context: Context) {
         var userObject = gson.fromJson(savedUser, User::class.java)
         var level = (userObject.progression["level"] as? Number)?.toInt() ?: 0
         var xp = (userObject.progression["xp"] as? Number)?.toInt() ?: 0
+        Log.i("xpActual", xp.toString())
         var xpNeeded = (userObject.progression["xpNeeded"] as? Number)?.toInt() ?: 0
         var rank = userObject.progression["rank"] as String
         val actualStreak = userObject.dreamStats["currentStreak"] as Int
@@ -472,7 +464,21 @@ class DreamRepository(private val context: Context) {
             longestStreak = currentStreak
         }
 
-        Log.i("userObject", userObject.toString())
+        Log.i("userObjectBeforeUpdate", userObject.toString())
+        Log.d("DEBUG", "Metadata: ${userObject.metadata}")
+
+        // permet de convertir le createdAt en Timestamp si ce n'est pas déjà le cas
+        // pour éviter les erreurs de type lors de la mise à jour
+        val createdAtTimestamp = when (val createdAtValue = userObject.metadata["createdAt"]) {
+            is Timestamp -> createdAtValue // Déjà un Timestamp, OK
+            is Map<*, *> -> { // Convertir depuis un objet Map
+                val seconds = (createdAtValue["seconds"] as? Number)?.toLong() ?: 0L
+                val nanoseconds = (createdAtValue["nanoseconds"] as? Number)?.toInt() ?: 0
+                Timestamp(seconds, nanoseconds)
+            }
+            else -> Timestamp.now()
+        }
+
         userObject = userObject.copy(
             uid = userFirebase.getString("uid", "").toString(),
             email = userObject.email,
@@ -485,6 +491,7 @@ class DreamRepository(private val context: Context) {
                 "lastDreamDate" to Timestamp.now(),
                 "isPremium" to (userObject.metadata["isPremium"] as? Boolean ?: false),
                 "lastLogin" to (userObject.metadata["lastLogin"] as? Timestamp ?: Timestamp.now()),
+                "createdAt" to createdAtTimestamp
             ),
             preferences = mapOf(
                 "notifications" to (userObject.preferences["notifications"] as? Boolean ?: true),
@@ -514,37 +521,26 @@ class DreamRepository(private val context: Context) {
 
         Log.i("userObject", userObject.toString())
 
-        // todo : remettre à jour les sharedpreferences avant de rediriger vers la page de succès
-        // todo : comme ca on récupère les données à jour
-
-        // todo : ajouter de l'xp à l'utilisateur pour chaque nouveau badge gagné
-
         val allBadges: List<Badge> = getAllBadges().toList().flatten()
         val badgesUser: List<Badge> = getUserBadges().toList().flatten()
         Log.i("badges", allBadges.toString())
         Log.i("badgesUser", badgesUser.toString())
 
-        val updatedProgressionBadges = updateProgressionBadges(allBadges, badgesUser, userObject, dream.createdAt.seconds).toList().flatten()
-        Log.i("updatedBadgesProgression", updatedProgressionBadges.toString())
-
-        // todo : mettre à jour les badges de l'utilisateur si il en a débloquer de nouveau
-
-        // todo : je parcours tout les badges et je vérifie le critère d'obtention s'il est validé je
-        // todo : le garde de côté, ensuite une fois que j'ai la liste des badges qu'il possède je
-        // todo : vérifie si l'utilisateur a déjà ou non ces badges et si non je les ajoute
-        // todo : voir si on peut pas par exemple proposer plusieurs niveau pour le même badge
-        // todo : genre un badge rare 7 jours d'affilé et un épique 30 jours d'affilé et donc remplacer le 7 jours par le 30 jours (à voir plus tard)
+        Log.i("userBeforeBadgeIncrement", userObject.toString())
+        val userUpdatedAfterBadgeIncrementXp = updateProgressionBadges(allBadges, badgesUser, userObject, dream.createdAt.seconds)
+        Log.i("updatedBadgesProgression", userUpdatedAfterBadgeIncrementXp.toString())
 
         val editor = sharedPreferences.edit()
-        val json = gson.toJson(userObject)
+        val json = gson.toJson(userUpdatedAfterBadgeIncrementXp)
         editor.putString("userDatabase", json)
         editor.apply()
         Log.i("userUpdated", "Utilisateur mis à jour : $userObject")
-        val userMap = userToMap(userObject)
+        val userMap = userToMap(userUpdatedAfterBadgeIncrementXp as User)
         emit(userMap)
     }
 
     fun userToMap(user: User): Map<String, Any> {
+        Log.i("userToMap", user.toString())
         return mapOf(
             "uid" to user.uid,
             "dreamStats" to user.dreamStats,
@@ -553,9 +549,6 @@ class DreamRepository(private val context: Context) {
         )
     }
 
-    // todo : faire comme pour addDream donc pouvoir partager le rêve juste avant faire un check pour vérifier que l'user est pas déjà dedans
-    // todo : on ne doit pas pouvoir reset les rêves partagés ca serait un bordel sinon
-    // todo : mais plutot que le mec puisse supprimer son message directement ça serait mieux
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateDream(
         dream: Dream,
@@ -723,8 +716,6 @@ class DreamRepository(private val context: Context) {
 
                 Log.d("DreamRepository", "Dream shared with user ${user.uid}")
 
-                // todo: mettre à jour le dernier message et le timestamp du dernier message
-
                 db.collection("chats")
                     .document(querySnapshot.documents.first().id)
                     .update(
@@ -732,8 +723,8 @@ class DreamRepository(private val context: Context) {
                             "lastSender" to dream.userId,
                             "lastMessageTimestamp" to Timestamp.now(),
                             "lastMessage" to "Nouveau rêve partagé !",
-                            "unreadMessageUser1" to 0,
-                            "unreadMessageUser2" to 1,
+                            "unreadMessagesUser1" to 0,
+                            "unreadMessagesUser2" to 1,
                         )
                     )
                     .await()
@@ -835,9 +826,6 @@ class DreamRepository(private val context: Context) {
                     onFailure(e)
                 }
 
-            // todo : récupérer la conversation qu'on à déjà avec l'utilisateur et ajouter le message dedans
-            // todo : si la conversation n'existe pas la créer
-            // todo : pour faire ceci j'ai besoin de récupérer les userId des deux personnes
             Log.d("DreamRepository", dream.sharedWith.users.toString())
             shareDreamWithUsers(dream, "add")
 

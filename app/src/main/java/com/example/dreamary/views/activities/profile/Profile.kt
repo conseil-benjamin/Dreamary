@@ -62,7 +62,7 @@ fun ProfileActivity(
 
     LaunchedEffect(Unit) {
         viewModel.getProfileData(userId)
-        viewModel.getUserBadges()
+        viewModel.getUserBadges(userId)
         viewModel.verifyIfWeAreFriends(currentUser?.uid ?: "", userId)
     }
 
@@ -583,7 +583,11 @@ private fun BadgesSection(
                         text = "Badges",
                         style = MaterialTheme.typography.titleMedium,
                     )
-                    TextButton(onClick = { navController.navigate(NavRoutes.AllBadges.route) }) {
+                    TextButton(onClick = {
+                        if (user != null) {
+                            navController.navigate(NavRoutes.AllBadges.createRoute(user.uid))
+                        }
+                    }) {
                         Text("Voir tout")
                     }
                 }

@@ -67,17 +67,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import com.example.dreamary.models.entities.Tag
@@ -91,6 +100,7 @@ import com.example.dreamary.models.entities.Share
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.models.routes.NavRoutes
+import com.example.dreamary.views.components.Divider
 import com.example.dreamary.views.components.DreamTextFieldCustom
 import com.example.dreamary.views.components.Loading
 
@@ -150,10 +160,6 @@ private fun ConfirmDialog(
 }
 
 
-
-// todo : faire en sorte de récupérer la liste à jour des personnes et groupes avec qui partager
-// todo : mettre en couleur les personnes sélectionnées
-// todo : revoir la logique de sélection et déselection des personnes et groupes
 @Composable
 private fun ShareDreamWithPeople(
     onChanges: (Share) -> Unit,
@@ -167,38 +173,80 @@ private fun ShareDreamWithPeople(
 ) {
     Dialog(
         onDismissRequest = onDismiss,
-        ) {
+    ) {
         Surface(
-            shape = MaterialTheme.shapes.medium,
+            shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp,
             modifier = Modifier
                 .padding(16.dp)
+                .fillMaxWidth()
+                .fillMaxHeight(0.8f)  // Limite la hauteur à 80% de l'écran
         ) {
-            LazyColumn (
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-            ){
-                item {
-                    Text(text)
-                    Column (
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        usersAndGroups.users.forEach { user ->
-                            Card(
-                                modifier = Modifier.padding(8.dp),
-                                shape = MaterialTheme.shapes.medium,
-//                                elevation = 4.dp
-                            ) {
-                                Column(
-                                    modifier = Modifier.clickable {
-                                        if (!peopleAlreadySharedWith.users.contains(user)){
+                    .padding(20.dp)
+            ) {
+                // Header with title
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                Divider(
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                // Users and Groups List
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    // Section header for users
+                    if (usersAndGroups.users.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Personnes",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                    }
+
+                    // Users list
+                    items(usersAndGroups.users.size) { index ->
+                        val user = usersAndGroups.users[index]
+                        val isAlreadyShared = peopleAlreadySharedWith.users.contains(user)
+                        val isSelected = listPeopleShareWith.users.contains(user)
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected || isAlreadyShared)
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(enabled = !isAlreadyShared) {
+                                        if (!isAlreadyShared) {
                                             onChanges(
                                                 Share(
-                                                    if (listPeopleShareWith.users.contains(user)) {
+                                                    if (isSelected) {
                                                         listPeopleShareWith.users - user
                                                     } else {
                                                         listPeopleShareWith.users + user
@@ -208,53 +256,105 @@ private fun ShareDreamWithPeople(
                                             )
                                         }
                                     }
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Log.i("ShareDreamWithPeople", "user: $user")
-                                    Log.i("ShareDreamWithPeople", "peopleAlreadySharedWith: $peopleAlreadySharedWith")
-                                    if (peopleAlreadySharedWith.users.contains(user)){
-                                        Row (
-                                            verticalAlignment = Alignment.CenterVertically,
+                                    // User avatar or icon
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                    ) {
+                                        AsyncImage(
+                                            model = user.profilePictureUrl,
+                                            contentDescription = "Avatar de ${user.username}",
                                             modifier = Modifier
-                                                .padding(8.dp)
-                                                .fillMaxWidth()
-                                        ){
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.check_circle),
-                                                contentDescription = null,
-                                                modifier = Modifier
-                                                    .size(24.dp)
-                                            )
-                                            Text(
-                                                text = user.username,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                    else if (user.username != null) {
-                                        Text(
-                                            text = user.username,
-                                            color = if (listPeopleShareWith.users.contains(user)) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                MaterialTheme.colorScheme.onSurface
-                                            }
+                                                .size(40.dp)
+                                                .aspectRatio(1f),
+                                            contentScale = ContentScale.Crop,
                                         )
                                     }
+
+                                    // Username
+                                    Text(
+                                        text = user.username ?: "",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (isSelected || isAlreadyShared)
+                                            MaterialTheme.colorScheme.primary
+                                        else
+                                            MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                // Selection indicator
+                                if (isAlreadyShared) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.check_circle),
+                                        contentDescription = "Déjà partagé",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                } else if (isSelected) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.check_circle),
+                                        contentDescription = "Sélectionné",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.radio_button),
+                                        contentDescription = "Non sélectionné",
+                                        tint = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.size(24.dp)
+                                    )
                                 }
                             }
                         }
-                        usersAndGroups.groups.forEach { group ->
-                            Card(
-                                modifier = Modifier.padding(8.dp),
-                                shape = MaterialTheme.shapes.medium,
-//                                elevation = 4.dp
-                            ) {
-                                Column(
-                                    modifier = Modifier.clickable {
+                    }
+
+                    // Section header for groups (if any)
+                    if (usersAndGroups.groups.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Groupes",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                            )
+                        }
+                    }
+
+                    // Groups list
+                    items(usersAndGroups.groups.size) { index ->
+                        val group = usersAndGroups.groups[index]
+                        val isSelected = listPeopleShareWith.groups.contains(group)
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected)
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
                                         onChanges(
                                             Share(
                                                 listPeopleShareWith.users,
-                                                if (listPeopleShareWith.groups.contains(group)) {
+                                                if (isSelected) {
                                                     listPeopleShareWith.groups - group
                                                 } else {
                                                     listPeopleShareWith.groups + group
@@ -262,32 +362,85 @@ private fun ShareDreamWithPeople(
                                             )
                                         )
                                     }
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    if (group.name != null) {
-                                        Text(
-                                            text = group.name,
-                                            color = if (listPeopleShareWith.groups.contains(group)) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                MaterialTheme.colorScheme.onSurface
-                                            }
+                                    // Group icon
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                    ) {
+                                        AsyncImage(
+                                            model = group.image_url,
+                                            contentDescription = "Avatar du groupe ${group.name}",
+                                            modifier = Modifier
+                                                .size(40.dp),
                                         )
                                     }
+
+                                    // Group name
+                                    Text(
+                                        text = group.name ?: "",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (isSelected)
+                                            MaterialTheme.colorScheme.primary
+                                        else
+                                            MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                // Selection indicator
+                                if (isSelected) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.check_circle),
+                                        contentDescription = "Sélectionné",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.radio_button),
+                                        contentDescription = "Non sélectionné",
+                                        tint = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.size(24.dp)
+                                    )
                                 }
                             }
                         }
                     }
-                    Row (
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                }
+
+                // Action buttons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     ) {
-                        Button(onClick = onDismiss) {
-                            Text("Annuler")
-                        }
-                        Button(onClick = onConfirm) {
-                            Text("Confirmer")
-                        }
+                        Text("Annuler")
+                    }
+
+                    Button(
+                        onClick = onConfirm,
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text("Confirmer")
                     }
                 }
             }
@@ -300,7 +453,11 @@ private fun ShareDreamWithPeople(
 fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel = viewModel(
     factory = AddDreamViewModelFactory (DreamRepository(LocalContext.current), SocialRepository(
         LocalContext.current))
-)) {
+),
+  viewModelAudio: AudioRecorderViewModel = viewModel(
+      factory = AudioRecorderViewModelFactory(LocalContext.current)
+  )
+) {
     var dreamTypeChoose by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("")}
     var title by remember { mutableStateOf("")}
@@ -615,13 +772,10 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
+        hasAudioPermission.value = isGranted
         if (isGranted) {
-            //
-        } else {
-            // Permission refusée - afficher un message
-            coroutineScope.launch {
-                SnackbarManager.showMessage("L'enregistrement audio nécessite la permission du microphone", R.drawable.invite_people)
-            }
+            viewModelAudio.startRecording()
+            showOverlay = true
         }
     }
 
@@ -668,6 +822,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                 Manifest.permission.RECORD_AUDIO
             ) == true -> {
                 showPermissionDialog = true
+                viewModelAudio.startRecording()
             }
 
             else -> {
@@ -1368,12 +1523,13 @@ fun DescribeDream(
                 .size(24.dp)
                 .clickable {
                     Log.d("Audio", hasAudioPermission.toString())
-                    if (hasAudioPermission.value && audioFilePath == null) {
-                        viewModel.startRecording()
-                        onChangeShowOverlay(true)
-                    } else if (hasAudioPermission.value && audioFilePath != null) {
-                        // todo : demander d'écraser le vocal existant
-                        showConfirmDialogAlready = true
+                    if (hasAudioPermission.value) {
+                        if (audioFilePath == null) {
+                            viewModel.startRecording()
+                            onChangeShowOverlay(true)
+                        } else {
+                            showConfirmDialogAlready = true
+                        }
                     } else {
                         checkAudioPermission()
                     }
@@ -1748,8 +1904,8 @@ fun AutoAnalyse (
         label = "Écris ton ressenti et ton analyse ici...",
         maxCharacters = 500,
         maxLine = 5,
-        height = 100,
-        maxHeight = 200
+        height = 150,
+        maxHeight = 300
     )
 }
 
