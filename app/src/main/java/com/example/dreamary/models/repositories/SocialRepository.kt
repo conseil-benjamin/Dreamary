@@ -13,6 +13,7 @@ import com.example.dreamary.models.entities.Message
 import com.example.dreamary.models.entities.Share
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.utils.SnackbarManager
+import com.example.dreamary.utils.SnackbarType
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
@@ -291,7 +292,7 @@ class SocialRepository(private val context: Context) {
             val friends = getFriendsForCurrentUser(userId)
             _listFriends.value = friends.value
             Log.i("delete", friends.toString())
-            SnackbarManager.showMessage("Ami supprimé avec succès !", R.drawable.success)
+            SnackbarManager.showMessage("Ami supprimé avec succès !", SnackbarType.SUCCESS)
             return listFriends
         } catch (e: Exception) {
             println("Erreur lors de la suppression de l'ami : $e")

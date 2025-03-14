@@ -15,6 +15,7 @@ import com.example.dreamary.models.repositories.DreamRepository
 import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.models.states.DreamResponse
 import com.example.dreamary.utils.SnackbarManager
+import com.example.dreamary.utils.SnackbarType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,7 +45,7 @@ class DetailsDreamViewModel(private val repository: DreamRepository, private val
         if (dream.title.isEmpty()  || dream.emotions.isEmpty() || dream.dreamType.isEmpty() || (dream.content.isEmpty() && dream.audio["path"] == "")) {
             _dreamState.value = DreamResponse.Error("Veuillez renseigner au minimum un titre, un contenu, une émotion et un type de rêve")
             coroutineScope.launch {
-                SnackbarManager.showMessage("Veuillez renseigner au minimum un titre, un contenu et une émotion", R.drawable.error)
+                SnackbarManager.showMessage("Veuillez renseigner au minimum un titre, un contenu et une émotion", SnackbarType.ERROR)
             }
             onFailure()
             return
@@ -57,7 +58,8 @@ class DetailsDreamViewModel(private val repository: DreamRepository, private val
                 },
                 onFailure = { e ->
                     coroutineScope.launch {
-                        SnackbarManager.showMessage("Erreur lors de la modification du rêve", R.drawable.error)
+                        SnackbarManager.showMessage("Erreur lors de la modification du rêve",
+                            SnackbarType.ERROR)
                     }
                     onSaved()
                 },
@@ -76,7 +78,7 @@ class DetailsDreamViewModel(private val repository: DreamRepository, private val
         if (tag.name.isEmpty()) {
             _dreamState.value = DreamResponse.Error("Veuillez remplir le champ")
             coroutineScope.launch {
-                SnackbarManager.showMessage("Veuillez remplir le champ", R.drawable.error)
+                SnackbarManager.showMessage("Veuillez remplir le champ", SnackbarType.ERROR)
             }
             return
         }
@@ -86,12 +88,12 @@ class DetailsDreamViewModel(private val repository: DreamRepository, private val
                 tag,
                 onSuccess = {
                     coroutineScope.launch {
-                        SnackbarManager.showMessage("Tag ajouté avec succès", R.drawable.success)
+                        SnackbarManager.showMessage("Tag ajouté avec succès", SnackbarType.SUCCESS)
                     }
                 },
                 onFailure = { e ->
                     coroutineScope.launch {
-                        SnackbarManager.showMessage("Erreur lors de l'ajout du tag", R.drawable.error)
+                        SnackbarManager.showMessage("Erreur lors de l'ajout du tag", SnackbarType.ERROR)
                     }
                 }
             )

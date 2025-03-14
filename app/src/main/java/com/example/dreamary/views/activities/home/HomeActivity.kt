@@ -89,13 +89,11 @@ fun HomeActivity(navController: NavController, viewModel: HomeViewModel = viewMo
     val userState by viewModel.userData.collectAsState()
     val context = LocalContext.current
 
-    // Modification du LaunchedEffect
     LaunchedEffect(Unit) {
         SnackbarManager.snackbarMessages.collect { snackbarMessage ->
             snackbarHostState.showSnackbar(
                 message = snackbarMessage.message,
-                actionLabel = snackbarMessage.actionLabel,
-                withDismissAction = true,
+                actionLabel = snackbarMessage.type.name,
                 duration = SnackbarDuration.Short
             )
         }

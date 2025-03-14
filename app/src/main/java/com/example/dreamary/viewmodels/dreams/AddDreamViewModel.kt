@@ -22,6 +22,7 @@ import com.example.dreamary.models.entities.Tag
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.models.states.DreamResponse
+import com.example.dreamary.utils.SnackbarType
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,7 +52,7 @@ class AddDreamViewModel(private val repository: DreamRepository, private val soc
             coroutineScope.launch {
                 SnackbarManager.showMessage(
                     "Veuillez renseigner au minimum un titre, un contenu et une émotion",
-                    R.drawable.error
+                    SnackbarType.ERROR
                 )
             }
             onFailure()
@@ -67,7 +68,7 @@ class AddDreamViewModel(private val repository: DreamRepository, private val soc
                     coroutineScope.launch {
                         SnackbarManager.showMessage(
                             "Erreur lors de l'ajout du rêve",
-                            R.drawable.error
+                            SnackbarType.ERROR
                         )
                     }
                     onSaved()
@@ -89,7 +90,7 @@ class AddDreamViewModel(private val repository: DreamRepository, private val soc
         if (tag.name.isEmpty()) {
             _dreamState.value = DreamResponse.Error("Veuillez remplir le champ")
             coroutineScope.launch {
-                SnackbarManager.showMessage("Veuillez remplir le champ", R.drawable.error)
+                SnackbarManager.showMessage("Veuillez remplir le champ", SnackbarType.ERROR)
             }
             return
         }
@@ -99,14 +100,14 @@ class AddDreamViewModel(private val repository: DreamRepository, private val soc
                 tag,
                 onSuccess = {
                     coroutineScope.launch {
-                        SnackbarManager.showMessage("Tag ajouté avec succès", R.drawable.success)
+                        SnackbarManager.showMessage("Tag ajouté avec succès", SnackbarType.ERROR)
                     }
                 },
                 onFailure = { e ->
                     coroutineScope.launch {
                         SnackbarManager.showMessage(
                             "Erreur lors de l'ajout du tag",
-                            R.drawable.error
+                            SnackbarType.ERROR
                         )
                     }
                 }

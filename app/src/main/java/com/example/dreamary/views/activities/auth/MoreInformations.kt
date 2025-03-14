@@ -53,6 +53,7 @@ import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.ui.theme.DreamaryTheme
 import com.example.dreamary.utils.SnackbarManager
+import com.example.dreamary.utils.SnackbarType
 import com.example.dreamary.viewmodels.auth.MoreInformationViewModel
 import com.example.dreamary.viewmodels.auth.MoreInformationViewModelFactory
 import com.example.dreamary.views.components.DreamTextFieldCustom
@@ -136,17 +137,17 @@ fun createUser(email: String, fullName: String, username: String, bio: String, p
 
     if (bio.length > 100  || bio.isEmpty()) {
         couroutineScope.launch {
-            SnackbarManager.showMessage(context.getString(R.string.MoreInformations_error_bio), R.drawable.error)
+            SnackbarManager.showMessage(context.getString(R.string.MoreInformations_error_bio), SnackbarType.ERROR)
         }
         return
     } else if (username.length > 20 || username.isEmpty()) {
         couroutineScope.launch {
-            SnackbarManager.showMessage(context.getString(R.string.MoreInformations_error_username), R.drawable.error)
+            SnackbarManager.showMessage(context.getString(R.string.MoreInformations_error_username), SnackbarType.ERROR)
         }
         return
     } else if (profilePictureUri == null || profilePictureUri.isEmpty()) {
         couroutineScope.launch {
-            SnackbarManager.showMessage(context.getString(R.string.MoreInformations_error_profile_picture), R.drawable.error)
+            SnackbarManager.showMessage(context.getString(R.string.MoreInformations_error_profile_picture), SnackbarType.ERROR)
         }
         return
     }
@@ -154,7 +155,7 @@ fun createUser(email: String, fullName: String, username: String, bio: String, p
     isUsernameAlreadyTaken(username, context) { isTaken ->
         if (isTaken) {
             couroutineScope.launch {
-                SnackbarManager.showMessage(context.getString(R.string.More_Informations_username_already_taken), R.drawable.error)
+                SnackbarManager.showMessage(context.getString(R.string.More_Informations_username_already_taken), SnackbarType.ERROR)
             }
         } else {
             db.collection("users").document(user.uid).set(user)
@@ -209,7 +210,7 @@ fun createUser(email: String, fullName: String, username: String, bio: String, p
                     editor2.putBoolean("isLoggedIn", true)
                     editor2.apply()
                     couroutineScope.launch {
-                        SnackbarManager.showMessage(context.getString(R.string.Create_user_successfull), R.drawable.success)
+                        SnackbarManager.showMessage(context.getString(R.string.Create_user_successfull), SnackbarType.SUCCESS)
                     }
                     navController.navigate(NavRoutes.Home.route) {
                         popUpTo(NavRoutes.UserMoreInformation.route) {
@@ -219,7 +220,7 @@ fun createUser(email: String, fullName: String, username: String, bio: String, p
                 }
                 .addOnFailureListener {
                     couroutineScope.launch {
-                        SnackbarManager.showMessage(context.getString(R.string.Register_error_message), R.drawable.error)
+                        SnackbarManager.showMessage(context.getString(R.string.Register_error_message), SnackbarType.ERROR)
                     }
                 }
         }

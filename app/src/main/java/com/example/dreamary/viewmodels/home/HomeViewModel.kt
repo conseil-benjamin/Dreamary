@@ -12,6 +12,7 @@ import com.example.dreamary.R
 import com.example.dreamary.models.entities.Dream
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.AuthRepository
+import com.example.dreamary.utils.SnackbarType
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,9 +30,10 @@ class HomeViewModel(private val dreamRepository: DreamRepository, private val au
     fun getTwoDreams(userId: String, coroutineScope: CoroutineScope) {
         coroutineScope.launch {
             _isLoading.value = true
-            dreamRepository.getDreamsForCurrentUser(userId, onFailure = { e ->
+            dreamRepository.getLastTwoDreamsForUser(userId, onFailure = { e ->
                 launch {
-                    SnackbarManager.showMessage("Erreur lors de la récupération des rêves : $e", R.drawable.error)
+                    SnackbarManager.showMessage("Erreur lors de la récupération des rêves : $e",
+                        SnackbarType.ERROR)
                 }
             }).collect { dreams ->
                 _dreams.value = dreams
@@ -63,8 +65,9 @@ class HomeViewModel(private val dreamRepository: DreamRepository, private val au
                 },
                 onFailure = {
                     coroutineScope.launch {
-                        SnackbarManager.showMessage("Erreur", R.drawable.success)
-                    }                }
+                        SnackbarManager.showMessage("Erreur", SnackbarType.ERROR)
+                    }
+                }
             ).collect { user ->
                 _userData.value = user
             }

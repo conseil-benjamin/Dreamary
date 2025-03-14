@@ -840,8 +840,10 @@ fun ConversationCard(
     }
 
     val otherUser = if (userId == conversation.user1?.uid) conversation.user2 else conversation.user1
-    val otherUserPicture = if (userId == conversation.user1?.uid) conversation.user2.profilePictureUrl else conversation.user1?.profilePictureUrl
-
+    val otherUserPicture = if (otherUser?.profilePictureUrl != null) otherUser.profilePictureUrl else ""
+    Log.i("otherUser", otherUser.toString())
+    Log.i("otherUserPicture", otherUserPicture.toString())
+    Log.i("userId50", userId)
     Card(
         elevation = CardDefaults.cardElevation(2.dp),
         shape = RoundedCornerShape(16.dp),
@@ -933,7 +935,7 @@ fun ConversationCard(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
-                                .padding(end = 8.dp),
+                                .padding(5.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(

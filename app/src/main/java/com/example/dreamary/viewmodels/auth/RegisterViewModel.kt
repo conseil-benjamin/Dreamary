@@ -9,6 +9,7 @@ import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.repositories.AuthResponse
 import com.example.dreamary.models.states.AuthState
 import com.example.dreamary.utils.SnackbarManager
+import com.example.dreamary.utils.SnackbarType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,7 +62,8 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
     ): Flow<Any> {
         viewModelScope.launch {
             if (checkValidForm(email, password, confirmPassword, isRulesAccepted) != true) {
-                SnackbarManager.showMessage(context.getString(R.string.Register_error_message), R.drawable.error)
+                SnackbarManager.showMessage(context.getString(R.string.Register_error_message),
+                    SnackbarType.ERROR)
                 return@launch
             }
 
@@ -70,12 +72,12 @@ class RegisterViewModel (private val repository: AuthRepository) : ViewModel()  
                     _authState.value = when(response) {
                         is AuthResponse.Success -> {
                             // Envoyer le message de succès
-                            SnackbarManager.showMessage("", R.drawable.success)
+                            SnackbarManager.showMessage("", SnackbarType.SUCCESS)
                             // Retourner l'état authentifié
                             AuthState.Authenticated
                         }
                         is AuthResponse.Error -> {
-                            SnackbarManager.showMessage(response.message, R.drawable.error)
+                            SnackbarManager.showMessage(response.message, SnackbarType.ERROR)
                             AuthState.Error(response.message)
                         }
                         else -> AuthState.Initial

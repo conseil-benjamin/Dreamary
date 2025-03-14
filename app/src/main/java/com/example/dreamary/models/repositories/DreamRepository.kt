@@ -905,7 +905,33 @@ class DreamRepository(private val context: Context) {
         }
     }
 
-    fun getDreamsForCurrentUser(
+    fun getAllDreamsForUser(
+        userId: String,
+        onFailure: (Exception) -> Unit
+    ): Flow<List<Dream>> = flow {
+        try {
+            Log.d("DreamRepository2", "Retrieving dreams for user $userId")
+            val dreams = db.collection("users")
+                .document(userId)
+                .collection("dreams")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { document ->
+                    document.toObject(Dream::class.java)?.copy(id = document.id)
+                }
+            Log.d("DreamRepository2", "Dreams retrieved successfully")
+            Log.d("DreamRepository2", dreams.toString())
+            emit(dreams)
+        } catch (e: Exception) {
+            Log.e("DreamRepository2", "Error retrieving dreams", e)
+            onFailure(e)
+            emit(emptyList())
+        }
+    }
+
+    fun getLastTwoDreamsForUser(
         userId: String,
         onFailure: (Exception) -> Unit
     ): Flow<List<Dream>> = flow {

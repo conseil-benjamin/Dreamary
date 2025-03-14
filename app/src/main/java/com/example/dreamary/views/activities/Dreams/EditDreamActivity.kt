@@ -54,6 +54,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.input.pointer.pointerInput
@@ -65,6 +66,7 @@ import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.models.routes.NavRoutes
+import com.example.dreamary.utils.SnackbarType
 import com.example.dreamary.viewmodels.dreams.DetailsDreamViewModel
 import com.example.dreamary.viewmodels.dreams.DetailsDreamViewModelFactory
 import com.example.dreamary.views.components.Loading
@@ -355,12 +357,12 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
     val snackbarHostState = remember { SnackbarHostState() }
     var showOverlay by remember { mutableStateOf(false) }
 
-    // Ecoute des messages du SnackbarManager
-    LaunchedEffect(Unit) { // unit veut dire que l'effet sera lancé une seule fois
+    LaunchedEffect(Unit) {
         SnackbarManager.snackbarMessages.collect { snackbarMessage ->
             snackbarHostState.showSnackbar(
                 message = snackbarMessage.message,
-                actionLabel = snackbarMessage.actionLabel
+                actionLabel = snackbarMessage.type.name,
+                duration = SnackbarDuration.Short
             )
         }
     }
@@ -381,7 +383,8 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
         } else {
             // Permission refusée - afficher un message
             coroutineScope.launch {
-                SnackbarManager.showMessage("L'enregistrement audio nécessite la permission du microphone", R.drawable.invite_people)
+                SnackbarManager.showMessage("L'enregistrement audio nécessite la permission du microphone",
+                    SnackbarType.ERROR)
             }
         }
     }
@@ -799,7 +802,7 @@ fun TopbarUpdateActivity (navController: NavController, viewModel: DetailsDreamV
                     onSaved = {
                         savingInProgress.value = false
                         CoroutineScope(coroutineScope.coroutineContext).launch {
-                            SnackbarManager.showMessage("Rêve modifié avec succès", R.drawable.success)
+                            SnackbarManager.showMessage("Rêve modifié avec succès", SnackbarType.SUCCESS)
                             delay(2000)
                             navController.navigate(NavRoutes.DreamDetail.createRoute(dream.id)){
                                 popUpTo(NavRoutes.EditDream.route) {

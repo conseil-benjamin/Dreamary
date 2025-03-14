@@ -1,6 +1,7 @@
 package com.example.dreamary.viewmodels.auth
 
 import android.content.Context
+import androidx.compose.material3.Snackbar
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.models.repositories.AuthResponse
 import com.example.dreamary.models.states.AuthState
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import com.example.dreamary.R
+import com.example.dreamary.utils.SnackbarType
 
 class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
@@ -41,7 +43,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
             if (email.isEmpty() || password.isEmpty()) {
                 _authState.value = AuthState.Error("Error")
                 val errorMessage = context.getString(R.string.Login_error_message)
-                SnackbarManager.showMessage(errorMessage, R.drawable.error)
+                SnackbarManager.showMessage(errorMessage, SnackbarType.ERROR)
                 return@launch
             }
             repository.signInWithEmail(context, email, password, navController, screen)
@@ -51,7 +53,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
                             AuthState.Authenticated
                         }
                         is AuthResponse.Error -> {
-                            SnackbarManager.showMessage(response.message, R.drawable.error)
+                            SnackbarManager.showMessage(response.message, SnackbarType.ERROR)
                             AuthState.Error(response.message)
                         }
                         else -> AuthState.Initial

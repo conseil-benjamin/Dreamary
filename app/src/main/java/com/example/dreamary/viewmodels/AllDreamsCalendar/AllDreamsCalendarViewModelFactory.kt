@@ -7,11 +7,12 @@ import com.example.dreamary.models.repositories.DreamRepository
 import com.example.dreamary.viewmodels.AllDreamsCalendar.AllDreamsCalendarViewModel
 
 class AllDreamsCalendarViewModelFactory(
-    private val dreamRepository: DreamRepository
+    private val dreamRepository: DreamRepository,
+    private val authRepository: AuthRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AllDreamsCalendarViewModel::class.java)) {
-            return AllDreamsCalendarViewModel(dreamRepository) as T
+            return AllDreamsCalendarViewModel(dreamRepository, authRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

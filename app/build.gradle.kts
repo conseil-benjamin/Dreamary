@@ -66,7 +66,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-flowlayout:0.30.0")
     implementation("com.github.bumptech.glide:compose:1.0.0-alpha.1")
 
-    implementation("com.kizitonwose.calendar:compose:2.0.0")
+    implementation("com.kizitonwose.calendar:compose:2.6.0")
 
     implementation("io.coil-kt:coil-compose:2.1.0")
     implementation(libs.androidx.core.ktx)
