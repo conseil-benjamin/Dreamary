@@ -335,33 +335,17 @@ fun SocialAppBar(
                         fontWeight = FontWeight.Bold
                     )
                 )
-//                BadgedBox(
-//                    badge = {
-//                        // Ensure AnimatedVisibility is correctly scoped
-//                        AnimatedVisibility(
-//                            visible = hasRequests,
-//                            enter = fadeIn(),
-//                            exit = fadeOut()
-//                        ) {
-//                            Badge(
-//                                modifier = Modifier.size(8.dp),
-//                                containerColor = MaterialTheme.colorScheme.error
-//                            )
-//                        }
-//                    }
-//                ) {
-//                    Icon(
-//                        painter = painterResource(id = R.drawable.invite_people),
-//                        contentDescription = "Invite people",
-//                        modifier = Modifier
-//                            .size(28.dp)
-//                            .clip(CircleShape)
-//                            .clickable { /* Handle invite click */ }
-//                            .padding(4.dp),
-//                        tint = MaterialTheme.colorScheme.primary
-//                    )
-//                }
-            }
+                    Icon(
+                        painter = painterResource(id = R.drawable.leaderboard),
+                        contentDescription = "Leaderboard",
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .clickable { navController.navigate(NavRoutes.LeaderBoard.route)}
+                            .padding(4.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
 
             Spacer(modifier = Modifier.height(16.dp))
 

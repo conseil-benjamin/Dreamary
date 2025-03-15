@@ -33,6 +33,7 @@ import com.example.dreamary.views.activities.Dreams.SuccessAddDream
 import com.example.dreamary.views.activities.Social.ChatScreenFriendActivity
 import com.example.dreamary.views.activities.profile.ProfileActivity
 import com.example.dreamary.views.activities.Social.HomePageSocialActivity
+import com.example.dreamary.views.activities.Social.LeaderboardScreen
 import com.example.dreamary.views.activities.auth.LoginActivity
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
@@ -222,6 +223,9 @@ fun NavigationManager() {
                 navController = navController,
                 dreamId = it.arguments?.getString("dreamId") ?: ""
             )
+        }
+        composable(NavRoutes.LeaderBoard.route){
+            LeaderboardScreen(navController = navController)
         }
     }
 }

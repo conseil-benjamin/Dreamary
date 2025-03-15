@@ -33,4 +33,5 @@ sealed class NavRoutes(val route: String) {
             return "chatScreenFriend/$userId/$encodedUrl/$chatId"
         }
     }
+    data object LeaderBoard : NavRoutes("leaderBoard")
 }

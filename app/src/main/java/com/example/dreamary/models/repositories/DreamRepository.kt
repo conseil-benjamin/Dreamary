@@ -265,7 +265,7 @@ class DreamRepository(private val context: Context) {
 
             if (unlocked && existingBadge?.unlocked != true) {
                 Log.d("salut:::::::", "Badge ${badge.name} unlocked")
-                userUpdated = incrementUserXP(user, badge.xp)
+                userUpdated = incrementUserXP(user.uid, badge.xp, "badge")
             }
 
             Log.d("updateProgressionBadges", "Updated progression for ${badge.name}: $updatedProgression, Unlocked: $unlocked")
@@ -338,23 +338,33 @@ class DreamRepository(private val context: Context) {
         return userUpdated
     }
 
-    private suspend fun incrementUserXP(user: User, badgeXp: Long): User {
-        val userRef = db.collection("users").document(user.uid)
-
+    private suspend fun incrementUserXP(userId: String, badgeXp: Long, step: String): User {
+        val userRef = db.collection("users").document(userId)
+        Log.i("step", step)
+        Log.i("step", badgeXp.toString())
         // Récupérer l'utilisateur depuis Firestore
         val snapshot = userRef.get().await()
-        val userObject = snapshot.toObject(User::class.java) ?: return user
+        val userObject = snapshot.toObject(User::class.java) ?: return User()
 
         // Extraire la progression actuelle
         var level = (userObject.progression["level"] as? Number)?.toInt() ?: 0
         var xp = (userObject.progression["xp"] as? Number)?.toInt() ?: 0
         var xpNeeded = (userObject.progression["xpNeeded"] as? Number)?.toInt() ?: 1000
         var rank = userObject.progression["rank"] as? String ?: ""
+        var actualStreak = userObject.dreamStats["currentStreak"] as Int
 
         // Ajouter l'XP du badge
-        xp += badgeXp.toInt()
+        if (actualStreak >= 3 && step == "badge") {
+            xp += 100 + badgeXp.toInt()
+        } else if (step == "badge") {
+            xp += 50 + badgeXp.toInt()
+        } else if (step == "share" && actualStreak >= 3){
+            xp += badgeXp.toInt() + 100
+            Log.i("xpBadge25", "Ajout de share XP - Nouveau total: $xp / $xpNeeded")
+        } else {
+            xp += badgeXp.toInt() + 50
+        }
         Log.i("xpBadge", "Ajout de $badgeXp XP - Nouveau total: $xp / $xpNeeded")
-
         // Monter de niveau si nécessaire
         while (xp >= xpNeeded) {
             level++
@@ -372,8 +382,8 @@ class DreamRepository(private val context: Context) {
         }
 
         // Mettre à jour l'utilisateur avec les nouvelles valeurs
-        val xpGained = user.progression["xpGained"] as? Number ?: (0 + badgeXp.toInt())
-        val updatedUser = user.copy(
+        val xpGained = if (actualStreak >=3) 100 + badgeXp.toInt() else 50 + badgeXp.toInt()
+        val updatedUser = userObject.copy(
             progression = mapOf(
                 "level" to level,
                 "xp" to xp,
@@ -649,6 +659,7 @@ class DreamRepository(private val context: Context) {
         Log.d("DreamRepository", "Sharing dream with users")
         Log.i("dream5", dream.toString())
         Log.d("DreamRepository", "Dream shared with: ${dream.sharedWith.users}")
+        val firebaseUserId = Firebase.auth.currentUser?.uid
 
         var newUserToSendDream: Share = Share()
         var sharedWithInBdd: Share = Share()
@@ -772,6 +783,13 @@ class DreamRepository(private val context: Context) {
                 .document(dream.id)
                 .update("sharedWith", userListToUpdate)
                 .await()
+        }
+
+        if (typeOfShare == "add" || (sharedWithInBdd.users.isEmpty() || sharedWithInBdd.groups.isEmpty())) {
+            Log.d("addNewXP", sharedWithInBdd.toString())
+            incrementUserXP(firebaseUserId.toString(), (100).toLong(), "share")
+        } else {
+            Log.d("addNewXPError", sharedWithInBdd.toString())
         }
     }
 
