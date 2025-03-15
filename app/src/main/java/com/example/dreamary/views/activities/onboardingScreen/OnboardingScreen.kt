@@ -38,6 +38,7 @@ data class OnboardingPage(
 fun OnboardingScreen(
     onFinish: () -> Unit
 ) {
+    // todo : ajouter une page pour présenter le mode premium et ses avantages
     val pages = listOf(
         OnboardingPage(
             title = "Donnez vie à vos rêves",

@@ -145,7 +145,7 @@ fun AllDreamsCalendar(
                 modifier = Modifier
                     .background(Color(0xFF1A1A1A)),
                 title = { Text(
-                    text = "Calendrier de rêves",
+                    text = "Reveries",
                     modifier = Modifier.padding(8.dp),
                     fontSize = 18.sp,
                 ) },
@@ -451,9 +451,11 @@ fun onResearchChange(research: String, dreams: List<Dream>): List<Dream> {
     var dreamsFound = mutableListOf<Dream>()
     if (research.isNotEmpty()) {
         dreams.forEach { dream ->
-            if (dream.title.contains(research, ignoreCase = true)) {
+            // todo : rechercher dans le titre, description, émotions, tags et dreamType
+            // todo : les ordonner par date la plus récente
+            // todo : peut être mettre une limite aussi à voir
+            if (dream.title.contains(research, ignoreCase = true) || dream.content.contains(research, ignoreCase = true) || dream.dreamType.contains(research, ignoreCase = true)) {
                 Log.d("Research", "Rêve trouvé: ${dream.title}")
-                // !! il trouve mais n'ajoute pas correctement à dreamsFound
                 dreamsFound.add(dream)
             }
         }

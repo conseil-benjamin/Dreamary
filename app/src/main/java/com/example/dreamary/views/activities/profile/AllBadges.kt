@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.dreamary.R
 import com.example.dreamary.models.entities.Badge
 import com.example.dreamary.views.components.Loading
@@ -51,7 +52,7 @@ data class Category(
 )
 
 val categories = listOf(
-    Category("all", "Tous", Icons.Default.AccountBox),
+    Category("Tous", "Tous", Icons.Default.AccountBox),
     Category("Régularité", "Régularité", Icons.Default.DateRange),
     Category("Volume", "Volume", Icons.Default.Star),
     Category("Exploration", "Exploration", Icons.Default.Star)
@@ -103,7 +104,7 @@ fun GridBadges(
     selectedCategory: String
 ) {
     val filteredBadges = badges.filter {
-        selectedCategory == "all" || it.category == selectedCategory
+        selectedCategory == "Tous" || it.category == selectedCategory
     }
 
     Box(
@@ -143,7 +144,7 @@ fun AllBadges(
         Log.i("allBadges", userBadges.toString())
     }
 
-    var selectedCategory by remember { mutableStateOf("all") }
+    var selectedCategory by remember { mutableStateOf("Tous") }
 
     Scaffold (
         topBar = {
@@ -269,11 +270,10 @@ fun BadgeCard(badge: Badge) {
                     .background(if (badge.unlocked) color.color else Color.Gray.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Star,
+                AsyncImage(
+                    model = badge.iconUrl,
                     contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(48.dp)
                 )
             }
 
