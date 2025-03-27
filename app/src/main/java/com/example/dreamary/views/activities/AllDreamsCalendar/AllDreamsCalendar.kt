@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -59,12 +61,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -75,7 +76,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.example.dreamary.R
 import com.example.dreamary.models.entities.Dream
 import com.example.dreamary.models.entities.User
@@ -94,10 +94,7 @@ import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.OutDateStyle
 import com.kizitonwose.calendar.core.daysOfWeek
-import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.core.yearMonth
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -760,7 +757,7 @@ fun DreamCalendarScreen(
     Log.i("modalVisibility", showModalDreams.toString())
     if (showModalDreams.value) {
         ModalSelectDream(
-            day = dayDreamToShow.toString(),
+            day = dayDreamToShow.value,
             dreams = dreamsToShowInModal,
             onConfirm = { showModalDreams.value = false },
             onDismiss = { showModalDreams.value = false },
@@ -768,7 +765,9 @@ fun DreamCalendarScreen(
         )
     }
 
-    Column(modifier = Modifier.fillMaxHeight().padding(16.dp)) {
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
+    ) {
         DaysOfWeekTitle(daysOfWeek = daysOfWeek)
         VerticalCalendar(
             state = state,
@@ -783,7 +782,6 @@ fun DreamCalendarScreen(
             dayContent = { day ->
                 val isSelected = day.date == selectedDate.value
                 val isToday = day.date == today
-
                 val isInCurrentMonth = day.position == DayPosition.MonthDate
 
                 if (!isInCurrentMonth) {
@@ -796,67 +794,68 @@ fun DreamCalendarScreen(
                         (timestamp as? Timestamp)?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate() == day.date
                     } == true
                 }
-                Log.i("daytodate", day.date.toString())
-                Log.i("dreamFound", dreamsForToday.toString())
 
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(
-                            when {
-                                dreamsForToday.isNotEmpty() && dreamsForToday[0].dreamType == "Cauchemar" -> Color(0xFFffdbda)
-                                dreamsForToday.isNotEmpty() && dreamsForToday[0].dreamType == "Lucide" -> Color(0xFFefdefe)
-                                dreamsForToday.isNotEmpty() && dreamsForToday[0].dreamType == "Rêve" -> Color(0xFFdce6fc)
-                                //isToday -> Color.Gray
-                                isSelected -> Color.Blue
-                                else -> Color.Transparent
-                            }
-                        )
-                        .clickable {
-                            dreamsToShowInModal.clear()
-                            dreamsToShowInModal.addAll(dreamsForToday)
-                            dayDreamToShow.value = day.date.toString()
-                            showModalDreams.value = true
-                                   },
-                    contentAlignment = Alignment.Center
+                        .size(48.dp)
+                        .padding(5.dp)
                 ) {
-                    Log.d("dateToday", day.date.toString())
-                    Log.d("Dream", "Rêve trouvé: $dreamsForToday")
-                    if (dreamsForToday.isNotEmpty()) {
-                        if (dreamsForToday.size > 1) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.TopEnd
-                            ) {
-                                Text(
-                                    text = dreamsForToday.size.toString(),
-                                    color = Color.Red,
-                                )
-                            }
-                        }
-
-                        // todo : mettre des icones à la place du jour du mois
-                        // todo : ajouter possibilité de filtrer par type de rêve
-                        Log.d("Dream511", "Rêve trouvé: $dreamsForToday")
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                when {
+                                    dreamsForToday.isNotEmpty() && dreamsForToday[0].dreamType == "Cauchemar" -> Color(0xFFffdbda)
+                                    dreamsForToday.isNotEmpty() && dreamsForToday[0].dreamType == "Lucide" -> Color(0xFFefdefe)
+                                    dreamsForToday.isNotEmpty() && dreamsForToday[0].dreamType == "Rêve" -> Color(0xFFdce6fc)
+                                    isSelected -> Color.Blue
+                                    else -> Color.Transparent
+                                }
+                            )
+                            .clickable {
+                                dreamsToShowInModal.clear()
+                                dreamsToShowInModal.addAll(dreamsForToday)
+                                dayDreamToShow.value = "${day.date.monthValue}/${day.date.dayOfMonth}/${day.date.year}"
+                                showModalDreams.value = true
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
                             text = day.date.dayOfMonth.toString(),
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (dreamsForToday[0].dreamType === "Cauchemar") Color(0xFFce5656) else if (dreamsForToday[0].dreamType === "Lucide") Color(0xFFa25ce6) else Color(0xFF5682d5)
+                            color = when {
+                                dreamsForToday.isNotEmpty() && dreamsForToday[0].dreamType == "Cauchemar" -> Color(0xFFce5656)
+                                dreamsForToday.isNotEmpty() && dreamsForToday[0].dreamType == "Lucide" -> Color(0xFFa25ce6)
+                                dreamsForToday.isNotEmpty() -> Color(0xFF5682d5)
+                                isSelected -> Color.White
+                                else -> Color.Black
+                            }
                         )
-                    } else {
-                        Text(
-                            text = day.date.dayOfMonth.toString(),
-                            color = if (isSelected) Color.White else Color.Black,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                        )
+                    }
+
+                    if (dreamsForToday.size > 1) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = (5).dp, y = (-5).dp)
+                                .size(14.dp)
+                                .background(Color.Red, shape = CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (dreamsForToday.size > 9) "9+" else dreamsForToday.size.toString(),
+                                color = Color.White,
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
                 }
             },
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(8.dp)
-                .aspectRatio(1f)
         )
     }
 }
