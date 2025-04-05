@@ -116,10 +116,9 @@ data class CategoryDream(
 fun AllDreamsCalendar(
     navController: NavController,
     viewModel: AllDreamsCalendarViewModel = viewModel(
-        factory = AllDreamsCalendarViewModelFactory (DreamRepository(LocalContext.current), (AuthRepository(LocalContext.current))
-    ))
+        factory = AllDreamsCalendarViewModelFactory(DreamRepository(LocalContext.current), AuthRepository(LocalContext.current))
+    )
 ) {
-
     val dreams by viewModel.dreams.collectAsState()
     val userData by viewModel.userData.collectAsState()
     val userId = Firebase.auth.currentUser?.uid ?: ""
@@ -168,31 +167,18 @@ fun AllDreamsCalendar(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-        LazyColumn {
-            item {
-                ResearchForAdream(dreams, navController)
-            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item {
+                    ResearchForAdream(dreams, navController)
+                }
 
-//            item {
-//                FilterDreams(
-//                    categories = listOf(
-//                        CategoryDream("Tous", R.drawable.badge),
-//                        CategoryDream("Cauchemar", R.drawable.badge),
-//                        CategoryDream("Lucide", R.drawable.badge),
-//                        CategoryDream("Rêve", R.drawable.badge)
-//                    ),
-//                    selectedCategory = selectedCategory.value,
-//                    onCategorySelected = { selectedCategory.value = it }
-//                )
-//            }
-            item {
-                DreamCalendarScreen(dreams, userData, selectedCategory.value, navController)
+                item {
+                    DreamCalendarScreen(dreams, userData, selectedCategory.value, navController)
+                }
             }
-//            item {
-//                LegendColorDream()
-//            }
         }
-    }
     }
 }
 

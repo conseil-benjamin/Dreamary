@@ -214,7 +214,7 @@ fun HeaderDream(dream: Dream) {
             .fillMaxWidth()
             .height(200.dp)
             .background(
-                when (dream?.dreamType) {
+                color = when (dream?.dreamType) {
                     "Rêve" -> Color(0xFFeff2fe)
                     "Lucide" -> Color(0xFFfef9c2)
                     "Cauchemar" -> Color(0xFFfee3e1)
@@ -271,8 +271,6 @@ fun AudioPlayerDream(
 ) {
     val isPlaying by viewModel.isPlaying.collectAsState(initial = false)
     var isListening by remember { mutableStateOf(false) }
-
-    // todo : faire en sorte de savoir quand l'audio est en cours de lecture ou non
 
     // Audio player si disponible
     dream.audio.get("path")?.let { audioPath ->

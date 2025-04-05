@@ -76,7 +76,7 @@ fun BottomNavigation(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        navController.navigate("home")
+                        navController.navigate("stats")
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,

@@ -55,6 +55,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
+    implementation(libs.androidx.animation.core.android)
     val credentialManagerVersion = "1.5.0-alpha05"
     implementation("androidx.credentials:credentials:$credentialManagerVersion")
     implementation("androidx.credentials:credentials-play-services-auth:$credentialManagerVersion")
@@ -67,6 +68,7 @@ dependencies {
     implementation("com.github.bumptech.glide:compose:1.0.0-alpha.1")
 
     implementation("com.kizitonwose.calendar:compose:2.6.0")
+    implementation ("io.github.ehsannarmani:compose-charts:0.1.2")
 
     implementation("io.coil-kt:coil-compose:2.1.0")
     implementation(libs.androidx.core.ktx)

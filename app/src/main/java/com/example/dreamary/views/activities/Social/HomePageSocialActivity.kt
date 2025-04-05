@@ -579,10 +579,6 @@ fun FriendsContent(
             }
         }
 
-        item {
-            SectionTitle(title = "Amis", count = friends.size)
-        }
-
         if (friends.isNotEmpty()) {
             items(friends.size) { index ->
                 FriendCard(

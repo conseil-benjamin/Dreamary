@@ -227,5 +227,8 @@ fun NavigationManager() {
         composable(NavRoutes.LeaderBoard.route){
             LeaderboardScreen(navController = navController)
         }
+        composable(NavRoutes.Stats.route){
+            com.example.dreamary.views.activities.stats.StatsScreen(navController = navController)
+        }
     }
 }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 class ProfileViewModel(private val repository: AuthRepository,private val dreamRepository: DreamRepository): ViewModel() {
     private var _userData = MutableStateFlow<User?>(null)
     var userData = _userData.asStateFlow()
+
     private var _userBadges = MutableStateFlow<List<Badge>>(emptyList())
     var userBadges = _userBadges.asStateFlow()
 
