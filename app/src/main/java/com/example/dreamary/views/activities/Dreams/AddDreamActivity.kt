@@ -1443,6 +1443,7 @@ fun DescribeDream(
     var showConfirmDialog by remember { mutableStateOf(false) }
     var showConfirmDialogAlready by remember { mutableStateOf(false) }
 
+    val duration by viewModel.recordingDuration.collectAsState()
 
     val isPlaying by viewModel.isPlaying.collectAsState(initial = false)
     val lastDreamDuration by viewModel.lastDreamDuration.collectAsState()
@@ -1555,49 +1556,83 @@ fun DescribeDream(
                     modifier = Modifier
                         .size(24.dp)
                         .clickable {
-                            // todo : la mise en pause de l'audio ne marche pas
-                            if (!isPlaying) {
+                            if (!isPlaying && !viewModel.isMediaPlayerReleased()) {
                                 isListening = true
-                                viewModel.playAudio()
-                            } else if (isPlaying) {
+                                viewModel.resumeAudio()
+                            } else if (!isPlaying && viewModel.isMediaPlayerReleased()) {
                                 isListening = false
-                                viewModel.pauseRecording()
+                                viewModel.playAudio()
                             } else {
                                 isListening = true
-                                viewModel.resumeRecording()
+                                viewModel.pauseAudio()
                             }
-                        },
+                        }
                 )
-                if (!isPlaying) {
+                if (!isPlaying && viewModel.isMediaPlayerReleased()) {
                     Text(
                         text = "Écouter l'enregistrement",
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 } else {
-                    // todo : nul à chier l'image la changer
-                    AsyncImage(
-                        model = R.drawable.sound_wave,
-                        contentDescription = "Audio",
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
                         modifier = Modifier
-                            .padding(start = 8.dp)
+                            .weight(1f)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.back_10s),
+                            contentDescription = "retour arrière",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable{
+                                    viewModel.seekBackward()
+                                }
+                                .padding(end = 16.dp)
+                                .fillMaxWidth()
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.avance_10s),
+                            contentDescription = "avance",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable{
+                                    viewModel.seekForward()
+                                }
+                                .padding(end = 16.dp)
+                                .fillMaxWidth()
+                        )
+                    }
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                    ) {
+                        Text(
+                            text = "$duration / ${lastDreamDuration}s",
+                            modifier = Modifier.padding(start = 8.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+                if (!isPlaying && viewModel.isMediaPlayerReleased()){
+                    Text(
+                        text = "${lastDreamDuration}s",
+                        modifier = Modifier.padding(start = 8.dp),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    Icon(
+                        painter = painterResource(id = R.drawable.delete),
+                        contentDescription = "Supprimer l'enregistrement",
+                        modifier = Modifier
+                            .padding(start = 16.dp)
                             .size(24.dp)
+                            .clickable {
+                                showConfirmDialog = true
+                            }
                     )
                 }
-                Text(
-                    text = "${lastDreamDuration}s",
-                    modifier = Modifier.padding(start = 8.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.delete),
-                    contentDescription = "Supprimer l'enregistrement",
-                    modifier = Modifier
-                        .padding(start = 16.dp)
-                        .size(24.dp)
-                        .clickable {
-                            showConfirmDialog = true
-                        }
-                )
             }
         }
     }

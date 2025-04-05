@@ -15,7 +15,7 @@ class AudioRecorder(private val context: Context) {
     private var mediaPlayer: MediaPlayer? = null
     private val fileName = "audio_${System.currentTimeMillis()}.mp3"
     private var currentFilePath = "${context.filesDir.absolutePath}/$fileName"
-
+    private var currentPositionLocal = 0
 
     fun isMediaPlayerReleased(): Boolean {
         return mediaPlayer == null
@@ -42,6 +42,26 @@ class AudioRecorder(private val context: Context) {
     fun pauseRecording() {
         mediaRecorder?.apply {
             pause()
+        }
+    }
+
+    fun pauseAudio() {
+        Log.i("AudioRecorder", "pauseAudio() called")
+        if (mediaPlayer == null) {
+            Log.e("AudioRecorder", "mediaPlayer is null")
+        } else {
+            mediaPlayer?.apply {
+                pause()
+                currentPositionLocal = currentPosition
+            }
+        }
+    }
+
+    fun resumeAudio() {
+        Log.i("AudioRecorder", currentPositionLocal.toString())
+        mediaPlayer?.apply {
+            mediaPlayer!!.seekTo(currentPositionLocal)
+            start()
         }
     }
 
@@ -73,7 +93,7 @@ class AudioRecorder(private val context: Context) {
 
     fun playAudio(onReady: (Boolean) -> Unit) {
         try {
-            val mediaPlayer = MediaPlayer().apply {
+             mediaPlayer = MediaPlayer().apply {
                 setDataSource(currentFilePath)
                 prepareAsync()
 
@@ -83,7 +103,7 @@ class AudioRecorder(private val context: Context) {
                 }
 
                 setOnCompletionListener {
-                    release()
+                    mediaPlayer = null
                     onReady(false)
                 }
             }
@@ -105,7 +125,7 @@ class AudioRecorder(private val context: Context) {
                 }
 
                 setOnCompletionListener {
-                    release()
+                    mediaPlayer = null
                     onReady(false) // Audio terminé
                 }
             }
@@ -115,11 +135,41 @@ class AudioRecorder(private val context: Context) {
         }
     }
 
+    fun seekBackward() {
+        mediaPlayer?.apply {
+            val currentPosition = currentPosition
+            if (currentPosition > 5000) { // Ne pas reculer de plus de 5 secondes
+                Log.i("AudioRecorder", "Seeking backward")
+                seekTo(currentPosition - 5000)
+                start()
+            } else {
+                Log.i("AudioRecorder", "Noooooo Seeking backward")
+                seekTo(0)
+            }
+        }
+    }
+
+    fun seekForward() {
+        mediaPlayer?.apply {
+            val currentPosition = currentPosition
+            Log.i("AudioRecorder", "Current position: $currentPosition")
+            if (currentPosition < duration - 5000) {
+                Log.i("AudioRecorder", "Seeking forward")
+                seekTo(currentPosition + 5000)
+                start()
+            } else {
+                Log.i("AudioRecorder", duration.toString())
+                seekTo(duration)
+            }
+        }
+    }
+
 
     fun deleteAudio() {
         val file = File(currentFilePath)
         if (file.exists()) {
             file.delete()
+            mediaPlayer = null
         }
     }
 

@@ -59,8 +59,10 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
     }
 
     fun playAudio() {
+        _recordingDuration.value = 0
         audioRecorder.playAudio() { isPlaying ->
             _isPlaying.value = isPlaying
+            startDurationCounter()
         }
     }
 
@@ -77,6 +79,31 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
                 _audioFilePath.value = null
             } catch (e: Exception) {
                 Log.e("AudioRecorderViewModel", "Error deleting audio", e)
+            }
+        }
+    }
+
+    fun pauseAudio() {
+        viewModelScope.launch{
+            try {
+                Log.i("AudioRecorderViewModel", "Pausing audio")
+                audioRecorder.pauseAudio()
+                durationJob?.cancel()
+                _isPlaying.value = false
+            } catch (e: Exception) {
+                Log.e("AudioRecorderViewModel", "Error pausing audio", e)
+            }
+        }
+    }
+
+    fun resumeAudio() {
+        viewModelScope.launch {
+            try {
+                audioRecorder.resumeAudio()
+                _isPlaying.value = true
+                startDurationCounter()
+            } catch (e: Exception) {
+                Log.e("AudioRecorderViewModel", "Error resuming audio", e)
             }
         }
     }
@@ -108,6 +135,26 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
         }
     }
 
+    fun seekBackward() {
+        viewModelScope.launch {
+            try {
+                audioRecorder.seekBackward()
+            } catch (e: Exception) {
+                Log.e("AudioRecorderViewModel", "Error seeking backward", e)
+            }
+        }
+    }
+
+    fun seekForward() {
+        viewModelScope.launch {
+            try {
+                audioRecorder.seekForward()
+            } catch (e: Exception) {
+                Log.e("AudioRecorderViewModel", "Error seeking forward", e)
+            }
+        }
+    }
+
 
     private fun stopDurationCounter() {
         durationJob?.cancel()
@@ -116,6 +163,7 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
     }
 
     private fun startDurationCounter() {
+        durationJob?.cancel()
         durationJob = viewModelScope.launch {
             while (isActive) {
                 delay(1000)
