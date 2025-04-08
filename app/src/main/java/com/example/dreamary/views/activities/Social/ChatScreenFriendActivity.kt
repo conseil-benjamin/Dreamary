@@ -137,23 +137,23 @@ fun HeaderChat(
                     )
 
                     val userStatus = friendInformation?.bio != "" ?: false
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(if (userStatus) Color.Green else Color.Gray)
-                        )
-                        Text(
-                            text = if (userStatus) "En ligne" else "Hors ligne",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        )
-                    }
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+//                    ) {
+//                        Box(
+//                            modifier = Modifier
+//                                .size(8.dp)
+//                                .clip(CircleShape)
+//                                .background(if (userStatus) Color.Green else Color.Gray)
+//                        )
+//                        Text(
+//                            text = if (userStatus) "En ligne" else "Hors ligne",
+//                            style = MaterialTheme.typography.bodySmall.copy(
+//                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+//                            )
+//                        )
+//                    }
                 }
             }
 

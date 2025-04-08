@@ -113,7 +113,7 @@ class AuthRepository(private val context: Context) {
         return friend as StateFlow<String>
     }
 
-    fun sendFriendRequest(idUser: String, idFriend: String) {
+    fun sendFriendRequest(idUser: String, idFriend: String, senderName: String) {
         db.collection("users")
             .document(idUser)
             .collection("friends")
@@ -121,9 +121,11 @@ class AuthRepository(private val context: Context) {
                 hashMapOf(
                     "id" to idFriend,
                     "sender" to idUser,
+                    "senderName" to senderName,
                     "receveir" to idFriend,
-                    "status" to "pending"
-                )
+                    "status" to "pending",
+                    "isRequest" to true
+            )
             )
             .addOnSuccessListener {
                 Log.i("FriendRequest", "Friend request sent")
@@ -139,8 +141,9 @@ class AuthRepository(private val context: Context) {
                 hashMapOf(
                     "id" to idUser,
                     "sender" to idUser,
+                    "senderName" to senderName,
                     "receveir" to idFriend,
-                    "status" to "pending"
+                    "status" to "pending",
                 )
             )
             .addOnSuccessListener {

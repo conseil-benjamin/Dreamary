@@ -92,7 +92,7 @@ fun MenuBurgerScreen(
                         icon = Icons.Default.Info,
                         title = "Journal des rêves",
                         subtitle = "Tous vos rêves",
-                        onClick = { navController.navigate(NavRoutes.Home.route) }
+                        onClick = { navController.navigate(NavRoutes.AllDreamsCalendar.route) }
                     )
                     SettingItem(
                         icon = Icons.Default.Info,

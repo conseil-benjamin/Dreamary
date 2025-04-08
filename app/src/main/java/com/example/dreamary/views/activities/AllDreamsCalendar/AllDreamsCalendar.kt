@@ -168,7 +168,9 @@ fun AllDreamsCalendar(
                 .padding(paddingValues),
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
             ) {
                 item {
                     ResearchForAdream(dreams, navController)
@@ -710,7 +712,7 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
     }
 }
 
-@SuppressLint("RememberReturnType")
+@SuppressLint("RememberReturnType", "UnusedBoxWithConstraintsScope")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DreamCalendarScreen(
@@ -840,7 +842,7 @@ fun DreamCalendarScreen(
                 }
             },
             modifier = Modifier
-                .fillMaxHeight()
+                .height(340.dp)
                 .padding(8.dp)
         )
     }

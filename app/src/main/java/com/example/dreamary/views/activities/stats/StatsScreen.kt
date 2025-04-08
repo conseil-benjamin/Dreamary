@@ -1,17 +1,22 @@
 package com.example.dreamary.views.activities.stats
 
 import android.util.Log
+import androidx.compose.animation.core.EaseInOutCubic
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,11 +41,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.sp
 import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.repositories.AuthRepository
 import com.example.dreamary.views.components.Loading
 import com.google.firebase.auth.FirebaseAuth
+import ir.ehsannarmani.compose_charts.LineChart
+import ir.ehsannarmani.compose_charts.models.DrawStyle
+import ir.ehsannarmani.compose_charts.models.Line
 
 @Composable
 fun StatsScreen(
@@ -67,7 +76,7 @@ fun StatsScreen(
             BottomNavigation(navController = navController)
         }
     ) { paddingValues ->
-        if (user == null) {
+        if (user == null || dreams == null) {
             Loading()
             return@Scaffold
         }
@@ -82,7 +91,13 @@ fun StatsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                Chart(user)
+                StatsGenerals(user)
+            }
+            item {
+                PieChartStatsDreamUser(user)
+            }
+            item {
+                LineChart()
             }
         }
 
@@ -90,7 +105,7 @@ fun StatsScreen(
 }
 
 @Composable
-fun Chart(user: User?) {
+fun PieChartStatsDreamUser(user: User?) {
     Log.i("StatsScreen", "user: $user")
     val dreamsNormal: Double = (user?.dreamStats?.get("totalDreams")?.toDouble() ?: 0.0) - (user?.dreamStats?.get("lucidDreams")?.toDouble() ?: 0.0) - (user?.dreamStats?.get("nightmares")?.toDouble() ?: 0.0)
     var data by remember {
@@ -177,6 +192,95 @@ fun Chart(user: User?) {
                     fontSize = 12.sp
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun ItemCardStat(
+    title: String,
+    subtitle: String,
+    icon: Int
+) {
+    Row(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Image(
+            painter = androidx.compose.ui.res.painterResource(id = icon),
+            contentDescription = "Icon",
+            modifier = Modifier.size(40.dp)
+        )
+        Column {
+            Text(
+                text = title,
+                style = androidx.compose.material3.MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = subtitle,
+                style = androidx.compose.material3.MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+}
+
+@Composable
+fun LineChart() {
+    LineChart(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+            .padding(horizontal = 22.dp),
+        data = remember {
+            listOf(
+                Line(
+                    label = "Windows",
+                    values = listOf(28.0, 41.0, 5.0, 10.0, 35.0),
+                    color = SolidColor(Color(0xFF23af92)),
+                    firstGradientFillColor = Color(0xFF2BC0A1).copy(alpha = .5f),
+                    secondGradientFillColor = Color.Transparent,
+                    strokeAnimationSpec = tween(2000, easing = EaseInOutCubic),
+                    gradientAnimationDelay = 1000,
+                    drawStyle = DrawStyle.Stroke(width = 2.dp),
+                )
+            )
+        },
+//        animationMode = AnimationMode.Together(delayBuilder = {
+//            it * 500L
+//        }),
+    )
+}
+
+@Composable
+fun StatsGenerals(
+    user: User?
+) {
+    Column {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Statistiques générales",
+                style = androidx.compose.material3.MaterialTheme.typography.titleLarge,
+                fontSize = 22.sp
+            )
+            ItemCardStat(
+                title = "Total de rêves",
+                subtitle = user?.dreamStats?.get("totalDreams").toString(),
+                icon = com.example.dreamary.R.drawable.check_circle
+            )
+            ItemCardStat(
+                title = "Rêves lucides",
+                subtitle = user?.dreamStats?.get("lucidDreams").toString(),
+                icon = com.example.dreamary.R.drawable.check_circle
+            )
         }
     }
 }

@@ -100,7 +100,7 @@ fun ProfileActivity(
                     isAlreadyFriend = isAlreadyFriend,
                     onSendFriendRequest = {
                         sendFriendRequest = true
-                        viewModel.sendFriendRequest(currentUser?.uid ?: "", userId)
+                        viewModel.sendFriendRequest(currentUser?.uid ?: "", userId, currentUser?.displayName ?: "")
                     },
                     sendFriendRequest = sendFriendRequest
                     )

@@ -47,9 +47,9 @@ class ProfileViewModel(private val repository: AuthRepository,private val dreamR
         }
     }
 
-    fun sendFriendRequest(idUser: String, idFriend: String) {
+    fun sendFriendRequest(idUser: String, idFriend: String, senderName: String) {
         viewModelScope.launch {
-            repository.sendFriendRequest(idUser, idFriend)
+            repository.sendFriendRequest(idUser, idFriend, senderName)
         }
     }
 
