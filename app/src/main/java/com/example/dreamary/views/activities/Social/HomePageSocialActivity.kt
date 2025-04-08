@@ -822,7 +822,7 @@ fun ConversationCard(
     val otherUser = if (userId == conversation.user1?.uid) conversation.user2 else conversation.user1
     val otherUserPicture = if (otherUser?.profilePictureUrl != null) otherUser.profilePictureUrl else ""
     Log.i("otherUser", otherUser.toString())
-    Log.i("otherUserPicture", otherUserPicture.toString())
+    Log.i("otherUserPicture", otherUserPicture)
     Log.i("userId50", userId)
     Card(
         elevation = CardDefaults.cardElevation(2.dp),
@@ -835,7 +835,7 @@ fun ConversationCard(
                 navController.navigate(
                     NavRoutes.ChatScreenFriends.createRoute(
                         otherUser?.uid ?: "",
-                        otherUserPicture.toString(),
+                        otherUserPicture,
                         conversation.chatId
                     )
                 )
