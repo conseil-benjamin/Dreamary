@@ -62,6 +62,7 @@ import kotlinx.coroutines.launch
 import android.Manifest
 import android.app.TimePickerDialog
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -213,7 +214,7 @@ private fun ShareDreamWithPeople(
                     if (usersAndGroups.users.isNotEmpty()) {
                         item {
                             Text(
-                                text = "Personnes",
+                                text = "Amis",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(vertical = 8.dp)
@@ -677,10 +678,10 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     }
 
     var path by remember { mutableStateOf("") }
+    var url by remember { mutableStateOf("") }
     var duration by remember { mutableStateOf(0) }
 
-    LaunchedEffect(path) {
-        if (path.isNotEmpty()) {
+    LaunchedEffect(path, url) {
             dream = dream.copy(
                 audio = dream.audio.toMutableMap().apply {
                     this["path"] = path
@@ -688,7 +689,6 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                     this["url"] = ""
                 }
             )
-        }
         Log.d("dreamCopyAUDIO", dream.toString())
     }
 
@@ -878,6 +878,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 
                     item {
                         DescribeDream(
+                            "",
                             showOverlay,
                             title = title,
                             content = content,
@@ -885,7 +886,9 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                             onValueChangeContent = { content = it },
                             hasAudioPermission = hasAudioPermission,
                             checkAudioPermission = checkAudioPermission(),
-                            onChangeShowOverlay = { showOverlay = it }
+                            onChangeShowOverlay = { showOverlay = it } ,
+                            onPathChanged = { path = it },
+                            onUrlChanged = { url = it },
                         )
                     }
 
@@ -1026,6 +1029,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
                             onChangeShowOverlay = { showOverlay = it },
                             audio = dream.audio as MutableMap<String, Any>,
                             onPathChanged = { path = it },
+                            onUrlChanged = { url = it },
                             onAudioChanged = { dream.audio = it },
                             onDurationChanged = { duration = it }
                         )
@@ -1133,117 +1137,121 @@ fun ContextSleep (
         icon = R.drawable.context
     )
 
-    Row(
+    Column (
         modifier = Modifier
-            .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Column(
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+//                .background(
+//                    color = MaterialTheme.colorScheme.surface,
+//                    shape = RoundedCornerShape(8.dp)
+//                )
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.lhorloge),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
+            Icon(
+                painter = painterResource(id = R.drawable.lhorloge),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(24.dp)
+                    .padding(end = 8.dp),
+            )
+            Button(
+                onClick = { showTimePicker(context) { hour, minute ->
+                    onTimeChanged("$hour:$minute")
+                    onContextSleepChanged(contextSleep)
+                } },
+                modifier = Modifier
+                    .weight(1f)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = RoundedCornerShape(8.dp)
+                    ),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 )
-                Button(
-                    onClick = { showTimePicker(context) { hour, minute ->
-                        onTimeChanged("$hour:$minute")
-                        onContextSleepChanged(contextSleep)
-                    } },
-                    modifier = Modifier
-                        .weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
-                    )
-                ) {
-                    if (time.isEmpty()) {
-                        Text("Heure de coucher")
-                    } else {
-                        Text(time)
-                    }
-                }
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.thermometre),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Slider(
-                        value = temperature.toFloat(),
-                        onValueChange = { newTemp ->
-                            onTemperatureChanged(newTemp.toInt())
-                            contextSleep["temperature"] = newTemp.toInt()
-                            onContextSleepChanged(contextSleep)
-                        },
-                        valueRange = 15f..30f,
-                        steps = 15
-                    )
-                    Text(
-                        text = "${temperature}°C",
-                    )
+                if (time.isEmpty()) {
+                    Text("Heure de coucher")
+                } else {
+                    Text(time)
                 }
             }
         }
-        Column (
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.Start
+//            ) {
+//                Icon(
+//                    painter = painterResource(id = R.drawable.thermometre),
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .size(24.dp)
+//                )
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                ) {
+//                    Slider(
+//                        value = temperature.toFloat(),
+//                        onValueChange = { newTemp ->
+//                            onTemperatureChanged(newTemp.toInt())
+//                            contextSleep["temperature"] = newTemp.toInt()
+//                            onContextSleepChanged(contextSleep)
+//                        },
+//                        valueRange = 15f..30f,
+//                        steps = 15
+//                    )
+//                    Text(
+//                        text = "${temperature}°C",
+//                    )
+//                }
+//            }
+        Row (
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
             modifier = Modifier
-                .weight(1f)
+                .padding(bottom = 8.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.bed),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(24.dp)
+                    .padding(end = 8.dp),
+            )
+            CustomDropdown(
+                options = listOf("0 Réveils", "1 Réveils", "2 Réveils", "3 Réveils", "> 3 Réveils"),
+                selectedOption = nbReveils,
+                onOptionSelected = {
+                    onNbReveilsChanged(it)
+                    onContextSleepChanged(contextSleep)
+                                   },
+            )
+        }
+        Row (
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
         ){
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.bed),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .padding(end = 8.dp),
-                )
-                CustomDropdown(
-                    options = listOf("0 Réveils", "1 Réveils", "2 Réveils", "3 Réveils", "> 3 Réveils"),
-                    selectedOption = nbReveils,
-                    onOptionSelected = {
-                        onNbReveilsChanged(it)
-                        onContextSleepChanged(contextSleep)
-                                       },
-                )
-            }
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ){
-                Icon(
-                    painter = painterResource(id = R.drawable.son),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .padding(end = 8.dp),
-                )
-                CustomDropdown(
-                    options = listOf("Calme", "Bruyant", "Normal"),
-                    selectedOption = noiseLevel,
-                    onOptionSelected = {
-                        onNoiseLevelChanged(it)
-                        onContextSleepChanged(contextSleep)
-                                       },
-                )
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.son),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(24.dp)
+                    .padding(end = 8.dp),
+            )
+            CustomDropdown(
+                options = listOf("Calme", "Bruyant", "Normal"),
+                selectedOption = noiseLevel,
+                onOptionSelected = {
+                    onNoiseLevelChanged(it)
+                    onContextSleepChanged(contextSleep)
+                                   },
+            )
         }
     }
 }
@@ -1259,19 +1267,39 @@ fun DreamType (
         icon = R.drawable.lune
     )
 
-    Row {
-         ItemDreamType(
-            icon = R.drawable.lune,
-            text = "Rêve",
-            dreamTypeChoose = dreamTypeChoose,
-            onDreamTypeChanged = { onDreamTypeChanged("Rêve") }
-        )
-        ItemDreamType(
-            icon = R.drawable.etoile,
-            text = "Lucide",
-            dreamTypeChoose = dreamTypeChoose,
-            onDreamTypeChanged = { onDreamTypeChanged("Lucide") }
-        )
+    Row (
+       modifier = Modifier
+           .fillMaxWidth(),
+    ) {
+        Row (
+            modifier = Modifier
+                .weight(1f)
+        ) {
+            ItemDreamType(
+                icon = R.drawable.lune,
+                text = "Rêve",
+                dreamTypeChoose = dreamTypeChoose,
+                onDreamTypeChanged = { onDreamTypeChanged("Rêve") }
+            )
+        }
+
+        Row (
+            modifier = Modifier
+                .weight(1f)
+        ) {
+            ItemDreamType(
+                icon = R.drawable.etoile,
+                text = "Lucide",
+                dreamTypeChoose = dreamTypeChoose,
+                onDreamTypeChanged = { onDreamTypeChanged("Lucide") }
+            )
+        }
+    }
+
+    Row (
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
         ItemDreamType(
             icon = R.drawable.cauchemar,
             text = "Cauchemar",
@@ -1293,7 +1321,8 @@ fun ItemDreamType (
             onDreamTypeChanged()
         },
         modifier = Modifier
-            .padding(16.dp),
+            .padding(16.dp)
+            .fillMaxWidth(),
         colors = ButtonDefaults.buttonColors(
             containerColor = if(dreamTypeChoose == text) Color(0xFFeff2fe) else MaterialTheme.colorScheme.surface,
             contentColor = if (dreamTypeChoose == text) Color(0xFF555393) else MaterialTheme.colorScheme.onSurface,
@@ -1326,6 +1355,7 @@ fun OverlayAudioPlayer (
     onChangeShowOverlay: (Boolean) -> Unit,
     audio: MutableMap<String, Any>,
     onAudioChanged : (MutableMap<String, Any>) -> Unit,
+    onUrlChanged: (String) -> Unit,
     onPathChanged: (String) -> Unit,
     onDurationChanged: (Int) -> Unit
     )
@@ -1335,7 +1365,6 @@ fun OverlayAudioPlayer (
     val isRecording by viewModel.isRecording.collectAsState()
     val duration by viewModel.recordingDuration.collectAsState()
 
-    var path by remember { mutableStateOf(audio["path"] as? String ?: "") }
     var showConfirmLeaveOverlay by remember { mutableStateOf(false) }
 
     if (showConfirmLeaveOverlay) {
@@ -1345,6 +1374,7 @@ fun OverlayAudioPlayer (
                 viewModel.stopRecording()
                 viewModel.deleteAudio()
                 onChangeShowOverlay(false)
+                onPathChanged("")
             },
             text = "Êtes-vous sûr de vouloir quitter l'enregistrement audio ?",
             title = "Supprimer l'enregistrement audio",
@@ -1421,6 +1451,7 @@ fun OverlayAudioPlayer (
 
 @Composable
 fun DescribeDream(
+    pathAudioFromFirebase: String,
     showOverlay: Boolean,
     title: String,
     content: String,
@@ -1431,8 +1462,11 @@ fun DescribeDream(
     viewModel: AudioRecorderViewModel = viewModel(
         factory = AudioRecorderViewModelFactory(LocalContext.current)
     ),
-    onChangeShowOverlay: (Boolean) -> Unit
-    ) {
+    onChangeShowOverlay: (Boolean) -> Unit,
+    onPathChanged: (String) -> Unit,
+    onUrlChanged: (String) -> Unit
+    )
+{
 
     var storage = Firebase.storage
     var storageRef = storage.reference
@@ -1453,6 +1487,8 @@ fun DescribeDream(
             onConfirm = {
                 viewModel.deleteAudio()
                 showConfirmDialog = false
+                onUrlChanged("")
+                onPathChanged("")
             },
             onDismiss = {
                 showConfirmDialog = false
@@ -1484,7 +1520,7 @@ fun DescribeDream(
         modifier = Modifier
             .fillMaxWidth(),
         label = "Titre du rêve",
-        maxCharacters = 30,
+        maxCharacters = 25,
         maxLine = 1,
         height = 100,
         maxHeight = 100
@@ -1538,7 +1574,8 @@ fun DescribeDream(
         )
     }
 
-    if (audioFilePath != null && !showOverlay) {
+    if ((audioFilePath != null && !showOverlay) || (pathAudioFromFirebase.isNotEmpty() && !showOverlay)) {
+        val pathEmpty = pathAudioFromFirebase.isEmpty()
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1561,7 +1598,11 @@ fun DescribeDream(
                                 viewModel.resumeAudio()
                             } else if (!isPlaying && viewModel.isMediaPlayerReleased()) {
                                 isListening = false
-                                viewModel.playAudio()
+                                if (!pathEmpty) {
+                                    viewModel.playAudioFromFirebase(pathAudioFromFirebase)
+                                } else {
+                                    viewModel.playAudio()
+                                }
                             } else {
                                 isListening = true
                                 viewModel.pauseAudio()
@@ -1570,6 +1611,7 @@ fun DescribeDream(
                 )
                 if (!isPlaying && viewModel.isMediaPlayerReleased()) {
                     Text(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         text = "Écouter l'enregistrement",
                         modifier = Modifier.padding(start = 8.dp)
                     )
@@ -1610,7 +1652,7 @@ fun DescribeDream(
                             .weight(1f)
                     ) {
                         Text(
-                            text = "$duration / ${lastDreamDuration}s",
+                            text = "$duration / ${if (pathEmpty) "dqdqz" else lastDreamDuration }s",
                             modifier = Modifier.padding(start = 8.dp),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -1760,7 +1802,11 @@ fun Tags(
             OutlinedTextField(
                 value = newTag,
                 onValueChange = { newTag = it },
-                placeholder = { Text("Ajouter un tag personnalisé") },
+                placeholder = {
+                    Text(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    text = "Ajouter un tag personnalisé")
+                              },
                 modifier = Modifier.weight(1f)
             )
 
@@ -1771,7 +1817,13 @@ fun Tags(
                         newTag = ""
                     }
                 },
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier
+                    .padding(start = 8.dp),
+                shape = RoundedCornerShape(8.dp),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 4.dp,
+                    pressedElevation = 8.dp
+                )
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.plus),
@@ -1804,8 +1856,8 @@ fun Tags(
                 Button(
                     onClick = { onTagSelected(tag) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isSelected) colors.first else Color.LightGray,
-                        contentColor = if (isSelected) colors.second else Color.Black
+                        containerColor = if (isSelected) colors.first else MaterialTheme.colorScheme.surface,
+                        contentColor = if (isSelected) colors.second else MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.padding(6.dp)
                 ) {
@@ -1888,42 +1940,108 @@ fun Environment(
 
     TitleSection(stringResource(id = R.string.AddDream_label_environment), R.drawable.environnement)
 
-    CustomDropdown(
-        options = listOf("Intérieur", "Extérieur", "Les deux"),
-        selectedOption = selectedType,
-        onOptionSelected = {
-            onTypeChanged(it)
-            onEnvironmentChanged(environment)
+    Column (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp)
+    ) {
+        Column (
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, bottom = 4.dp, end = 16.dp)
+        ) {
+            Text(
+                text = "Type d'environnement"
+            )
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                CustomDropdown(
+                    options = listOf("Intérieur", "Extérieur", "Les deux"),
+                    selectedOption = selectedType,
+                    onOptionSelected = {
+                        onTypeChanged(it)
+                        onEnvironmentChanged(environment)
+                    }
+                )
+            }
         }
-    )
 
-    CustomDropdown(
-        options = listOf("Hiver", "Printemps", "Été", "Automne"),
-        selectedOption = selectedSeason,
-        onOptionSelected = {
-            onSeasonChanged(it)
-            onEnvironmentChanged(environment)
+        Column (
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, bottom = 4.dp, end = 16.dp)
+        ) {
+            Text(
+                modifier = Modifier.padding(bottom = 0.dp),
+                text = "Saison"
+            )
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                CustomDropdown(
+                    options = listOf("Hiver", "Printemps", "Été", "Automne"),
+                    selectedOption = selectedSeason,
+                    onOptionSelected = {
+                        onSeasonChanged(it)
+                        onEnvironmentChanged(environment)
+                    }
+                )
+            }
         }
-    )
 
-    CustomDropdown(
-        options = listOf("Pluvieux", "Ensoleillé", "Nuageux", "Neigeux"),
-        selectedOption = selectedWeather,
-        onOptionSelected = {
-            onWeatherChanged(it)
-            onEnvironmentChanged(environment)
-        }
-    )
 
-    // TODO : surement changer ca par un simple textfield pour les couleurs
-    CustomDropdown(
-        options = listOf("Rouge", "Bleu", "Vert", "Jaune"),
-        selectedOption = selectedColors,
-        onOptionSelected = {
-            onColorsChanged(it)
-            onEnvironmentChanged(environment)
+        Column (
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, bottom = 4.dp, end = 16.dp)
+        ) {
+            Text(
+                text = "Météo"
+            )
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                CustomDropdown(
+                    options = listOf("Pluvieux", "Ensoleillé", "Nuageux", "Neigeux"),
+                    selectedOption = selectedWeather,
+                    onOptionSelected = {
+                        onWeatherChanged(it)
+                        onEnvironmentChanged(environment)
+                    }
+                )
+            }
         }
-    )
+
+        Column (
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, bottom = 4.dp, end = 16.dp)
+        ) {
+            Text(
+                text = "Couleurs dominantes"
+            )
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                // TODO : surement changer ca par un simple textfield pour les couleurs
+                CustomDropdown(
+                    options = listOf("Rouge", "Bleu", "Vert", "Jaune"),
+                    selectedOption = selectedColors,
+                    onOptionSelected = {
+                        onColorsChanged(it)
+                        onEnvironmentChanged(environment)
+                    }
+                )
+            }
+        }
+    }
+
+
 }
 
 @Composable
@@ -2008,7 +2126,7 @@ fun TitleSection(text: String, icon: Int) {
     Row (
         modifier = Modifier
             .fillMaxWidth()
-            .padding(32.dp),
+            .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ){

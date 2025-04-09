@@ -48,7 +48,12 @@ fun DreamTextFieldCustom(
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurface
             ),
-            label = { Text(label) },
+            label = {
+                Text(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    text = label
+                )
+                    },
             shape = MaterialTheme.shapes.medium,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,

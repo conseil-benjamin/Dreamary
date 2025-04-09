@@ -1,7 +1,9 @@
 package com.example.dreamary.views.components
 
+import androidx.compose.foundation.border
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
@@ -32,9 +34,10 @@ fun CustomDropdown(
                 )
             }
 
-            Box(modifier = modifier) {
+            Box {
                 OutlinedButton(
                     onClick = { expanded = true },
+                    shape = RoundedCornerShape(8.dp),
                 ) {
                     Text(
                         text = selectedOption,
@@ -49,6 +52,13 @@ fun CustomDropdown(
                 }
 
                 DropdownMenu(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
                 ) {
