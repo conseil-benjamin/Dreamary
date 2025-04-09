@@ -271,6 +271,8 @@ fun AudioPlayerDream(
 ) {
     val isPlaying by viewModel.isPlaying.collectAsState(initial = false)
     var isListening by remember { mutableStateOf(false) }
+    val lastDreamDuration by viewModel.lastDreamDuration.collectAsState()
+    val duration by viewModel.recordingDuration.collectAsState(initial = 0L)
 
     // Audio player si disponible
     dream.audio.get("path")?.let { audioPath ->
@@ -293,39 +295,74 @@ fun AudioPlayerDream(
                         modifier = Modifier
                             .size(24.dp)
                             .clickable {
-                                // todo : la mise en pause de l'audio ne marche pas
-                                if (!isPlaying && !isListening) {
+                                if (!isPlaying && !viewModel.isMediaPlayerReleased()) {
                                     isListening = true
-                                    viewModel.playAudioFromFirebase(dream.audio["url"].toString())
-                                } else if (isPlaying) {
+                                    viewModel.resumeAudio()
+                                } else if (!isPlaying && viewModel.isMediaPlayerReleased()) {
                                     isListening = false
-                                    viewModel.pauseRecording()
+                                    viewModel.playAudioFromFirebase(audioPath.toString())
                                 } else {
                                     isListening = true
-                                    viewModel.resumeRecording()
+                                    viewModel.pauseAudio()
                                 }
-                            },
+                            }
                     )
-                    if (!isPlaying) {
+                    if (!isPlaying && viewModel.isMediaPlayerReleased()) {
                         Text(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             text = "Écouter l'enregistrement",
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     } else {
-                        // todo : nul à chier l'image la changer
-                        AsyncImage(
-                            model = R.drawable.sound_wave,
-                            contentDescription = "Audio",
+                        Row (
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
                             modifier = Modifier
-                                .padding(start = 8.dp)
-                                .size(24.dp)
+                                .weight(1f)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.back_10s),
+                                contentDescription = "retour arrière",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable{
+                                        viewModel.seekBackward()
+                                    }
+                                    .padding(end = 16.dp)
+                                    .fillMaxWidth()
+                            )
+                            Icon(
+                                painter = painterResource(id = R.drawable.avance_10s),
+                                contentDescription = "avance",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable{
+                                        viewModel.seekForward()
+                                    }
+                                    .padding(end = 16.dp)
+                                    .fillMaxWidth()
+                            )
+                        }
+                        Row (
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .weight(1f)
+                        ) {
+                            Text(
+                                text = "$duration / ${dream?.audio?.get("duration")}s",
+                                modifier = Modifier.padding(start = 8.dp),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                    if (!isPlaying && viewModel.isMediaPlayerReleased()){
+                        Text(
+                            text = "${dream?.audio?.get("duration")}s",
+                            modifier = Modifier.padding(start = 8.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
-                    Text(
-                        text = "${dream?.audio?.get("duration")}s",
-                        modifier = Modifier.padding(start = 8.dp),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
                 }
             }
         }
@@ -381,11 +418,11 @@ fun ContextSleepDream(dream: Dream) {
                     label = "Heure de coucher",
                     value = if (context["time"] == "") "Non renseigné" else context["time"].toString()
                 )
-                DetailRow(
-                    icon = R.drawable.thermometre,
-                    label = "Température",
-                    value = if (context["temperature"] == 0) "Non renseigné" else context["temperature"].toString()
-                )
+//                DetailRow(
+//                    icon = R.drawable.thermometre,
+//                    label = "Température",
+//                    value = if (context["temperature"] == 0) "Non renseigné" else context["temperature"].toString()
+//                )
                 DetailRow(
                     icon = R.drawable.bed,
                     label = "Réveils",
@@ -479,7 +516,7 @@ fun Environment(dream: Dream) {
                 DetailRow(
                     icon = R.drawable.lune,
                     label = "Couleurs dominantes",
-                    value = if (environment["dominantColor"] == "Non renseigné") "Non renseigné" else environment["dominantColor"].toString()
+                    value = if (environment["dominantColors"] == "Non renseigné") "Non renseigné" else environment["dominantColors"].toString()
                 )
             }
         }

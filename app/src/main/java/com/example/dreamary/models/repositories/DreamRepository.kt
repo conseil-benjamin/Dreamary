@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import com.example.dreamary.models.entities.Badge
 import com.example.dreamary.models.entities.Dream
@@ -400,7 +401,7 @@ class DreamRepository(private val context: Context) {
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun updateUser(dream: Dream, type: String): Flow<Map<String, Any>> = flow {
+    fun updateUser(dream: Dream, type: String, dreamBeforeUpdate: Dream?): Flow<Map<String, Any>> = flow {
         Log.i("UpdateUser", "est rentré dans updateUser")
         val sharedPreferences = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
         val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
@@ -418,11 +419,48 @@ class DreamRepository(private val context: Context) {
         val actualStreak = userObject.dreamStats["currentStreak"] as Int
         var longestStreak = userObject.dreamStats["longestStreak"] as Int
         var nbDreams = userObject.dreamStats["totalDreams"] as Int
-        // todo : gérer le cas ou l'utilisateur change de type de rêve et donc on devra décrémenter le nombre de cauchemars si l'ancien est un cauchemar
-        val nbLucidDream = if (dream.lucid) userObject.dreamStats["lucidDreams"] as Int + 1 else userObject.dreamStats["lucidDreams"] as Int
-        val nbNightmares = if (dream.dreamType == "Cauchemar") userObject.dreamStats["nightmares"] as Int + 1 else userObject.dreamStats["nightmares"] as Int
-        var xpGained = 0
+        var nbLucidDream = if (dream.lucid) userObject.dreamStats["lucidDreams"] as Int + 1 else userObject.dreamStats["lucidDreams"] as Int
+        var nbNightmares = if (dream.dreamType == "Cauchemar") userObject.dreamStats["nightmares"] as Int + 1 else userObject.dreamStats["nightmares"] as Int
 
+        if (type == "update"){
+            if(dreamBeforeUpdate?.dreamType == "Cauchemar" && dream.dreamType == "Lucide"){
+                run {
+                    Log.i("updateUser", "Cauchemar -> Lucide")
+                    nbNightmares -= 1
+                }
+            } else if (dreamBeforeUpdate?.dreamType == "Lucide" && dream.dreamType == "Cauchemar") {
+                run {
+                    nbLucidDream -= 1
+                }
+            }
+            else if ((dreamBeforeUpdate?.dreamType == "Cauchemar" && dream.dreamType == "Rêve")) {
+                run {
+                    Log.i("updateUser", "Cauchemar -> Rêve")
+                    nbNightmares -= 1
+                }
+            } else if (dreamBeforeUpdate?.dreamType == "Lucide" && dream.dreamType != "Rêve") {
+                run {
+                    Log.i("updateUser", "Cauchemar -> Rêve")
+                    nbLucidDream -= 1
+                }
+            } else if (dreamBeforeUpdate?.dreamType == "Cauchemar" && dream.dreamType == "Cauchemar") {
+                run {
+                    Log.i("updateUser", "Cauchemar -> Cauchemar")
+                    nbNightmares -= 1
+                }
+            } else if (dreamBeforeUpdate?.dreamType == "Lucide" && dream.dreamType == "Lucide") {
+                run {
+                    Log.i("updateUser", "Lucide -> Lucide")
+                    nbLucidDream -= 1
+                }
+            } else if (dreamBeforeUpdate?.dreamType == "Rêve" && dream.dreamType == "Rêve") {
+                // do nothing
+            }
+        } else {
+            nbDreams += 1
+        }
+
+        var xpGained = 0
         if (actualStreak >= 3 && type == "add") {
             xp += 100
             xpGained += 100
@@ -511,7 +549,7 @@ class DreamRepository(private val context: Context) {
             ),
             dreamStats = mapOf(
                 "nightmares" to nbNightmares,
-                "totalDreams" to (userObject.dreamStats["totalDreams"] ?: 0) + 1,
+                "totalDreams" to nbDreams,
                 "lucidDreams" to nbLucidDream,
                 "longestStreak" to longestStreak,
                 "currentStreak" to currentStreak
@@ -567,6 +605,14 @@ class DreamRepository(private val context: Context) {
     ): Flow<DreamResponse> = flow {
         val userFirebase = context.getSharedPreferences("user", Context.MODE_PRIVATE)
         Log.i("dream5", dream.toString())
+        val dreamBeforeUpdate = db.collection("users")
+            .document(dream.userId)
+            .collection("dreams")
+            .document(dream.id)
+            .get()
+            .await()
+
+        val dreamBeforeUpdateObject = dreamBeforeUpdate.toObject(Dream::class.java)
 
         try {
             if (dream.audio["path"] != "" && dream.audio["url"] == "") {
@@ -627,7 +673,7 @@ class DreamRepository(private val context: Context) {
             coroutineScope {
                 Log.d("DreamRepository", "Updating user")
                 try {
-                    updateUser(dream, "update")
+                    updateUser(dream, "update", dreamBeforeUpdateObject)
                         .collect { updatedUser ->
                             Log.i("DreamRepository", updatedUser.toString())
                             Log.d("DreamRepository", "Processing updated user")
@@ -850,7 +896,7 @@ class DreamRepository(private val context: Context) {
             coroutineScope {
                 Log.d("DreamRepository", "Updating user")
                     try {
-                        updateUser(dream, "add")
+                        updateUser(dream, "add", null)
                             .collect { updatedUser ->
                                 Log.i("DreamRepository", updatedUser.toString())
                                 Log.d("DreamRepository", "Processing updated user")

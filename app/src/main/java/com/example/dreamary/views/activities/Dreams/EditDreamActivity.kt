@@ -286,15 +286,13 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
     var url by remember { mutableStateOf("") }
 
     LaunchedEffect(path) {
-        if (path.isNotEmpty()) {
             dream = dream.copy(
                 audio = dream.audio.toMutableMap().apply {
                     this["path"] = path
                     this["duration"] = duration
-                    this["url"] = ""
+                    this["url"] = url
                 }
             )
-        }
         Log.d("dreamCopyAUDIO", dream.toString())
     }
 
@@ -602,6 +600,7 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
 
                     item {
                         DescribeDream(
+                            dream.audio["path"] as String,
                             showOverlay,
                             title = title,
                             content = content,
@@ -609,7 +608,9 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
                             onValueChangeContent = { content = it },
                             hasAudioPermission = hasAudioPermission,
                             checkAudioPermission = checkAudioPermission(),
-                            onChangeShowOverlay = { showOverlay = it }
+                            onChangeShowOverlay = { showOverlay = it } ,
+                            onPathChanged = { path = it },
+                            onUrlChanged = { url = it },
                         )
                     }
 
@@ -753,6 +754,7 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
                             audio = dream.audio as MutableMap<String, Any>,
                             onPathChanged = { path = it },
                             onAudioChanged = { dream.audio = it },
+                            onUrlChanged = { url = it },
                             onDurationChanged = { duration = it.toLong() }
                         )
                     }

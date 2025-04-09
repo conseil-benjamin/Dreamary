@@ -67,8 +67,10 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
     }
 
     fun playAudioFromFirebase(url: String) {
+        _recordingDuration.value = 0
         audioRecorder.playAudioFromFirebase(url) { isPlaying ->
             _isPlaying.value = isPlaying
+            startDurationCounter()
         }
     }
 
@@ -139,6 +141,7 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
         viewModelScope.launch {
             try {
                 audioRecorder.seekBackward()
+                _recordingDuration.value -= 5
             } catch (e: Exception) {
                 Log.e("AudioRecorderViewModel", "Error seeking backward", e)
             }
@@ -149,6 +152,7 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
         viewModelScope.launch {
             try {
                 audioRecorder.seekForward()
+                _recordingDuration.value += 5
             } catch (e: Exception) {
                 Log.e("AudioRecorderViewModel", "Error seeking forward", e)
             }

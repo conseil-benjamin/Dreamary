@@ -115,7 +115,7 @@ class AudioRecorder(private val context: Context) {
 
     fun playAudioFromFirebase(url: String, onReady: (Boolean) -> Unit) {
         try {
-            val mediaPlayer = MediaPlayer().apply {
+            mediaPlayer = MediaPlayer().apply {
                 setDataSource(url)
                 prepareAsync()
 
