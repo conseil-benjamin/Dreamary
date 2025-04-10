@@ -49,6 +49,7 @@ import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,7 +77,9 @@ fun DetailsDreamActivity(
     viewModel: DetailsDreamViewModel = viewModel(
         factory = DetailsDreamViewModelFactory (DreamRepository(LocalContext.current), SocialRepository(LocalContext.current))
     ),
-    ) {
+    viewModelAudio: AudioRecorderViewModel = viewModel(
+        factory = AudioRecorderViewModelFactory(LocalContext.current)
+    )) {
     val dream = viewModel.dream.collectAsState(initial = Dream()).value
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -87,7 +90,14 @@ fun DetailsDreamActivity(
         viewModel.getDreamById(dreamId, currentUserUid)
     }
 
-    DreamaryTheme {
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModelAudio.cancelRecording()
+        }
+    }
+
+
+        DreamaryTheme {
         Scaffold(
             topBar = {
                 TopAppBar(

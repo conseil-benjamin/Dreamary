@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.dreamary.models.repositories.AudioRecorder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -155,6 +156,19 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
                 _recordingDuration.value += 5
             } catch (e: Exception) {
                 Log.e("AudioRecorderViewModel", "Error seeking forward", e)
+            }
+        }
+    }
+
+    fun cancelRecording() {
+        viewModelScope.launch {
+            try {
+                audioRecorder.cancelRecording()
+                _audioFilePath.value = null
+                _isRecording.value = false
+                stopDurationCounter()
+            } catch (e: Exception) {
+                Log.e("AudioRecorderViewModel", "Error canceling recording", e)
             }
         }
     }

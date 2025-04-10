@@ -32,7 +32,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.dreamary.R
 import com.example.dreamary.ui.theme.DreamaryTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -55,8 +54,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.zIndex
 import com.example.dreamary.models.entities.Group
@@ -67,6 +66,7 @@ import com.example.dreamary.models.repositories.SocialRepository
 import com.example.dreamary.viewmodels.audio.AudioRecorderViewModelFactory
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.utils.SnackbarType
+import com.example.dreamary.viewmodels.audio.AudioRecorderViewModel
 import com.example.dreamary.viewmodels.dreams.DetailsDreamViewModel
 import com.example.dreamary.viewmodels.dreams.DetailsDreamViewModelFactory
 import com.example.dreamary.views.components.Loading
@@ -124,7 +124,10 @@ private fun ConfirmDialog(
 @Composable
 fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamViewModel = viewModel(
     factory = DetailsDreamViewModelFactory (DreamRepository(LocalContext.current), SocialRepository(LocalContext.current))
-), dreamId: String
+), dreamId: String,
+   viewModelAudio: AudioRecorderViewModel = viewModel(
+       factory = AudioRecorderViewModelFactory(LocalContext.current)
+   )
 ) {
     var dreamTypeChoose by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("")}
@@ -140,6 +143,12 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
 
     BackHandler {
         showConfirmLeaveActivity = true
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModelAudio.cancelRecording()
+        }
     }
 
     var listPeopleShareWithEdit:Share by remember { mutableStateOf(Share(listOf<User>(), listOf<Group>())) }
@@ -600,6 +609,7 @@ fun EditDreamActivity (navController: NavController, viewModel: DetailsDreamView
 
                     item {
                         DescribeDream(
+                            dream.audio["duration"] as Number,
                             dream.audio["path"] as String,
                             showOverlay,
                             title = title,

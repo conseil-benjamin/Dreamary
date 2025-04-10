@@ -3,6 +3,7 @@ package com.example.dreamary.viewmodels.audio
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.dreamary.models.repositories.AudioRecorder
 
 class AudioRecorderViewModelFactory(
     private val context: Context

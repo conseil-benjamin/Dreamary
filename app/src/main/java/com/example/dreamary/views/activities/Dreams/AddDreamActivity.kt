@@ -58,7 +58,6 @@ import com.example.dreamary.viewmodels.dreams.AddDreamViewModelFactory
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import android.Manifest
 import android.app.TimePickerDialog
 import androidx.activity.compose.BackHandler
@@ -71,10 +70,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -82,6 +78,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.DisposableEffect
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -474,6 +471,12 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
     val peopleAlreadySharedWith: Share = Share(emptyList(), emptyList())
     BackHandler {
         showConfirmLeaveActivity = true
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModelAudio.cancelRecording()
+        }
     }
 
     var dream by remember { mutableStateOf(Dream(
@@ -878,6 +881,7 @@ fun AddDreamActivity (navController: NavController, viewModel: AddDreamViewModel
 
                     item {
                         DescribeDream(
+                            0,
                             "",
                             showOverlay,
                             title = title,
@@ -1451,6 +1455,7 @@ fun OverlayAudioPlayer (
 
 @Composable
 fun DescribeDream(
+    durationFromFirebase: Number,
     pathAudioFromFirebase: String,
     showOverlay: Boolean,
     title: String,
@@ -1652,7 +1657,7 @@ fun DescribeDream(
                             .weight(1f)
                     ) {
                         Text(
-                            text = "$duration / ${if (pathEmpty) "dqdqz" else lastDreamDuration }s",
+                            text = "$duration / ${if (!pathEmpty) durationFromFirebase.toLong() else lastDreamDuration }s",
                             modifier = Modifier.padding(start = 8.dp),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -1660,7 +1665,7 @@ fun DescribeDream(
                 }
                 if (!isPlaying && viewModel.isMediaPlayerReleased()){
                     Text(
-                        text = "${lastDreamDuration}s",
+                        text = "${if (!pathEmpty) durationFromFirebase.toLong() else lastDreamDuration }s",
                         modifier = Modifier.padding(start = 8.dp),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )

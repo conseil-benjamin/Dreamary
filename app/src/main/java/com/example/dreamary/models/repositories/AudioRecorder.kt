@@ -1,13 +1,9 @@
-package com.example.dreamary.viewmodels.audio
+package com.example.dreamary.models.repositories
 
 import android.content.Context
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.util.Log
-import androidx.compose.runtime.MutableState
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.storage.storage
 import java.io.File
 
 class AudioRecorder(private val context: Context) {
@@ -85,6 +81,10 @@ class AudioRecorder(private val context: Context) {
     }
 
     fun cancelRecording() {
+        mediaPlayer?.apply {
+            stop()
+            release()
+        }
         mediaRecorder?.apply {
             stop()
             release()
