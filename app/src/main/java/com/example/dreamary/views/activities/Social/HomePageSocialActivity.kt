@@ -314,14 +314,17 @@ fun SocialAppBar(
     var expanded by remember { mutableStateOf(false) }
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(175.dp),
         color = MaterialTheme.colorScheme.background,
         shadowElevation = 4.dp
     ) {
         Column(
+            verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(20.dp)
         ) {
             // Title + Icon
             Row(

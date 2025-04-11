@@ -54,4 +54,5 @@
     <string name="AddDream_label_emotions">"Emotions felt "</string>
     <string name="AddDream_label_typeOfDream">Type of dream</string>
     <string name="MoreInformations_error_profile_picture">Please select an image</string>
+    <string name="request_notification_permission">You must accept notification permission to receive notifications.</string>
 </resources>

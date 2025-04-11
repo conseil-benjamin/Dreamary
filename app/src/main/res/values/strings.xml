@@ -57,4 +57,5 @@
     <string name="AddDream_label_emotions">Emotions ressenties</string>
     <string name="AddDream_label_typeOfDream">Type de rêve</string>
     <string name="MoreInformations_error_profile_picture">Veuillez sélectionner une image</string>
+    <string name="request_notification_permission">Vous devez accepter la permission de notification pour en recevoir.</string>
 </resources>

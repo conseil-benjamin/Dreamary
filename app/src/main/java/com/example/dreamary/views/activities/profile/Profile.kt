@@ -654,38 +654,6 @@ private fun BadgeItem(
 }
 
 @Composable
-private fun AchievementsSection() {
-    Column(
-        modifier = Modifier.padding(16.dp)
-    ) {
-        Text(
-            text = "Succès",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            AchievementItem(
-                name = "Explorer Onirique",
-                progress = 75,
-                total = 100
-            )
-            AchievementItem(
-                name = "Maître de la Lucidité",
-                progress = 24,
-                total = 50
-            )
-            AchievementItem(
-                name = "Collectionneur de Symboles",
-                progress = 45,
-                total = 50
-            )
-        }
-    }
-}
-
-@Composable
 private fun AchievementItem(
     name: String,
     progress: Int,
