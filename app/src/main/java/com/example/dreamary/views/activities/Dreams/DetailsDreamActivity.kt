@@ -67,6 +67,34 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.collections.forEach
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.ColorFilter
+
+@Composable
+fun ConfirmDialogDeleteDream(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    text: String,
+    title: String
+) {
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text(text = title) },
+        text = { Text(text = text) },
+        confirmButton = {
+            TextButton(onClick = { onConfirm() }) {
+                Text("Confirmer")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Annuler")
+            }
+        }
+    )
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,8 +124,25 @@ fun DetailsDreamActivity(
         }
     }
 
+    var showDialogDeleteDream by remember { mutableStateOf(false) }
+    var coroutineScope = rememberCoroutineScope()
 
-        DreamaryTheme {
+    if (showDialogDeleteDream) {
+        ConfirmDialogDeleteDream(
+            onConfirm = {
+                viewModel.deleteDream(dreamId, currentUserUid, coroutineScope)
+                navController.popBackStack()
+                showDialogDeleteDream = false
+            },
+            onDismiss = {
+                showDialogDeleteDream = false
+            },
+            text = "Êtes-vous sûr de vouloir supprimer ce rêve ? Ceci est irréversible.",
+            title = "Supprimer un rêve."
+        )
+    }
+
+    DreamaryTheme {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -113,6 +158,14 @@ fun DetailsDreamActivity(
                         }
                     },
                     actions = {
+                        IconButton(onClick = { showDialogDeleteDream = true }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.delete_dream),
+                                contentDescription = "Supprimer",
+                                modifier = Modifier
+                                    .size(24.dp)
+                            )
+                        }
                         IconButton(onClick = { /* TODO: Share */ }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.share),
@@ -261,7 +314,8 @@ fun HeaderDream(dream: Dream) {
                 text = dream.title,
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(top = 8.dp),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = Color.Black
             )
             Text(
                 text = dream.createdAt.toDate().format(),
@@ -599,6 +653,15 @@ fun Emotions(dream: Dream){
                         "Mélancolie" -> Color(0xFFdceaff)
                         else -> MaterialTheme.colorScheme.surface
                     },
+                    labelColor = when (emotion) {
+                        "Peur" -> Color(0xFF8f7036)
+                        "Joie" -> Color(0xFF8c4f54)
+                        "Confusion" -> Color(0xFF5a347c)
+                        "Paix" -> Color(0xFF67a189)
+                        "Excitation" -> Color(0xFF77412c)
+                        "Mélancolie" -> Color(0xFF3f559e)
+                        else -> MaterialTheme.colorScheme.onSurface
+                    }
                 )
             )
         }
@@ -641,7 +704,8 @@ private fun DetailRow(
         Image(
             painter = painterResource(id = icon),
             contentDescription = null,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.dp),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
         )
         Column(
             modifier = Modifier

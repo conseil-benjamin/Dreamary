@@ -67,6 +67,9 @@ import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.routes.NavRoutes
 import com.google.gson.Gson
 import java.time.ZoneId
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.text.style.TextOverflow
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
@@ -372,8 +375,11 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
                     .fillMaxSize()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     navController.navigate(NavRoutes.DreamDetail.createRoute(dream.id))
@@ -382,97 +388,122 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
+                        .fillMaxWidth()
                 ) {
-                    Column (
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                    // En-tête avec titre et badge lucide
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
                             text = dream.title,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
                         )
+
                         if (dream.lucid) {
-                            Card (
-                                modifier = Modifier
-                                    .padding(8.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onPrimary),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                            ){
-                                Row (
+                            Card(
+                                modifier = Modifier.padding(start = 8.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                            ) {
+                                Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.Center,
-                                ){
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                ) {
                                     Icon(
                                         imageVector = Icons.Default.Star,
                                         contentDescription = "Lucide",
-                                        tint = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .padding(8.dp)
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(16.dp)
                                     )
+                                    Spacer(modifier = Modifier.width(4.dp))
                                     Text(
                                         text = "Lucide",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier
-                                            .padding(end = 8.dp)
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Medium
                                     )
                                 }
                             }
                         }
                     }
-                    Row (
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                    ) {
-                        Text(
-                            text = dream.content,
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 2
-                        )
-                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Contenu du rêve
+                    Text(
+                        text = dream.content,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Pied de carte avec émotions et date
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Row (
-                            verticalAlignment = Alignment.CenterVertically
+                        // Émotions
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
                         ) {
                             dream.emotions.take(2).forEach { emotion ->
-                                    Card (
-                                        modifier = Modifier
-                                            .padding(8.dp),
-                                        shape = RoundedCornerShape(8.dp),
-                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onPrimary),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                                    ) {
-                                        Text(
-                                            text = emotion,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            modifier = Modifier.padding(8.dp),
-                                        )
-                                    }
+                                Card(
+                                    modifier = Modifier
+                                        .padding(end = 8.dp),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    ),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                                ) {
+                                    Text(
+                                        text = emotion,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.Medium
+                                        ),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    )
+                                }
+                            }
+                            if (dream.emotions.size > 2) {
+                                Text(
+                                    text = "+${dream.emotions.size - 2}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             }
                         }
 
-                        Row (
-                            verticalAlignment = Alignment.CenterVertically
-                        ){
-                            Text(
-                                text = if (cal1.get(Calendar.DAY_OF_MONTH) == Calendar.getInstance()
-                                        .get(Calendar.DAY_OF_MONTH)
-                                ) "Aujourd'hui" else if (cal1.get(Calendar.DAY_OF_MONTH) == Calendar.getInstance()
-                                        .get(Calendar.DAY_OF_MONTH) - 1
-                                ) "Hier" else dateJourMoisAnnee,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
+                        // Date
+                        Text(
+                            text = if (cal1.get(Calendar.DAY_OF_MONTH) == Calendar.getInstance()
+                                    .get(Calendar.DAY_OF_MONTH)
+                            ) "Aujourd'hui" else if (cal1.get(Calendar.DAY_OF_MONTH) == Calendar.getInstance()
+                                    .get(Calendar.DAY_OF_MONTH) - 1
+                            ) "Hier" else dateJourMoisAnnee,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
                     }
                 }
             }

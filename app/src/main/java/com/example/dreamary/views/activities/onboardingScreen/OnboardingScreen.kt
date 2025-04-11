@@ -87,6 +87,18 @@ fun OnboardingScreen(
                 "Détection de patterns récurrents",
                 "Prédictions personnalisées"
             )
+        ),
+        OnboardingPage(
+            title = "Fonctionnalités Premium",
+            subtitle = "Débloquez le potentiel de vos rêves",
+            description = "Accédez à des outils avancés et à des analyses approfondies pour maximiser votre expérience de rêve.",
+            icon = Icons.Default.Star,
+            gradientColors = listOf(Color(0xFFF59E0B), Color(0xFFEF4444)),
+            features = listOf(
+                "Collections de rêves",
+                "Analyse avancée de vos rêves",
+                "Statistiques détaillées",
+            )
         )
     )
 

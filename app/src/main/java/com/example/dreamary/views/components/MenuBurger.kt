@@ -98,7 +98,7 @@ fun MenuBurgerScreen(
                         icon = Icons.Default.Info,
                         title = "Guide onirique",
                         subtitle = "Apprenez le rêve lucide",
-                        onClick = { navController.navigate(NavRoutes.Home.route) }
+                        onClick = { navController.navigate(NavRoutes.Guide.route) }
                     )
                     SettingItem(
                         icon = Icons.Default.Info,

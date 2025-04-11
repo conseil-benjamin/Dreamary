@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.dreamary.R
 import com.example.dreamary.models.entities.Dream
@@ -22,7 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class DetailsDreamViewModel(private val repository: DreamRepository, private val socialRepository: SocialRepository) : ViewModel() {
+class DetailsDreamViewModel(private val dreamRepository: DreamRepository, private val socialRepository: SocialRepository) : ViewModel() {
     private var _dream = MutableStateFlow<Dream?>(null)
     var dream = _dream.asStateFlow()
 
@@ -33,7 +34,7 @@ class DetailsDreamViewModel(private val repository: DreamRepository, private val
 
     fun getDreamById(idDream: String, userId: String){
         viewModelScope.launch {
-            repository.getDreamById(idDream, userId).collect { dream ->
+            dreamRepository.getDreamById(idDream, userId).collect { dream ->
                 _dream.value = dream
                 Log.d("DetailsDreamViewModel", "getDreamById: $dream")
             }
@@ -51,7 +52,7 @@ class DetailsDreamViewModel(private val repository: DreamRepository, private val
             return
         }
         viewModelScope.launch {
-            repository.updateDream(
+            dreamRepository.updateDream(
                 dream,
                 onSuccess = {
                     onSaved()
@@ -84,7 +85,7 @@ class DetailsDreamViewModel(private val repository: DreamRepository, private val
         }
 
         viewModelScope.launch {
-            repository.addTag(
+            dreamRepository.addTag(
                 tag,
                 onSuccess = {
                     coroutineScope.launch {
@@ -114,6 +115,26 @@ class DetailsDreamViewModel(private val repository: DreamRepository, private val
                     Log.d("FriendsAndGroup", "Friends and group: $friendsAndGroup")
                     _friendsAndGroup.value = friendsAndGroup
                 }
+        }
+    }
+
+    fun deleteDream(dreamId: String, userId: String, coroutineScope: CoroutineScope){
+        viewModelScope.launch {
+            Log.i("deleteDream", "deletingDreams")
+            dreamRepository.deleteDream(
+                dreamId,
+                userId,
+                onSuccess = {
+                    coroutineScope.launch {
+                        SnackbarManager.showMessage("Rêve supprimé avec succès", SnackbarType.SUCCESS)
+                    }
+                },
+                onFailure = { e ->
+                    coroutineScope.launch {
+                        SnackbarManager.showMessage("Erreur lors de la suppression du rêve", SnackbarType.ERROR)
+                    }
+                }
+            )
         }
     }
 

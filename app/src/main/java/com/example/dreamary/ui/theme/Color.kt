@@ -2,30 +2,43 @@ package com.example.dreamary.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Couleurs communes
-val Primary = Color(0xFF4F46E5)        // Indigo-600
-val PrimaryVariant = Color(0xFF4338CA)  // Indigo-700
-val Secondary = Color(0xFF06B6D4)       // Cyan-500
-val Error = Color(0xFFDC2626)           // Red-600
-val Success = Color(0xFF10B981)         // Green-500
-val Warning = Color(0xFFF59E0B)         // Amber-500
+// Couleurs communes - Palette principale
+val Primary = Color(0xFF8B6D9C)        // Violet lavande - Couleur principale
+val PrimaryVariant = Color(0xFF6A517B)  // Violet lavande plus foncé
+val Secondary = Color(0xFFE6A65D)       // Ocre doré - Accent
+val SecondaryVariant = Color(0xFFD49149) // Ocre doré plus foncé
+val Tertiary = Color(0xFF5D8A7D)        // Vert sauge - Couleur complémentaire
+
+// Couleurs fonctionnelles
+val Error = Color(0xFFD14D4D)           // Rouge doux
+val Success = Color(0xFF5EB489)         // Vert apaisant
+val Warning = Color(0xFFE6B95D)         // Ambre doux
+val Info = Color(0xFF5D95E6)            // Bleu informatif
 
 // Couleurs du thème clair
-val LightBackground = Color(0xFFf7f3ed)      // Beige clair
-val LightSurface = Color(0xFFF5ECE3)         // White
-val LightSurfaceVariant = Color(0xFF78539b)  // Gray-100
-val LightOnBackground = Color(0xFF111827)    // Gray-900
-val LightOnSurface = Color(0xFF000000)       // Gray-800
-val LightOnSurfaceVariant = Color(0xFFF5ECE3) // Gray-600
-val LightOutline = Color(0xFFD1D5DB)         // Gray-300
-val LightSelectElement = Color(0xeff2fe)
-val LightSelectElementColor = Color(0x514cbf)
+val LightBackground = Color(0xFFF7F3ED)      // Beige clair (conservé)
+val LightSurface = Color(0xFFFCF9F5)         // Beige très clair pour surfaces
+val LightSurfaceVariant = Color(0xFFEEE6DC)  // Beige légèrement plus foncé
+val LightOnBackground = Color(0xFF2D2A33)    // Gris presque noir
+val LightOnSurface = Color(0xFF3D3A43)       // Gris très foncé
+val LightOnSurfaceVariant = Color(0xFF635F69) // Gris moyen
+val LightOutline = Color(0xFFCEC5B7)         // Beige grisé pour contours
+val LightSelectElement = Color(0xFFF1E9F6)   // Violet très pâle pour sélection
+val LightSelectElementColor = Color(0xFF8B6D9C) // Violet lavande pour texte sélectionné
 
 // Couleurs du thème sombre
-val DarkBackground = Color(0xFF2E3B55)      // Gray-950
-val DarkSurface = Color(0xFF111827)         // Gray-900
-val DarkSurfaceVariant = Color(0xFF1F2937)  // Gray-800
-val DarkOnBackground = Color(0xFFF9FAFB)    // Gray-50
-val DarkOnSurface = Color(0xFFF3F4F6)       // Gray-100
-val DarkOnSurfaceVariant = Color(0xFFE5E7EB) // Gray-200
-val DarkOutline = Color(0xFF4B5563)         // Gray-600
+val DarkBackground = Color(0xFF2A2438)      // Violet très foncé
+val DarkSurface = Color(0xFF332C42)         // Violet foncé
+val DarkSurfaceVariant = Color(0xFF3F3652)  // Violet foncé légèrement plus clair
+val DarkOnBackground = Color(0xFFF2EDF7)    // Blanc légèrement violet
+val DarkOnSurface = Color(0xFFE9E4EF)       // Blanc cassé
+val DarkOnSurfaceVariant = Color(0xFFCDC5D8) // Gris clair violacé
+val DarkOutline = Color(0xFF544966)         // Violet grisé pour contours
+val DarkSelectElement = Color(0xFF4A3B63)   // Violet moyen pour sélection
+val DarkSelectElementColor = Color(0xFFBEA5D3) // Lavande clair pour texte sélectionné
+
+// Couleurs additionnelles pour enrichir la palette
+val NeutralLight = Color(0xFFE3DFD7)        // Beige neutre clair
+val NeutralDark = Color(0xFF4A4553)         // Gris violacé neutre
+val AccentLight = Color(0xFFF3DFC1)         // Beige doré clair
+val AccentDark = Color(0xFF745C92)          // Violet moyen

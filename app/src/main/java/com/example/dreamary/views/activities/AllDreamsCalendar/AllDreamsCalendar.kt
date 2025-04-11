@@ -32,6 +32,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -104,6 +106,7 @@ import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.collections.forEach
 import kotlin.text.isNotEmpty
+import androidx.compose.material3.MenuDefaults
 
 data class CategoryDream(
     val name: String,
@@ -249,7 +252,7 @@ fun ModalSelectDream(
 
                     // Sous-titre ou message
                     Text(
-                        text = "${dreams.size} rêve(s) trouvé(s)",
+                        text = "${dreams.size} ${if (dreams.size == 1 ) "rêve trouvé" else "rêves trouvés"}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
@@ -280,33 +283,6 @@ fun ModalSelectDream(
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
-
-                    // Boutons d'action en bas
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        OutlinedButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.padding(end = 8.dp),
-                            shape = RoundedCornerShape(20.dp)
-                        ) {
-                            Text("Annuler")
-                        }
-
-                        Button(
-                            onClick = onConfirm,
-                            modifier = Modifier,
-                            shape = RoundedCornerShape(20.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Text("Confirmer")
-                        }
-                    }
                 }
             }
         }
@@ -520,22 +496,38 @@ fun ResearchForAdream(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
                     modifier = Modifier
-                        .clip(shape = RoundedCornerShape(12.dp))
+                        .clip(shape = RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surface)
                         .fillMaxWidth()
-                        .heightIn(max = 220.dp)
+                        .heightIn(max = 320.dp) // Augmenté pour plus d'espace
+                        .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)),
                 ) {
                     if (dreamsFound.isEmpty() && research.isNotEmpty()) {
-                        DropdownMenuItem(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = "Aucun résultat",
+                                    tint = MaterialTheme.colorScheme.outline,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Aucun rêve trouvé",
                                     textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                            },
-                            onClick = { expanded = false }
-                        )
+                            }
+                        }
                     } else {
                         dreamsFound.forEach { dream ->
                             val localDate = dream.createdAt.toDate().toInstant()
@@ -545,65 +537,163 @@ fun ResearchForAdream(
                             val dateJourMoisAnnee = "${localDate.dayOfMonth}/${localDate.monthValue}/${localDate.year}"
 
                             DropdownMenuItem(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                colors = MenuDefaults.itemColors(
+                                    textColor = MaterialTheme.colorScheme.onSurface,
+                                    leadingIconColor = MaterialTheme.colorScheme.primary,
+                                    trailingIconColor = MaterialTheme.colorScheme.outline,
+                                    disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                ),
                                 text = {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 6.dp)
                                     ) {
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Column {
+                                        // En-tête avec titre et date
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
                                             Text(
                                                 text = dream.title,
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    fontWeight = FontWeight.Bold
-                                                )
+                                                style = MaterialTheme.typography.bodyLarge.copy(
+                                                    fontWeight = FontWeight.SemiBold
+                                                ),
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.weight(1f)
                                             )
+
                                             Text(
                                                 text = dateJourMoisAnnee,
                                                 style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                color = MaterialTheme.colorScheme.outline
                                             )
-                                            Text(
-                                                text = dream.dreamType,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                            Row (
-                                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        }
+
+                                        Spacer(modifier = Modifier.height(4.dp))
+
+                                        // Type de rêve
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Card(
+                                                shape = RoundedCornerShape(8.dp),
+                                                colors = CardDefaults.cardColors(
+                                                    containerColor = if (dream.dreamType.contains("lucide", ignoreCase = true))
+                                                        MaterialTheme.colorScheme.primaryContainer
+                                                    else MaterialTheme.colorScheme.tertiaryContainer,
+                                                    contentColor = if (dream.dreamType.contains("lucide", ignoreCase = true))
+                                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                                    else MaterialTheme.colorScheme.onTertiaryContainer
+                                                ),
+                                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                                ) {
+                                                    if (dream.dreamType.contains("lucide", ignoreCase = true)) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Star,
+                                                            contentDescription = "Type de rêve",
+                                                            modifier = Modifier.size(14.dp),
+                                                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                        )
+                                                    } else {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Star,
+                                                            contentDescription = "Type de rêve",
+                                                            modifier = Modifier.size(14.dp),
+                                                            tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                                        )
+                                                    }
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text(
+                                                        text = dream.dreamType,
+                                                        style = MaterialTheme.typography.labelSmall.copy(
+                                                            fontWeight = FontWeight.Medium
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        // Émotions
+                                        if (dream.emotions.isNotEmpty()) {
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 modifier = Modifier.padding(top = 8.dp)
                                             ) {
                                                 dream.emotions.take(2).forEach { emotion ->
-                                                    Card (
-                                                        modifier = Modifier
-                                                            .padding(8.dp),
+                                                    Card(
                                                         shape = RoundedCornerShape(8.dp),
-                                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onPrimary),
-                                                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                                        colors = CardDefaults.cardColors(
+                                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                                        ),
+                                                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                                                     ) {
                                                         Text(
                                                             text = emotion,
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            modifier = Modifier.padding(8.dp),
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                                         )
                                                     }
+                                                }
+
+                                                // Indicateur pour plus d'émotions
+                                                if (dream.emotions.size > 2) {
+                                                    Text(
+                                                        text = "+${dream.emotions.size - 2}",
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = MaterialTheme.colorScheme.outline
+                                                    )
                                                 }
                                             }
                                         }
                                     }
-                                    Divider(
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        thickness = 1.dp,
-                                        modifier = Modifier.padding(bottom = 5.dp)
-                                    )
                                 },
                                 onClick = {
                                     expanded = false
                                     navController.navigate(
                                         NavRoutes.DreamDetail.createRoute(dream.id)
                                     )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = "Rêve",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.PlayArrow,
+                                        contentDescription = "Voir détails",
+                                        tint = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.size(16.dp)
+                                    )
                                 }
                             )
+
+                            // Séparateur entre les éléments
+                            if (dream != dreamsFound.last()) {
+                                Divider(
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                    thickness = 0.5.dp,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -804,7 +894,7 @@ fun DreamCalendarScreen(
                             .clickable {
                                 dreamsToShowInModal.clear()
                                 dreamsToShowInModal.addAll(dreamsForToday)
-                                dayDreamToShow.value = "${day.date.monthValue}/${day.date.dayOfMonth}/${day.date.year}"
+                                dayDreamToShow.value = "${day.date.dayOfMonth}/${day.date.monthValue}/${day.date.year}"
                                 showModalDreams.value = true
                             },
                         contentAlignment = Alignment.Center
@@ -817,7 +907,7 @@ fun DreamCalendarScreen(
                                 dreamsForToday.isNotEmpty() && dreamsForToday[0].dreamType == "Lucide" -> Color(0xFFa25ce6)
                                 dreamsForToday.isNotEmpty() -> Color(0xFF5682d5)
                                 isSelected -> Color.White
-                                else -> Color.Black
+                                else -> MaterialTheme.colorScheme.onSurface
                             }
                         )
                     }

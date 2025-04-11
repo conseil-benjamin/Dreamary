@@ -47,6 +47,26 @@ class DreamRepository(private val context: Context) {
     private val _dream = MutableStateFlow<Dream?>(null)
     var dream = _dream.asStateFlow()
 
+    fun deleteDream(dreamId: String, userId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit){
+        try {
+            db.collection("users")
+                .document(userId)
+                .collection("dreams")
+                .document(dreamId)
+                .delete()
+                .addOnSuccessListener {
+                    Log.d("Firestore", "Document successfully deleted!")
+                    onSuccess()
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Firestore", "Error deleting document", e)
+                    onFailure(e)
+                }
+        } catch (e: Exception){
+            Log.e("errorDeleteDream", "idk", e)
+        }
+    }
+
     suspend fun getUserBadgesViewModel(userId: String): StateFlow<List<Badge>> {
         try {
             Log.i("getUserBadges", "est rentré dans getUserBadges")

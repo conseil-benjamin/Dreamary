@@ -1525,8 +1525,8 @@ fun DescribeDream(
         modifier = Modifier
             .fillMaxWidth(),
         label = "Titre du rêve",
-        maxCharacters = 25,
-        maxLine = 1,
+        maxCharacters = 50,
+        maxLine = 2,
         height = 100,
         maxHeight = 100
     )

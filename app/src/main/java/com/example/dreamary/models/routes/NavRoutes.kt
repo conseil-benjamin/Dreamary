@@ -35,4 +35,5 @@ sealed class NavRoutes(val route: String) {
     }
     data object LeaderBoard : NavRoutes("leaderBoard")
     data object Stats : NavRoutes("stats")
+    data object Guide : NavRoutes("guide")
 }
