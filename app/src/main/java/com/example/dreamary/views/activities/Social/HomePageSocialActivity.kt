@@ -1,15 +1,9 @@
 package com.example.dreamary.views.activities.Social
 
-import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +25,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -47,7 +42,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -81,7 +75,6 @@ import com.example.dreamary.utils.SnackbarManager
 import com.example.dreamary.viewmodels.Social.SocialViewModel
 import com.example.dreamary.viewmodels.profile.SocialViewModelFactory
 import com.example.dreamary.views.components.BottomNavigation
-import com.example.dreamary.views.components.Divider
 import com.example.dreamary.views.components.Loading
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -149,6 +142,7 @@ fun HomePageSocialActivity(
     }
 
     LaunchedEffect(friendRequests) {
+        Log.i("friendRequests825", friendRequests.toString())
         viewModel.getFriendsForCurrentUser(currentUser?.uid ?: "")
     }
 
@@ -232,6 +226,7 @@ fun HomePageSocialActivity(
                         },
                         onFriendDelete = { friendId ->
                             viewModel.deleteFriend(currentUser?.uid ?: "", friendId)
+                            viewModel.getFriendsForCurrentUser(currentUser?.uid ?: "")
                         }
                     )
                 }
@@ -344,7 +339,7 @@ fun SocialAppBar(
                         modifier = Modifier
                             .size(28.dp)
                             .clip(CircleShape)
-                            .clickable { navController.navigate(NavRoutes.LeaderBoard.route)}
+                            .clickable { navController.navigate(NavRoutes.LeaderBoard.route) }
                             .padding(4.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -1026,7 +1021,7 @@ fun FriendRequestCard(
                         .background(MaterialTheme.colorScheme.error)
                         .clickable {
                             showConfirmDialog = true
-                                   },
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -1052,12 +1047,15 @@ fun FriendCard(
     onFriendDelete: (String) -> Unit
 ) {
     var showDropdownMoreActions by remember { mutableStateOf(false) }
-
+    var expanded by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     if (showConfirmDialog) {
         ShowConfirmDialog(
-            onConfirm = { onFriendDelete(friend.uid) },
+            onConfirm = {
+                onFriendDelete(friend.uid)
+                showConfirmDialog = false
+                        },
             onDismiss = { showConfirmDialog = false },
             text = "Vous êtes sur le point de supprimer votre ami.",
             title = "Supprimer l'ami",
@@ -1112,39 +1110,55 @@ fun FriendCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Icon(
-                painter = painterResource(id = R.drawable.comment),
-                contentDescription = "Send message",
+            Row (
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .size(24.dp)
-                    .clickable { onMessageClick() },
-                tint = MaterialTheme.colorScheme.onPrimary
-            )
-            Icon(
-                painter = painterResource(id = R.drawable.dots),
-                contentDescription = "More options",
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable {
-                        showDropdownMoreActions = !showDropdownMoreActions
-                    },
-                tint = MaterialTheme.colorScheme.onPrimary
-            )
-            if (showDropdownMoreActions) {
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = "Supprimer l'ami",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier
-                                .clickable{
-                                    showConfirmDialog = true
-                                }
-                        )
-                    },
-                    onClick = { showDropdownMoreActions = false }
+                    .padding(start = 8.dp)
+                    .clickable { onMessageClick() }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.comment),
+                    contentDescription = "Send message",
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(end = 8.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
+            }
+            Row (
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .clickable { expanded = true }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.dots),
+                    contentDescription = "More options",
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(end = 8.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "Supprimer l'ami",
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .clickable{
+                                        showConfirmDialog = true
+                                        expanded = false
+                                    }
+                            )
+                        },
+                        onClick = { showDropdownMoreActions = false }
+                    )
+                }
             }
         }
     }

@@ -222,8 +222,10 @@ class SocialRepository(private val context: Context) {
                 .where(
                     Filter.and(
                         Filter.equalTo("status", "accepted"),
-                        Filter.equalTo("sender", friendId),
-                        Filter.equalTo("receveir", userId)
+                        Filter.or(
+                            Filter.equalTo("sender", friendId),
+                            Filter.equalTo("sender", userId),
+                        )
                     )
                 )
                 .get()
@@ -246,8 +248,10 @@ class SocialRepository(private val context: Context) {
                 .where(
                     Filter.and(
                         Filter.equalTo("status", "accepted"),
-                        Filter.equalTo("sender", friendId),
-                        Filter.equalTo("receveir", userId)
+                        Filter.or(
+                            Filter.equalTo("sender", friendId),
+                            Filter.equalTo("sender", userId),
+                        )
                     )
                 )
                 .get()
@@ -291,7 +295,7 @@ class SocialRepository(private val context: Context) {
 
             val friends = getFriendsForCurrentUser(userId)
             _listFriends.value = friends.value
-            Log.i("delete", friends.toString())
+            Log.i("delete", friends.value.toString())
             SnackbarManager.showMessage("Ami supprimé avec succès !", SnackbarType.SUCCESS)
             return listFriends
         } catch (e: Exception) {
