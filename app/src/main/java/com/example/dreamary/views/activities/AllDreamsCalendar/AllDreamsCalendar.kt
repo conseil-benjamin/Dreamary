@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -439,10 +441,7 @@ fun ResearchForAdream(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 32.dp)
     ) {
         // todo: faire en sorte que si l'on sort de la recherche et qu'on revient dessus cela remette
         // todo: à jour les dreamsFound
@@ -450,9 +449,8 @@ fun ResearchForAdream(
             expanded = expanded,
             onExpandedChange = { expanded = it },
             modifier = Modifier
-                .fillMaxWidth()
                 .clip(shape = RoundedCornerShape(12.dp))
-                .shadow(4.dp, RoundedCornerShape(12.dp))
+                .padding(0.dp)
         ) {
             OutlinedTextField(
                 value = research,
@@ -462,7 +460,9 @@ fun ResearchForAdream(
                     dreamsFound = onResearchChange(it, dreams) as MutableList<Dream>
                 },
                 placeholder = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.search),
                             contentDescription = "Search",
@@ -471,7 +471,7 @@ fun ResearchForAdream(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Recherchez un rêve",
+                            text = "Recherchez un rêve...",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -498,14 +498,11 @@ fun ResearchForAdream(
                     modifier = Modifier
                         .clip(shape = RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surface)
-                        .fillMaxWidth()
-                        .heightIn(max = 320.dp) // Augmenté pour plus d'espace
-                        .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)),
+                        .heightIn(max = 220.dp) // définit la taille maximale du menu déroulant
                 ) {
                     if (dreamsFound.isEmpty() && research.isNotEmpty()) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
                                 .padding(vertical = 16.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -538,8 +535,7 @@ fun ResearchForAdream(
 
                             DropdownMenuItem(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                    .padding(8.dp),
                                 colors = MenuDefaults.itemColors(
                                     textColor = MaterialTheme.colorScheme.onSurface,
                                     leadingIconColor = MaterialTheme.colorScheme.primary,
@@ -551,12 +547,10 @@ fun ResearchForAdream(
                                 text = {
                                     Column(
                                         modifier = Modifier
-                                            .fillMaxWidth()
                                             .padding(vertical = 6.dp)
                                     ) {
                                         // En-tête avec titre et date
                                         Row(
-                                            modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
@@ -668,22 +662,22 @@ fun ResearchForAdream(
                                         NavRoutes.DreamDetail.createRoute(dream.id)
                                     )
                                 },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Star,
-                                        contentDescription = "Rêve",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                },
-                                trailingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.PlayArrow,
-                                        contentDescription = "Voir détails",
-                                        tint = MaterialTheme.colorScheme.outline,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
+//                                leadingIcon = {
+//                                    Icon(
+//                                        imageVector = Icons.Default.Star,
+//                                        contentDescription = "Rêve",
+//                                        tint = MaterialTheme.colorScheme.primary,
+//                                        modifier = Modifier.size(24.dp)
+//                                    )
+//                                },
+//                                trailingIcon = {
+//                                    Icon(
+//                                        imageVector = Icons.Default.PlayArrow,
+//                                        contentDescription = "Voir détails",
+//                                        tint = MaterialTheme.colorScheme.outline,
+//                                        modifier = Modifier.size(16.dp)
+//                                    )
+//                                }
                             )
 
                             // Séparateur entre les éléments
@@ -846,7 +840,14 @@ fun DreamCalendarScreen(
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
     ) {
-        DaysOfWeekTitle(daysOfWeek = daysOfWeek)
+        Row (
+            modifier = Modifier
+                .padding(bottom = 16.dp)
+        ) {
+            DaysOfWeekTitle(
+                daysOfWeek = daysOfWeek
+            )
+        }
         VerticalCalendar(
             state = state,
             monthHeader = { month ->
@@ -917,14 +918,14 @@ fun DreamCalendarScreen(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .offset(x = (5).dp, y = (-5).dp)
-                                .size(14.dp)
+                                .size(16.dp)
                                 .background(Color.Red, shape = CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = if (dreamsForToday.size > 9) "9+" else dreamsForToday.size.toString(),
                                 color = Color.White,
-                                fontSize = 8.sp,
+                                fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                             )
                         }
@@ -932,7 +933,7 @@ fun DreamCalendarScreen(
                 }
             },
             modifier = Modifier
-                .height(340.dp)
+                .height(250.dp)
                 .padding(8.dp)
         )
     }

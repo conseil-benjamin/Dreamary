@@ -61,6 +61,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import com.example.dreamary.R
+import ir.ehsannarmani.compose_charts.ColumnChart
+import ir.ehsannarmani.compose_charts.models.BarProperties
+import ir.ehsannarmani.compose_charts.models.Bars
 
 @Composable
 fun StatsScreen(
@@ -323,29 +326,35 @@ fun LineChart() {
 @Composable
 fun ComposableCharts () {
     ColumnChart(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 22.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+            .padding(horizontal = 22.dp),
         data = remember {
             listOf(
                 Bars(
                     label = "Jan",
                     values = listOf(
-                        Bars.Data(label = "Linux", value = 50.0, color = Brush.verticalGradient(...),
+                        Bars.Data(label = "Linux", value = 50.0, color = Brush.verticalGradient(
+                            colors = listOf(Color(0xFF2BC0A1), Color(0xFF2BC0A1).copy(alpha = .5f))
+                        )),
                         Bars.Data(label = "Windows", value = 70.0, color = SolidColor(Color.Red))
                     ),
                 ),
                 Bars(
                     label = "Feb",
                     values = listOf(
-                        Bars.Data(label = "Linux", value = 80.0, color = Brush.verticalGradient(...),
+                        Bars.Data(label = "Linux", value = 80.0, color = Brush.verticalGradient(
+                            colors = listOf(Color(0xFF2BC0A1), Color(0xFF2BC0A1).copy(alpha = .5f))
+                        )),
                         Bars.Data(label = "Windows", value = 60.0, color = SolidColor(Color.Red))
                     ),
                 )
             )
         },
         barProperties = BarProperties(
-            radius = Bars.Data.Radius.Rectangle(topRight = 6.dp, topLeft = 6.dp),
+            cornerRadius = Bars.Data.Radius.Rectangle(topRight = 6.dp, topLeft = 6.dp),
             spacing = 3.dp,
-            strokeWidth = 20.dp
         ),
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
