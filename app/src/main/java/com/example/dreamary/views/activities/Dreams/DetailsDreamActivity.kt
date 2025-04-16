@@ -585,12 +585,12 @@ fun Environment(dream: Dream) {
                     value = if (environment["season"] == "Non renseigné") "Non renseigné" else environment["season"].toString()
                 )
                 DetailRow(
-                    icon = R.drawable.cloudy,
+                    icon = R.drawable.weather,
                     label = "Météo",
                     value = if (environment["weather"] == "Non renseigné") "Non renseigné" else environment["weather"].toString()
                 )
                 DetailRow(
-                    icon = R.drawable.lune,
+                    icon = R.drawable.palette,
                     label = "Couleurs dominantes",
                     value = if (environment["dominantColors"] == "Non renseigné") "Non renseigné" else environment["dominantColors"].toString()
                 )
