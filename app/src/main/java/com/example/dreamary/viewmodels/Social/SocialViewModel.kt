@@ -111,6 +111,7 @@ class SocialViewModel(private val socialRepository: SocialRepository) : ViewMode
         viewModelScope.launch {
             socialRepository.deleteFriend(userId, friendId).collect { friends ->
                 _listFriends.value = friends
+                getFriendsForCurrentUser(userId)
             }
         }
     }

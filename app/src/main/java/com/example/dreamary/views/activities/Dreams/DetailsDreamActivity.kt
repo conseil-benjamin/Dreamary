@@ -337,6 +337,18 @@ fun AudioPlayerDream(
     var isListening by remember { mutableStateOf(false) }
     val lastDreamDuration by viewModel.lastDreamDuration.collectAsState()
     val duration by viewModel.recordingDuration.collectAsState(initial = 0L)
+    var timeLeft by remember { mutableStateOf(0L) }
+
+    LaunchedEffect(duration) {
+        Log.i("AudioPlayerDream", "Duration: $duration")
+        Log.i("AudioPlayerDream", "Last Dream Duration: $lastDreamDuration")
+        Log.i("AudioPlayerDream", "Is Listening:" + dream.audio["duration"])
+        Log.i("AudioPlayerDream", "Is Listening")
+        timeLeft = (dream.audio["duration"] as Number).toLong() - duration
+        if (timeLeft < 0) {
+            timeLeft = 0
+        }
+    }
 
     // Audio player si disponible
     dream.audio.get("path")?.let { audioPath ->
@@ -380,9 +392,10 @@ fun AudioPlayerDream(
                     } else {
                         Row (
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
+                            horizontalArrangement = Arrangement.SpaceEvenly,
                             modifier = Modifier
-                                .weight(1f)
+                                .weight(2f)
+                                .padding(start = 8.dp)
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.back_10s),
@@ -392,8 +405,6 @@ fun AudioPlayerDream(
                                     .clickable{
                                         viewModel.seekBackward()
                                     }
-                                    .padding(end = 16.dp)
-                                    .fillMaxWidth()
                             )
                             Icon(
                                 painter = painterResource(id = R.drawable.avance_10s),
@@ -403,8 +414,6 @@ fun AudioPlayerDream(
                                     .clickable{
                                         viewModel.seekForward()
                                     }
-                                    .padding(end = 16.dp)
-                                    .fillMaxWidth()
                             )
                         }
                         Row (
@@ -414,18 +423,21 @@ fun AudioPlayerDream(
                                 .weight(1f)
                         ) {
                             Text(
-                                text = "$duration / ${dream?.audio?.get("duration")}s",
+                                text = "${if (timeLeft < 10) "0:0$timeLeft" else if (timeLeft < 60) "0:$timeLeft" else "${timeLeft / 60}:${timeLeft % 60}"}",
                                 modifier = Modifier.padding(start = 8.dp),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                         }
                     }
                     if (!isPlaying && viewModel.isMediaPlayerReleased()){
-                        Text(
-                            text = "${dream?.audio?.get("duration")}s",
-                            modifier = Modifier.padding(start = 8.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
+                        val duration = dream?.audio?.get("duration") as? Long
+                        if (duration != null) {
+                            Text(
+                                text = "${if (duration < 10) "0:0$duration" else if (duration < 60) "0:$duration" else "${duration / 60}:${duration % 60}"}",
+                                modifier = Modifier.padding(start = 8.dp),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
                     }
                 }
             }

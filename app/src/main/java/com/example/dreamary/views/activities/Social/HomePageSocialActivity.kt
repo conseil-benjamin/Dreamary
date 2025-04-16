@@ -226,7 +226,6 @@ fun HomePageSocialActivity(
                         },
                         onFriendDelete = { friendId ->
                             viewModel.deleteFriend(currentUser?.uid ?: "", friendId)
-                            viewModel.getFriendsForCurrentUser(currentUser?.uid ?: "")
                         }
                     )
                 }
