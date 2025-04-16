@@ -24,6 +24,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -310,7 +311,7 @@ private fun Header(
                 StatItem(value = user?.dreamStats?.get("totalDreams").toString(), label = "Rêves")
                 StatItem(value = user?.dreamStats?.get("lucidDreams").toString(), label = "Lucides")
                 StatItem(value = user?.social?.get("followers").toString(), label = "Abonnés")
-                StatItem(value = (user?.social?.get("groups") as List<*>).toString().length.toString(), label = "Groupes")
+                //StatItem(value = (user?.social?.get("groups") as List<*>).toString().length.toString(), label = "Groupes")
             }
         }
     }
@@ -591,7 +592,7 @@ private fun BadgesSection(
                         Text("Voir tout")
                     }
                 }
-                FlowRow (
+                Row (
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
@@ -620,7 +621,8 @@ private fun BadgeItem(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.padding(bottom = 8.dp),
+        modifier = modifier
+            .padding(bottom = 8.dp, end = 8.dp, start = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Surface(
@@ -642,6 +644,8 @@ private fun BadgeItem(
         }
         Text(
             text = name,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(top = 4.dp)
         )
