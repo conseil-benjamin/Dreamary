@@ -262,7 +262,7 @@ fun DreamContent(dream: Dream) {
                 .padding(16.dp)
         ) {
             Text(
-                text = dream?.content ?: "",
+                text = if (!dream?.content.isNullOrEmpty()) dream.content else "Aucun contenu.",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -351,7 +351,7 @@ fun AudioPlayerDream(
     }
 
     // Audio player si disponible
-    dream.audio.get("path")?.let { audioPath ->
+    dream.audio.get("url")?.let { audioPath ->
         if (audioPath.toString().isNotEmpty()) {
             Card(
                 modifier = Modifier
@@ -369,7 +369,6 @@ fun AudioPlayerDream(
                         painter = painterResource(id = if(!isPlaying) R.drawable.play else R.drawable.pause),
                         contentDescription = "Lecture audio",
                         modifier = Modifier
-                            .weight(2f)
                             .size(24.dp)
                             .clickable {
                                 if (!isPlaying && !viewModel.isMediaPlayerReleased()) {
@@ -395,7 +394,7 @@ fun AudioPlayerDream(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             modifier = Modifier
-                                .weight(2f)
+                                .weight(4f)
                                 .padding(start = 8.dp)
                         ) {
                             Icon(
@@ -424,7 +423,7 @@ fun AudioPlayerDream(
                                 .weight(1f)
                         ) {
                             Text(
-                                text = "${if (timeLeft < 10) "0:0$timeLeft" else if (timeLeft < 60) "0:$timeLeft" else "${timeLeft / 60}:${timeLeft % 60}"}",
+                                text = "${String.format("%d:%02d", timeLeft / 60, timeLeft % 60)}",
                                 modifier = Modifier.padding(start = 8.dp),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
@@ -434,7 +433,7 @@ fun AudioPlayerDream(
                         val duration = dream?.audio?.get("duration") as? Long
                         if (duration != null) {
                             Text(
-                                text = "${if (duration < 10) "0:0$duration" else if (duration < 60) "0:$duration" else "${duration / 60}:${duration % 60}"}",
+                                text = "${String.format("%d:%02d", duration / 60, duration % 60)}",
                                 modifier = Modifier.padding(start = 8.dp),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
