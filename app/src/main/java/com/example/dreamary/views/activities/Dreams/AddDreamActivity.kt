@@ -1406,9 +1406,9 @@ fun OverlayAudioPlayer (
                 }
         )
         Text(
-            text = "Enregistrement en cours : $duration s",
+            text = "Enregistrement en cours : ${String.format("%d:%02d", duration / 60, duration % 60)}",
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
         )
 
         Row (
@@ -1476,6 +1476,7 @@ fun DescribeDream(
     var storage = Firebase.storage
     var storageRef = storage.reference
     var imageRef = storageRef.child(R.drawable.lune.toString())
+    val isRecording by viewModel.isRecording.collectAsState()
 
     val audioFilePath by viewModel.audioFilePath.collectAsState()
     var isListening by remember { mutableStateOf(false) }
@@ -1486,6 +1487,39 @@ fun DescribeDream(
 
     val isPlaying by viewModel.isPlaying.collectAsState(initial = false)
     val lastDreamDuration by viewModel.lastDreamDuration.collectAsState()
+    var timeLeft by remember { mutableStateOf(if (durationFromFirebase.toLong() > 0) durationFromFirebase.toLong() else lastDreamDuration) }
+
+    LaunchedEffect(duration) {
+        Log.i("AudioPlayerDream", "Duration: $duration")
+        Log.i("AudioPlayerDream", "Last Dream Duration: $lastDreamDuration")
+        Log.i("AudioPlayerDream", "Is Listening:" + durationFromFirebase)
+        Log.i("AudioPlayerDream", "Is Listening")
+        timeLeft = if (durationFromFirebase == 0) {
+            Log.e("AudioPlayerDream", "Duration from Firebase is 0")
+            lastDreamDuration - duration
+        } else {
+            Log.e("AudioPlayerDream", "Duration from Firebase is nottttttttttttttt 0")
+            durationFromFirebase.toLong() - duration
+        }
+        Log.i("AudioPlayerDream", "Time Left: $timeLeft")
+        if (timeLeft < 0 && !isRecording) {
+            Log.e("AudioPlayerDream", "Duration from Firebase is less than 0")
+            timeLeft = 0
+            viewModel.stopRecording()
+        }
+        if (durationFromFirebase == 0 && !isRecording) {
+            if (timeLeft > lastDreamDuration) {
+                Log.e("AudioPlayerDream", "Duration from Firebase is greater than 0" + durationFromFirebase)
+                timeLeft = durationFromFirebase.toLong()
+            }
+        } else if (durationFromFirebase.toLong() > 0 && !isRecording) {
+            if (timeLeft > durationFromFirebase.toLong()) {
+                Log.e("AudioPlayerDream", "Duration from Firebase is greater than 0" + durationFromFirebase)
+                timeLeft = durationFromFirebase.toLong()
+            }
+        }
+        Log.i("AudioPlayerDream", "Time Left: $timeLeft")
+    }
 
     if (showConfirmDialog){
         ConfirmDialog(
@@ -1623,9 +1657,9 @@ fun DescribeDream(
                 } else {
                     Row (
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.SpaceEvenly,
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(4f)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.back_10s),
@@ -1635,7 +1669,6 @@ fun DescribeDream(
                                 .clickable{
                                     viewModel.seekBackward()
                                 }
-                                .padding(end = 16.dp)
                                 .fillMaxWidth()
                         )
                         Icon(
@@ -1646,7 +1679,6 @@ fun DescribeDream(
                                 .clickable{
                                     viewModel.seekForward()
                                 }
-                                .padding(end = 16.dp)
                                 .fillMaxWidth()
                         )
                     }
@@ -1657,7 +1689,7 @@ fun DescribeDream(
                             .weight(1f)
                     ) {
                         Text(
-                            text = "$duration / ${if (!pathEmpty) durationFromFirebase.toLong() else lastDreamDuration }s",
+                            text = "${String.format("%d:%02d", timeLeft / 60, timeLeft % 60)}",
                             modifier = Modifier.padding(start = 8.dp),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -1665,7 +1697,7 @@ fun DescribeDream(
                 }
                 if (!isPlaying && viewModel.isMediaPlayerReleased()){
                     Text(
-                        text = "${if (!pathEmpty) durationFromFirebase.toLong() else lastDreamDuration }s",
+                        text = "${if (!pathEmpty) String.format("%d:%02d", durationFromFirebase.toLong() / 60, durationFromFirebase.toLong() % 60) else String.format("%d:%02d", lastDreamDuration / 60, lastDreamDuration % 60)}",
                         modifier = Modifier.padding(start = 8.dp),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
