@@ -369,6 +369,7 @@ fun AudioPlayerDream(
                         painter = painterResource(id = if(!isPlaying) R.drawable.play else R.drawable.pause),
                         contentDescription = "Lecture audio",
                         modifier = Modifier
+                            .weight(2f)
                             .size(24.dp)
                             .clickable {
                                 if (!isPlaying && !viewModel.isMediaPlayerReleased()) {
