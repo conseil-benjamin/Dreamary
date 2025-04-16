@@ -142,7 +142,11 @@ class AudioRecorderViewModel(private val audioRecorder: AudioRecorder) : ViewMod
         viewModelScope.launch {
             try {
                 audioRecorder.seekBackward()
-                _recordingDuration.value -= 5
+                if (_recordingDuration.value > 5) {
+                    _recordingDuration.value -= 5
+                } else {
+                    _recordingDuration.value = 0
+                }
             } catch (e: Exception) {
                 Log.e("AudioRecorderViewModel", "Error seeking backward", e)
             }
