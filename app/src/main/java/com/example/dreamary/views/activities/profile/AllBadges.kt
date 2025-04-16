@@ -58,11 +58,11 @@ val categories = listOf(
     Category("Exploration", "Exploration", Icons.Default.Star)
 )
 
-enum class Rarity(val color: Color, val textColor: Color) {
-    COMMON(Color.Gray, Color.Gray),
-    RARE(Color.Blue, Color.Blue),
-    EPIC(Color.Magenta, Color.Magenta),
-    LEGENDARY(Color.Yellow, Color.Yellow)
+enum class Rarity(val color: Color, val textColor: String) {
+    COMMON(Color.Gray, textColor = "Commun"),
+    RARE(Color.Blue, textColor = "Rare"),
+    EPIC(Color.Magenta, textColor = "Épique"),
+    LEGENDARY(Color.Yellow, textColor = "Légendaire")
 }
 
 @Composable
@@ -242,7 +242,7 @@ fun BadgeCard(badge: Badge) {
         "Commun" -> Rarity.COMMON
         "Rare" -> Rarity.RARE
         "Epique" -> Rarity.EPIC
-        "Legendaire" -> Rarity.LEGENDARY
+        "Légendaire" -> Rarity.LEGENDARY
         else -> Rarity.COMMON
     }
 
@@ -344,7 +344,7 @@ fun RarityLegend() {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = rarity.name.lowercase().capitalize(Locale.ROOT),
+                    text = rarity.textColor,
                     fontSize = 12.sp
                 )
             }
