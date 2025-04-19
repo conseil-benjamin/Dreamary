@@ -246,6 +246,89 @@ fun BadgeCard(badge: Badge) {
         else -> Rarity.COMMON
     }
 
+    var badegToShowInModal by remember { mutableStateOf<Badge?>(null) }
+    var showModal by remember { mutableStateOf(false) }
+
+    if (showModal) {
+        AlertDialog(
+            onDismissRequest = { showModal = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    AsyncImage(
+                        model = badegToShowInModal?.iconUrl,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = badegToShowInModal?.name ?: "",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = badegToShowInModal?.description ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    Divider()
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "XP: ${badegToShowInModal?.xp}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Objectif: ${badegToShowInModal?.objective}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "${
+                            ((badegToShowInModal?.progression?.toFloat()
+                                ?.div(badge.objective.toFloat()))?.times(100))?.toInt()
+                        }% accompli",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LinearProgressIndicator(
+                        progress = (badegToShowInModal?.progression?.toFloat()?.times(100))?.div(
+                            100f
+                        ) ?: 0f ,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp)),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showModal = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Fermer")
+                }
+            }
+        )
+    }
+
     Card(
         modifier = Modifier
             .scale(scale)
@@ -254,7 +337,10 @@ fun BadgeCard(badge: Badge) {
                 color = (if (badge.unlocked) color.color else Color.Gray.copy(alpha = 0.2f)),
                 shape = RoundedCornerShape(8.dp)
             )
-            .clickable { }
+            .clickable {
+                showModal = true
+                badegToShowInModal = badge
+            }
             .alpha(if (badge.unlocked) 1f else 0.5f),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
