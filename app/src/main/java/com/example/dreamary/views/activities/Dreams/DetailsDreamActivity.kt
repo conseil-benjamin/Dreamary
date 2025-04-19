@@ -72,6 +72,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.ColorFilter
 
+const val NO_DATA_RENSEIGNED = "Non renseigné"
+
 @Composable
 fun ConfirmDialogDeleteDream(
     onConfirm: () -> Unit,
@@ -492,7 +494,7 @@ fun ContextSleepDream(dream: Dream) {
                 DetailRow(
                     icon = R.drawable.lhorloge,
                     label = "Heure de coucher",
-                    value = if (context["time"] == "") "Non renseigné" else context["time"].toString()
+                    value = if (context["time"] == "") NO_DATA_RENSEIGNED else context["time"].toString()
                 )
 //                DetailRow(
 //                    icon = R.drawable.thermometre,
@@ -502,12 +504,12 @@ fun ContextSleepDream(dream: Dream) {
                 DetailRow(
                     icon = R.drawable.bed,
                     label = "Réveils",
-                    value = if (context["nbReveils"] == "") "Non renseigné" else context["nbReveils"].toString()
+                    value = if (context["nbReveils"] == "") NO_DATA_RENSEIGNED else context["nbReveils"].toString()
                 )
                 DetailRow(
                     icon = R.drawable.son,
                     label = "Niveau sonore",
-                    value = if (context["noiseLevel"] == "") "Non renseigné" else context["noiseLevel"].toString()
+                    value = if (context["noiseLevel"] == "") NO_DATA_RENSEIGNED else context["noiseLevel"].toString()
                 )
             }
         }
@@ -577,22 +579,22 @@ fun Environment(dream: Dream) {
                 DetailRow(
                     icon = R.drawable.security,
                     label = "Type",
-                    value = if (environment["type"] == "Non renseigné") "Non renseigné" else environment["type"].toString()
+                    value = if (environment["type"] == NO_DATA_RENSEIGNED) NO_DATA_RENSEIGNED else environment["type"].toString()
                 )
                 DetailRow(
                     icon = R.drawable.season,
                     label = "Saison",
-                    value = if (environment["season"] == "Non renseigné") "Non renseigné" else environment["season"].toString()
+                    value = if (environment["season"] == NO_DATA_RENSEIGNED) NO_DATA_RENSEIGNED else environment["season"].toString()
                 )
                 DetailRow(
                     icon = R.drawable.weather,
                     label = "Météo",
-                    value = if (environment["weather"] == "Non renseigné") "Non renseigné" else environment["weather"].toString()
+                    value = if (environment["weather"] == NO_DATA_RENSEIGNED) NO_DATA_RENSEIGNED else environment["weather"].toString()
                 )
                 DetailRow(
                     icon = R.drawable.palette,
                     label = "Couleurs dominantes",
-                    value = if (environment["dominantColors"] == "Non renseigné") "Non renseigné" else environment["dominantColors"].toString()
+                    value = if (environment["dominantColors"] == NO_DATA_RENSEIGNED) NO_DATA_RENSEIGNED else environment["dominantColors"].toString()
                 )
             }
         }
