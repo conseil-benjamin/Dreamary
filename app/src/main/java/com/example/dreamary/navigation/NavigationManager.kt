@@ -31,6 +31,7 @@ import com.example.dreamary.views.activities.Dreams.DetailsDreamActivity
 import com.example.dreamary.views.activities.Dreams.EditDreamActivity
 import com.example.dreamary.views.activities.Dreams.SuccessAddDream
 import com.example.dreamary.views.activities.Guide.GuideActivity
+import com.example.dreamary.views.activities.Premium.PremiumPresentation
 import com.example.dreamary.views.activities.Social.ChatScreenFriendActivity
 import com.example.dreamary.views.activities.profile.ProfileActivity
 import com.example.dreamary.views.activities.Social.HomePageSocialActivity
@@ -233,6 +234,12 @@ fun NavigationManager() {
         }
         composable(NavRoutes.Guide.route){
             GuideActivity(navController)
+        }
+
+        composable(NavRoutes.Premium.route){
+            PremiumPresentation(
+                navController = navController,
+            )
         }
     }
 }

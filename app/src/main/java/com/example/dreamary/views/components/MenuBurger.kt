@@ -119,7 +119,7 @@ fun MenuBurgerScreen(
                         icon = Icons.Default.Star,
                         title = "Premium",
                         subtitle = "Accédez à toutes les fonctionnalités",
-                        onClick = { navController.navigate(NavRoutes.Home.route) }
+                        onClick = { navController.navigate(NavRoutes.Premium.route) }
                     )
                     SettingItem(
                         icon = Icons.Default.Notifications,
