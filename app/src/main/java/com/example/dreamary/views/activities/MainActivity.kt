@@ -7,6 +7,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.dreamary.ui.theme.DreamaryTheme
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
                 android.graphics.Color.TRANSPARENT
             )
         )
+        installSplashScreen()
 
         setContent {
             DreamaryTheme {

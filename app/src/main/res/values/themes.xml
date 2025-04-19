@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <style name="Theme.Dreamary.Splash" parent="Theme.Dreamary">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/dreamary</item>
+        <item name="postSplashScreenTheme">@style/Theme.Dreamary</item>
+    </style>
+
+
     <style name="Theme.Dreamary" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>
