@@ -5,6 +5,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -109,6 +110,11 @@ import java.util.Locale
 import kotlin.collections.forEach
 import kotlin.text.isNotEmpty
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.runtime.setValue
+import com.example.dreamary.views.activities.AllDreamsCalendar.Collections.Collections
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 data class CategoryDream(
     val name: String,
@@ -183,6 +189,13 @@ fun AllDreamsCalendar(
 
                 item {
                     DreamCalendarScreen(dreams, userData, selectedCategory.value, navController)
+                }
+
+                item{
+                    Collections(
+                        navController = navController,
+                        userData
+                    )
                 }
             }
         }
@@ -407,7 +420,8 @@ fun CardDreamInModal(
     }
 }
 
-
+// Marche nickel les rêves sont bien stocké tous dans dreamsFound mais problème
+// ils doivent être mal récupéré dans le composant qui l'appelle
 fun onResearchChange(research: String, dreams: List<Dream>): List<Dream> {
     Log.d("Research", "Recherche de rêve: $research")
     Log.d("Research", "Liste des rêves: $dreams")
@@ -437,7 +451,8 @@ fun ResearchForAdream(
     var research by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
-    var dreamsFound = remember { mutableListOf<Dream>() }
+    var dreamsFound by remember { mutableStateOf<List<Dream>>(emptyList()) }
+    var debounceJob by remember { mutableStateOf<Job?>(null) }
 
     Column(
         modifier = Modifier
@@ -457,10 +472,23 @@ fun ResearchForAdream(
                 onValueChange = {
                     research = it
                     expanded = true
-                    dreamsFound = onResearchChange(it, dreams) as MutableList<Dream>
+
+                    debounceJob?.cancel()
+                    debounceJob = coroutineScope.launch {
+                        delay(250)
+                        if (it.isNotEmpty()) {
+                            expanded = true
+                            dreamsFound = onResearchChange(it, dreams) as MutableList<Dream>
+                            Log.d("Research1", "Rêves trouvés: $dreamsFound")
+                        } else {
+                            expanded = false
+                        }
+                    }
                 },
                 placeholder = {
                     Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -491,7 +519,7 @@ fun ResearchForAdream(
 
             // Dropdown menu
             if (expanded && research.isNotEmpty()) {
-                Log.i("dreamsFound45", dreamsFound.toString())
+                Log.d("dreamsFound45", "$dreamsFound")
                 ExposedDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
