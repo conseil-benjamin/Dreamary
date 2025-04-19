@@ -85,6 +85,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+const val PROFILE_PICTURE_CONTENT_DESCRIPTION = "Profile picture"
+
 @Composable
 private fun ShowConfirmDialog(
     onConfirm: () -> Unit,
@@ -846,7 +848,7 @@ fun ConversationCard(
         ) {
             AsyncImage(
                 model = otherUserPicture,
-                contentDescription = "Profile picture",
+                contentDescription = PROFILE_PICTURE_CONTENT_DESCRIPTION,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(56.dp)
@@ -963,7 +965,7 @@ fun FriendRequestCard(
         ) {
             AsyncImage(
                 model = user.profilePictureUrl,
-                contentDescription = "Profile picture",
+                contentDescription = PROFILE_PICTURE_CONTENT_DESCRIPTION,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(56.dp)
@@ -1078,7 +1080,7 @@ fun FriendCard(
         ) {
             AsyncImage(
                 model = friend.profilePictureUrl,
-                contentDescription = "Profile picture",
+                contentDescription = PROFILE_PICTURE_CONTENT_DESCRIPTION,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(56.dp)
