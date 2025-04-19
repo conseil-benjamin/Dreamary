@@ -93,27 +93,28 @@ fun StatsScreen(
         if (user == null && !dreams.isEmpty()) {
             Loading()
             return@Scaffold
-        } else if (dreams.isEmpty() && user !== null && dreams != null){
-            Column (
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Vous n'avez pas encore de rêves !",
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .fillMaxSize(),
-                    fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                    style = androidx.compose.material3.MaterialTheme.typography.titleLarge
-                )
-            }
-            return@Scaffold
         }
+//        else if (dreams.isEmpty() && user !== null && dreams != null){
+//            Column (
+//                modifier = Modifier
+//                    .padding(paddingValues)
+//                    .fillMaxSize(),
+//                verticalArrangement = Arrangement.Center,
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                Text(
+//                    text = "Vous n'avez pas encore de rêves !",
+//                    modifier = Modifier
+//                        .padding(paddingValues)
+//                        .fillMaxSize(),
+//                    fontSize = 20.sp,
+//                    color = MaterialTheme.colorScheme.onSurface,
+//                    textAlign = TextAlign.Center,
+//                    style = androidx.compose.material3.MaterialTheme.typography.titleLarge
+//                )
+//            }
+//            return@Scaffold
+//        }
         // TODO : ensuite récupérer directement tous les rêves et faire par exemple
         // TODO : une proportion des émotions, des tags, une moyenne de l'impact émotionnel et également de clareté
         LazyColumn (
@@ -145,15 +146,15 @@ fun StatsScreen(
                     dreams
                 )
             }
-            item {
-                ComposableCharts()
-            }
+//            item {
+//                ComposableCharts()
+//            }
             item {
                 PieChartStatsDreamUser(user)
             }
-            item {
-                LineChart()
-            }
+//            item {
+//                LineChart()
+//            }
         }
 
     }
@@ -179,6 +180,14 @@ fun PieChartStatsDreamUser(user: User?) {
             .padding(16.dp)
             .fillMaxSize()
     ){
+        Text(
+            text = "Répartition de vos types de rêves",
+            fontSize = 20.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(8.dp)
+        )
         PieChart(
             modifier = Modifier.size(200.dp),
             data = data,
