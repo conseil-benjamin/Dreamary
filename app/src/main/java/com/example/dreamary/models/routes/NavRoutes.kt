@@ -12,8 +12,8 @@ sealed class NavRoutes(val route: String) {
     data object HomeSocial : NavRoutes("homeSocial")
     data object Settings : NavRoutes("settings")
     data object Onboarding : NavRoutes("onboarding")
-    data object DreamDetail : NavRoutes("dreamDetail/{dreamId}") {
-        fun createRoute(dreamId: String) = "dreamDetail/$dreamId"
+    data object DreamDetail : NavRoutes("dreamDetail/{dreamId}/{userId}") {
+        fun createRoute(dreamId: String, userId: String?) = "dreamDetail/$dreamId/$userId"
     }
     data object Profile : NavRoutes("profile/{userId}") {
         fun createRoute(userId: String) = "profile/$userId"

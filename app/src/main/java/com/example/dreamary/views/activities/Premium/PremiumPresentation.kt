@@ -31,7 +31,7 @@ fun PremiumPresentation(
 
     val plans = mapOf(
         "monthly" to Plan(price = "1.99", period = "mois"),
-        "yearly" to Plan(price = "14.99", period = "an"),
+        "yearly" to Plan(price = "19.99", period = "an"),
         "lifetime" to Plan(price = "49.99", isOnce = true)
     )
 
@@ -276,11 +276,11 @@ fun PremiumPresentation(
                     Text(text = "Passer Premium", fontSize = 16.sp)
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "7 jours d'essai gratuit",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+//                Text(
+//                    text = "7 jours d'essai gratuit",
+//                    fontSize = 14.sp,
+//                    color = Color.Gray
+//                )
             }
         }
     }

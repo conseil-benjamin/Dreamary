@@ -382,7 +382,10 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    navController.navigate(NavRoutes.DreamDetail.createRoute(dream.id))
+                    navController.navigate(NavRoutes.DreamDetail.createRoute(
+                        dream.id,
+                        dream.userId
+                    ))
                 }
             ) {
                 Column(

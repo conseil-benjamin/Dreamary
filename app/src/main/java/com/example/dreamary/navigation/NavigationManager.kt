@@ -200,7 +200,8 @@ fun NavigationManager() {
         composable(NavRoutes.DreamDetail.route){
             DetailsDreamActivity(
                 navController = navController,
-                dreamId = it.arguments?.getString("dreamId") ?: ""
+                dreamId = it.arguments?.getString("dreamId") ?: "",
+                userId = it.arguments?.getString("userId") ?: ""
             )
         }
         composable(NavRoutes.Profile.route) {
@@ -235,7 +236,6 @@ fun NavigationManager() {
         composable(NavRoutes.Guide.route){
             GuideActivity(navController)
         }
-
         composable(NavRoutes.Premium.route){
             PremiumPresentation(
                 navController = navController,

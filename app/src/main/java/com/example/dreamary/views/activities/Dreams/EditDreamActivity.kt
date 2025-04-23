@@ -816,7 +816,10 @@ fun TopbarUpdateActivity (navController: NavController, viewModel: DetailsDreamV
                         CoroutineScope(coroutineScope.coroutineContext).launch {
                             SnackbarManager.showMessage("Rêve modifié avec succès", SnackbarType.SUCCESS)
                             delay(2000)
-                            navController.navigate(NavRoutes.DreamDetail.createRoute(dream.id)){
+                            navController.navigate(NavRoutes.DreamDetail.createRoute(
+                                dream.id,
+                                dream.userId
+                            )){
                                 popUpTo(NavRoutes.EditDream.route) {
                                     inclusive = true
                                 }
