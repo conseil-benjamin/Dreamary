@@ -104,6 +104,7 @@ fun ConfirmDialogDeleteDream(
 fun DetailsDreamActivity(
     navController: NavController,
     dreamId: String,
+    userId: String,
     viewModel: DetailsDreamViewModel = viewModel(
         factory = DetailsDreamViewModelFactory (DreamRepository(LocalContext.current), SocialRepository(LocalContext.current))
     ),
@@ -117,7 +118,7 @@ fun DetailsDreamActivity(
 
     LaunchedEffect(dreamId) {
         Log.i("dreamId", dreamId)
-        viewModel.getDreamById(dreamId, currentUserUid)
+        viewModel.getDreamById(dreamId, userId)
     }
 
     DisposableEffect(Unit) {
@@ -160,6 +161,9 @@ fun DetailsDreamActivity(
                         }
                     },
                     actions = {
+                        if (currentUserUid != userId){
+                            return@TopAppBar
+                        }
                         IconButton(onClick = { showDialogDeleteDream = true }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.delete_dream),
@@ -198,7 +202,6 @@ fun DetailsDreamActivity(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Chargement...")
                     Loading()
                 }
                 return@Scaffold
