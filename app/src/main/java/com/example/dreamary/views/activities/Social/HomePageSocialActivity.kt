@@ -130,7 +130,7 @@ fun HomePageSocialActivity(
 
     var research by remember { mutableStateOf("") }
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabTitles = listOf("Groupes", "Messages", "Amis")
+    val tabTitles = listOf("Messages", "Amis", "Groupes")
 
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
@@ -201,13 +201,12 @@ fun HomePageSocialActivity(
                 }
 
                 when (selectedTab) {
-                    0 -> GroupsContent(groups = groups, navController = navController)
-                    1 -> ConversationsContent(
+                    0 -> ConversationsContent(
                         navController = navController,
                         conversations = conversations,
                         userId = currentUser?.uid ?: ""
                     )
-                    2 -> FriendsContent(
+                    1 -> FriendsContent(
                         userData = userData,
                         friendRequests = friendRequests,
                         friends = friends,
@@ -230,6 +229,7 @@ fun HomePageSocialActivity(
                             viewModel.deleteFriend(currentUser?.uid ?: "", friendId)
                         }
                     )
+                    2 -> GroupsContent(groups = groups, navController = navController)
                 }
             }
         }

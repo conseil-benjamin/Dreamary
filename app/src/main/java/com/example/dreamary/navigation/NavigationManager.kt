@@ -15,8 +15,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -62,24 +68,48 @@ fun NavigationManager() {
     }
 
     val navController = rememberNavController()
-    NavHost(navController, startDestination = startDestination) {
+    NavHost(
+        navController,
+        startDestination = startDestination,
+        modifier = Modifier
+            .background(color = MaterialTheme.colorScheme.background)
+            .fillMaxSize()
+    ) {
+
+        fun unifiedEnterTransition() = fadeIn(
+            animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+        ) + scaleIn(
+            initialScale = 0.95f,
+            animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+        ) + slideInVertically(
+            initialOffsetY = { 30 },
+            animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+        )
+
+        fun unifiedExitTransition() = fadeOut(
+            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+        ) + scaleOut(
+            targetScale = 1.05f,
+            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+        ) + slideOutVertically(
+            targetOffsetY = { -30 },
+            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+        )
+
+        fun horizontalEnter() = slideInHorizontally(
+            initialOffsetX = { 300 },
+            animationSpec = tween(300, easing = FastOutSlowInEasing)
+        ) + fadeIn(animationSpec = tween(150))
+
+        fun horizontalExit() = slideOutHorizontally(
+            targetOffsetX = { -300 },
+            animationSpec = tween(300, easing = FastOutSlowInEasing)
+        ) + fadeOut(animationSpec = tween(150))
+
         composable(
             route = NavRoutes.Login.route,
-            enterTransition = {
-                scaleIn(
-                    initialScale = 0.9f,
-                    animationSpec = tween(200)
-                ) + fadeIn(
-                    initialAlpha = 0.3f,
-                    animationSpec = tween(200)
-                )
-            },
-            exitTransition = {
-                scaleOut(
-                    targetScale = 1.1f,
-                    animationSpec = tween(200)
-                ) + fadeOut(animationSpec = tween(200))
-            }
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
         ) {
             LoginActivity(
                 navController = navController,
@@ -88,94 +118,85 @@ fun NavigationManager() {
                 ))
             )
         }
+
         composable(
             route = NavRoutes.Home.route,
-            enterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { 300 },
-                    animationSpec = tween(
-                        durationMillis = 300,
-                        easing = FastOutSlowInEasing
-                    )
-                ) + fadeIn(
-                    initialAlpha = 0.3f,
-                    animationSpec = tween(150)
-                )
-            },
-            exitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { -300 },
-                    animationSpec = tween(
-                        durationMillis = 300,
-                        easing = FastOutSlowInEasing
-                    )
-                ) + fadeOut(animationSpec = tween(150))
-            },
+            enterTransition = { horizontalEnter() },
+            exitTransition = { horizontalExit() }
         ) {
             HomeActivity(navController = navController)
         }
+
         composable(
             route = NavRoutes.Register.route,
-            enterTransition = {
-                scaleIn(
-                    initialScale = 0.9f,
-                    animationSpec = tween(200)
-                ) + fadeIn(
-                    initialAlpha = 0.3f,
-                    animationSpec = tween(200)
-                )
-            },
-            exitTransition = {
-                scaleOut(
-                    targetScale = 1.1f,
-                    animationSpec = tween(200)
-                ) + fadeOut(animationSpec = tween(200))
-            }
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
         ) {
             RegisterActivity(navController = navController)
         }
-        composable(NavRoutes.AddDream.route) {
+
+        composable(
+            route = NavRoutes.Profile.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
+            ProfileActivity(
+                navController = navController,
+                userId = it.arguments?.getString("userId") ?: ""
+            )
+        }
+
+        composable(
+            route = NavRoutes.HomeSocial.route,
+            enterTransition = { horizontalEnter() },
+            exitTransition = { horizontalExit() }
+        ) {
+            HomePageSocialActivity(navController = navController)
+        }
+
+        composable(
+            route = NavRoutes.AddDream.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             AddDreamActivity(navController = navController)
         }
-        composable(NavRoutes.BurgerMenu.route) {
+
+        composable(
+            route = NavRoutes.BurgerMenu.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             MenuBurgerScreen(
                 onNavigateBack = { navController.popBackStack() },
                 navController = navController
             )
         }
-        composable(NavRoutes.UserMoreInformation.route) {
+
+        composable(
+            route = NavRoutes.UserMoreInformation.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             MoreInformations(navController = navController)
         }
+
         composable(
-            NavRoutes.HomeSocial.route,
-            enterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { 300 },
-                    animationSpec = tween(
-                        durationMillis = 300,
-                        easing = FastOutSlowInEasing
-                    )
-                ) + fadeIn(
-                    initialAlpha = 0.3f,
-                    animationSpec = tween(150)
-                )
-            },
-            exitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { -300 },
-                    animationSpec = tween(
-                        durationMillis = 300,
-                        easing = FastOutSlowInEasing
-                    )
-                ) + fadeOut(animationSpec = tween(150))
-            },
+            route = NavRoutes.Settings.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
         ) {
-            HomePageSocialActivity(navController = navController)
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToSection = { navController.navigate(it) }
+            )
         }
-        composable(NavRoutes.Settings.route) {
-             SettingsScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToSection = { navController.navigate(it) })
-        }
-        composable(NavRoutes.Onboarding.route) {
+
+        composable(
+            route = NavRoutes.Onboarding.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             OnboardingScreen(
                 onFinish = {
                     hasSeenOnboarding.edit().putBoolean("hasSeenOnboarding", true).apply()
@@ -183,37 +204,51 @@ fun NavigationManager() {
                 }
             )
         }
-        composable(NavRoutes.SucessAddDream.route){
-            SuccessAddDream(
-                navController = navController,
-            )
+
+        composable(
+            route = NavRoutes.SucessAddDream.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
+            SuccessAddDream(navController = navController)
         }
-//        composable(NavRoutes.SplashScreen.route) {
-//            SplashScreen()
-//        }
-        composable(NavRoutes.AllBadges.route){
+
+        composable(
+            route = NavRoutes.AllBadges.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             AllBadges(
                 userId = it.arguments?.getString("userId") ?: "",
                 navController = navController
             )
         }
-        composable(NavRoutes.DreamDetail.route){
+
+        composable(
+            route = NavRoutes.DreamDetail.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             DetailsDreamActivity(
                 navController = navController,
                 dreamId = it.arguments?.getString("dreamId") ?: "",
                 userId = it.arguments?.getString("userId") ?: ""
             )
         }
-        composable(NavRoutes.Profile.route) {
-            ProfileActivity(
-                navController = navController,
-                userId = it.arguments?.getString("userId") ?: ""
-            )
-        }
-        composable(NavRoutes.AllDreamsCalendar.route){
+
+        composable(
+            route = NavRoutes.AllDreamsCalendar.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             AllDreamsCalendar(navController = navController)
         }
-        composable(NavRoutes.ChatScreenFriends.route) { it ->
+
+        composable(
+            route = NavRoutes.ChatScreenFriends.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             ChatScreenFriendActivity(
                 navController = navController,
                 userId = it.arguments?.getString("userId") ?: "",
@@ -221,25 +256,48 @@ fun NavigationManager() {
                 chatId = it.arguments?.getString("chatId") ?: ""
             )
         }
-        composable(NavRoutes.EditDream.route){
+
+        composable(
+            route = NavRoutes.EditDream.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             EditDreamActivity(
                 navController = navController,
                 dreamId = it.arguments?.getString("dreamId") ?: ""
             )
         }
-        composable(NavRoutes.LeaderBoard.route){
+
+        composable(
+            route = NavRoutes.LeaderBoard.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             LeaderboardScreen(navController = navController)
         }
-        composable(NavRoutes.Stats.route){
+
+        composable(
+            route = NavRoutes.Stats.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             com.example.dreamary.views.activities.stats.StatsScreen(navController = navController)
         }
-        composable(NavRoutes.Guide.route){
+
+        composable(
+            route = NavRoutes.Guide.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
             GuideActivity(navController)
         }
-        composable(NavRoutes.Premium.route){
-            PremiumPresentation(
-                navController = navController,
-            )
+
+        composable(
+            route = NavRoutes.Premium.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
+            PremiumPresentation(navController = navController)
         }
     }
 }
