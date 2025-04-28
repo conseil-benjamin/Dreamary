@@ -100,6 +100,10 @@ import java.util.Locale
 import kotlin.collections.forEach
 import kotlin.text.isNotEmpty
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import com.example.dreamary.views.activities.AllDreamsCalendar.Collections.Collections
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -445,6 +449,8 @@ fun ResearchForAdream(
     val coroutineScope = rememberCoroutineScope()
     var dreamsFound by remember { mutableStateOf<List<Dream>>(emptyList()) }
     var debounceJob by remember { mutableStateOf<Job?>(null) }
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
 
     Column(
         modifier = Modifier
@@ -467,7 +473,7 @@ fun ResearchForAdream(
 
                     debounceJob?.cancel()
                     debounceJob = coroutineScope.launch {
-                        delay(250)
+                        delay(500)
                         if (it.isNotEmpty()) {
                             expanded = true
                             dreamsFound = onResearchChange(it, dreams) as MutableList<Dream>
@@ -480,7 +486,13 @@ fun ResearchForAdream(
                 placeholder = {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester)
+                            .onFocusChanged { focusState ->
+                                if (!focusState.isFocused) {
+                                    expanded = false
+                                }
+                            },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
