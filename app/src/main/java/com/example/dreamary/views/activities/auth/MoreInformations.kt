@@ -64,6 +64,7 @@ import com.example.dreamary.utils.SnackbarType
 import com.example.dreamary.viewmodels.auth.MoreInformationViewModel
 import com.example.dreamary.viewmodels.auth.MoreInformationViewModelFactory
 import com.example.dreamary.views.components.DreamTextFieldCustom
+import com.example.dreamary.views.components.Loading
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -261,6 +262,7 @@ fun MoreInformations(
     }
 
     val profilePictureUri by viewModel.profilePictureUri.collectAsState()
+    val loading by viewModel.loading.collectAsState()
 
     // Listen for Snackbar messages
     LaunchedEffect(Unit) {
@@ -307,7 +309,7 @@ fun MoreInformations(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
-                        .padding(horizontal = 24.dp)
+                        .padding(horizontal = 15.dp)
                         .padding(bottom = 36.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -380,8 +382,8 @@ fun MoreInformations(
                         label = "Nom d'utilisateur",
                         maxCharacters = 20,
                         maxLine = 1,
-                        height = 56,
-                        maxHeight = 56,
+                        height = 65,
+                        maxHeight = 65,
 //                        leadingIcon = {
 //                            Icon(
 //                                painterResource(id = R.drawable.ic_person),
@@ -411,45 +413,52 @@ fun MoreInformations(
 //                            )
 //                        }
                     )
-
-                    // Finalize button with gradient background
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                createUser(
-                                    email = email ?: "",
-                                    fullName = fullName ?: "",
-                                    username = username,
-                                    bio = bio,
-                                    profilePictureUri = profilePictureUri,
-                                    navController = navController,
-                                    context = context,
-                                    coroutineScope
-                                )
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
+                    if (loading) {
                         Text(
-                            text = "Finaliser",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            text = "Téléchargement de l'image de profil...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(bottom = 16.dp)
                         )
+                    } else {
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    createUser(
+                                        email = email ?: "",
+                                        fullName = fullName ?: "",
+                                        username = username,
+                                        bio = bio,
+                                        profilePictureUri = profilePictureUri,
+                                        navController = navController,
+                                        context = context,
+                                        coroutineScope
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text(
+                                text = "Finaliser",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
 
                     // Progress indicator
                     LinearProgressIndicator(
                         progress = when {
-                            bio.length > 5 && username.length > 2 && profilePic != "" -> 1f    // 100% complete
-                            bio.length > 5 && username.length > 2 -> 0.7f                               // 70% complete
-                            bio.isNotEmpty() || username.isNotEmpty() -> 0.4f                           // 40% complete
-                            else -> 0.0                                                             // 10% complete - just started
+                            bio.length > 5 && username.length > 2 && profilePictureUri != null -> 1f    // 100% complete
+                            bio.length > 5 && username.length > 2 -> 0.7f                               // 66% complete
+                            bio.isNotEmpty() || username.isNotEmpty() || profilePictureUri != null -> 0.4f                           // 33% complete
+                            else -> 0.0f                                                            // 0% complete - just started
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -462,9 +471,9 @@ fun MoreInformations(
 
                     Text(
                         text = when {
-                            bio.length > 5 && username.length > 2 && profilePic != "" -> "100%"
-                            bio.length > 5 && username.length > 2 -> "70%"
-                            bio.isNotEmpty() || username.isNotEmpty() -> "40%"
+                            bio.length > 5 && username.length > 2 && profilePictureUri != null -> "100%"
+                            bio.length > 5 && username.length > 2 -> "66%"
+                            bio.isNotEmpty() || username.isNotEmpty() || profilePictureUri != null -> "33%"
                             else -> "0%"
                         },
                         style = MaterialTheme.typography.bodySmall,
