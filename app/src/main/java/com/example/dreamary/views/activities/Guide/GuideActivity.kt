@@ -15,11 +15,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.dreamary.R
+import com.example.dreamary.ui.theme.DreamaryTheme
 import com.example.dreamary.views.components.BottomNavigation
 import com.example.dreamary.views.components.TopNavigation
 
@@ -29,11 +32,11 @@ fun GuideActivity(
 ) {
     var expandedSection by remember { mutableStateOf("introduction") }
 
+    DreamaryTheme {
     Scaffold (
         bottomBar = { BottomNavigation(navController = navController) },
         topBar = { TopNavigation(navController = navController) },
-    ){
-        paddingValues ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -47,6 +50,7 @@ fun GuideActivity(
             )
         }
     }
+    }
 }
 
 @Composable
@@ -56,7 +60,7 @@ fun DreamaryGuideScreen(
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(MaterialTheme.colorScheme.surface.value)
+        color = Color(MaterialTheme.colorScheme.background.value)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -72,7 +76,7 @@ fun DreamaryGuideScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Star,
+                        painter = painterResource(id = R.drawable.guide),
                         contentDescription = "Moon",
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
@@ -107,7 +111,7 @@ fun DreamaryGuideScreen(
                 item {
                     GuideSection(
                         title = "Comprendre les rêves lucides",
-                        icon = Icons.Default.Star,
+                        icon = R.drawable.understand,
                         isExpanded = expandedSection == "introduction",
                         onToggle = {
                             setExpandedSection(
@@ -121,8 +125,9 @@ fun DreamaryGuideScreen(
                                 text = "Un rêve lucide est un rêve dans lequel vous êtes conscient que vous êtes en train de rêver. " +
                                         "Cette prise de conscience vous permet potentiellement d'observer, d'influencer ou même de " +
                                         "contrôler votre expérience onirique.",
+                                modifier = Modifier
+                                    .padding(bottom = 12.dp),
                                 color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(bottom = 12.dp)
                             )
 
                             SectionTitle(text = "Pourquoi rechercher la lucidité dans les rêves ?")
@@ -153,8 +158,8 @@ fun DreamaryGuideScreen(
                 // Basic Techniques Section
                 item {
                     GuideSection(
-                        title = "Techniques pour stimuler vos rêves",
-                        icon = Icons.Default.Star,
+                        title = "Techniques pour stimuler vos \nrêves",
+                        icon = R.drawable.stimuler,
                         isExpanded = expandedSection == "basicTechniques",
                         onToggle = {
                             setExpandedSection(
@@ -219,7 +224,7 @@ fun DreamaryGuideScreen(
                 item {
                     GuideSection(
                         title = "Techniques pour devenir lucide",
-                        icon = Icons.Default.Star,
+                        icon = R.drawable.method,
                         isExpanded = expandedSection == "lucidTechniques",
                         onToggle = {
                             setExpandedSection(
@@ -237,20 +242,20 @@ fun DreamaryGuideScreen(
 
                             Column(modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)) {
                                 BulletItemWithBold(
-                                    boldText = "Test de la respiration",
-                                    regularText = " : Pincez-vous le nez et essayez de respirer. Dans un rêve, vous pourrez respirer malgré votre nez pincé."
+                                    boldText = "Test de la respiration :",
+                                    regularText = " Pincez-vous le nez et essayez de respirer. Dans un rêve, vous pourrez respirer malgré votre nez pincé."
                                 )
                                 BulletItemWithBold(
-                                    boldText = "Test des mains",
-                                    regularText = " : Regardez vos mains attentivement. Dans un rêve, elles peuvent apparaître floues, déformées ou avoir un nombre incorrect de doigts."
+                                    boldText = "Test des mains :",
+                                    regularText = " Regardez vos mains attentivement. Dans un rêve, elles peuvent apparaître floues, déformées ou avoir un nombre incorrect de doigts."
                                 )
                                 BulletItemWithBold(
-                                    boldText = "Test du texte",
-                                    regularText = " : Lisez un texte, détournez le regard, puis relisez-le. Dans un rêve, le texte change souvent."
+                                    boldText = "Test du texte :",
+                                    regularText = " Lisez un texte, détournez le regard, puis relisez-le. Dans un rêve, le texte change souvent."
                                 )
                                 BulletItemWithBold(
-                                    boldText = "Test de l'interrupteur",
-                                    regularText = " : Actionnez un interrupteur de lumière. Dans un rêve, la lumière change rarement comme prévu."
+                                    boldText = "Test de l'interrupteur :",
+                                    regularText = " Actionnez un interrupteur de lumière. Dans un rêve, la lumière change rarement comme prévu."
                                 )
                             }
 
@@ -295,7 +300,7 @@ fun DreamaryGuideScreen(
                 item {
                     GuideSection(
                         title = "Stabiliser et explorer vos rêves",
-                        icon = Icons.Default.Star,
+                        icon = R.drawable.explore,
                         isExpanded = expandedSection == "control",
                         onToggle = {
                             setExpandedSection(
@@ -314,12 +319,12 @@ fun DreamaryGuideScreen(
 
                             Column(modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)) {
                                 BulletItemWithBold(
-                                    boldText = "Frottez vos mains",
-                                    regularText = " : Ce mouvement physique aide à stabiliser le rêve"
+                                    boldText = "Frottez vos mains :",
+                                    regularText = " Ce mouvement physique aide à stabiliser le rêve"
                                 )
                                 BulletItemWithBold(
-                                    boldText = "Tournez sur vous-même",
-                                    regularText = " : Cela maintient votre engagement dans le rêve"
+                                    boldText = "Tournez sur vous-même :",
+                                    regularText = " Cela maintient votre engagement dans le rêve"
                                 )
                                 BulletItemWithBold(
                                     boldText = "Dites \"Clarté maintenant\"",
@@ -340,20 +345,20 @@ fun DreamaryGuideScreen(
 
                             Column(modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)) {
                                 BulletItemWithBold(
-                                    boldText = "Changement de scène",
-                                    regularText = " : Imaginez une porte qui mène à l'endroit désiré"
+                                    boldText = "Changement de scène :",
+                                    regularText = " Imaginez une porte qui mène à l'endroit désiré"
                                 )
                                 BulletItemWithBold(
-                                    boldText = "Vol",
-                                    regularText = " : Commencez par sauter ou rebondir, puis laissez-vous porter"
+                                    boldText = "Vol :",
+                                    regularText = " Commencez par sauter ou rebondir, puis laissez-vous porter"
                                 )
                                 BulletItemWithBold(
-                                    boldText = "Invocation",
-                                    regularText = " : Pour faire apparaître quelqu'un, imaginez qu'il est derrière une porte ou un coin"
+                                    boldText = "Invocation :",
+                                    regularText = " Pour faire apparaître quelqu'un, imaginez qu'il est derrière une porte ou un coin"
                                 )
                                 BulletItemWithBold(
-                                    boldText = "Transformation",
-                                    regularText = " : Pour changer d'apparence, tournez sur vous-même tout en visualisant votre nouvelle forme"
+                                    boldText = "Transformation :",
+                                    regularText = " Pour changer d'apparence, tournez sur vous-même tout en visualisant votre nouvelle forme"
                                 )
                             }
 
@@ -381,8 +386,9 @@ fun DreamaryGuideScreen(
                 // Troubleshooting Section
                 item {
                     GuideSection(
-                        title = "Résoudre les problèmes courants",
-                        icon = Icons.Default.Star,
+                        title = "Résoudre les problèmes \n" +
+                                "courants",
+                        icon = R.drawable.issue,
                         isExpanded = expandedSection == "troubleshooting",
                         onToggle = {
                             setExpandedSection(
@@ -437,7 +443,7 @@ fun DreamaryGuideScreen(
 @Composable
 fun GuideSection(
     title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: Int,
     isExpanded: Boolean,
     onToggle: () -> Unit,
     content: @Composable () -> Unit
@@ -458,7 +464,7 @@ fun GuideSection(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = icon,
+                        painter = painterResource(id = icon),
                         contentDescription = null,
                         tint = Color(0xFF1E40AF),
                         modifier = Modifier.size(20.dp)
@@ -472,7 +478,7 @@ fun GuideSection(
                     )
                 }
                 Icon(
-                    imageVector = if (isExpanded) Icons.Default.Star else Icons.Default.Star,
+                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
                     contentDescription = if (isExpanded) "Réduire" else "Développer",
                     tint = Color(0xFF1E40AF)
                 )
@@ -544,7 +550,7 @@ fun NumberedList(items: List<String>, modifier: Modifier = Modifier) {
 
 @Composable
 fun BulletItemWithBold(boldText: String, regularText: String) {
-    Row(
+    Row (
         modifier = Modifier.padding(bottom = 4.dp),
         verticalAlignment = Alignment.Top
     ) {
@@ -552,14 +558,19 @@ fun BulletItemWithBold(boldText: String, regularText: String) {
             text = "• ",
             color = MaterialTheme.colorScheme.onSurface,
         )
-        Text(
-            text = boldText,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium
-        )
-        Text(
-            text = regularText,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        Column (
+            modifier = Modifier.padding(bottom = 4.dp),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = boldText,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = regularText,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }

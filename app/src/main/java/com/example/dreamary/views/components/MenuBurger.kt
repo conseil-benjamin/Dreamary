@@ -1,3 +1,6 @@
+import android.content.Context
+import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -48,6 +51,11 @@ fun MenuBurgerScreen(
     val context = LocalContext.current
     val user = auth.currentUser
 
+    val userDatabase = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
+    Log.d("userDatabase2", userDatabase.toString())
+    val profilPicture = userDatabase.getString("profilePictureUrl", null)
+    Log.i("userDatabase", profilPicture.toString())
+
     Scaffold(
         topBar = {
             SmallTopAppBar(
@@ -76,7 +84,8 @@ fun MenuBurgerScreen(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     UserInfoCard(
-                        name = user?.displayName ?: "Unknown",
+                        name = user?.displayName ?: "Nom d'utilisateur",
+                        profilePicture = profilPicture ?: "Unknown",
                         onClick = { navController.navigate(NavRoutes.Profile.createRoute(user?.uid ?: "")) }
                     )
                 }
@@ -86,22 +95,23 @@ fun MenuBurgerScreen(
             item {
                 SettingsSection(
                     title = "Navigation",
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
                 ) {
                     SettingItem(
-                        icon = Icons.Default.Info,
+                        icon = R.drawable.book2,
                         title = "Journal des rêves",
                         subtitle = "Tous vos rêves",
                         onClick = { navController.navigate(NavRoutes.AllDreamsCalendar.route) }
                     )
                     SettingItem(
-                        icon = Icons.Default.Info,
+                        icon = R.drawable.guide,
                         title = "Guide onirique",
                         subtitle = "Apprenez le rêve lucide",
                         onClick = { navController.navigate(NavRoutes.Guide.route) }
                     )
                     SettingItem(
-                        icon = Icons.Default.Info,
+                        icon = R.drawable.settings,
                         title = "Paramètres",
                         subtitle = "Personnalisez votre expérience",
                         onClick = { navController.navigate(NavRoutes.Settings.route) }
@@ -116,18 +126,18 @@ fun MenuBurgerScreen(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     SettingItem(
-                        icon = Icons.Default.Star,
+                        icon = R.drawable.premium,
                         title = "Premium",
                         subtitle = "Accédez à toutes les fonctionnalités",
                         onClick = { navController.navigate(NavRoutes.Premium.route) }
                     )
                     SettingItem(
-                        icon = Icons.Default.Notifications,
+                        icon = R.drawable.notification,
                         title = "Notifications",
                         onClick = { navController.navigate(NavRoutes.Home.route) }
                     )
                     SettingItem(
-                        icon = Icons.Default.Lock,
+                        icon = R.drawable.lock,
                         title = "Confidentialité",
                         onClick = { navController.navigate(NavRoutes.Home.route) }
                     )
@@ -141,7 +151,7 @@ fun MenuBurgerScreen(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     SettingItem(
-                        icon = Icons.Default.Info,
+                        icon = R.drawable.info,
                         title = "Aide & Support",
                         onClick = { navController.navigate(NavRoutes.Home.route) }
                     )
