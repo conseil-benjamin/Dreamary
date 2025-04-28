@@ -229,10 +229,26 @@ fun HomePageSocialActivity(
                             viewModel.deleteFriend(currentUser?.uid ?: "", friendId)
                         }
                     )
-                    2 -> GroupsContent(groups = groups, navController = navController)
+                    2 -> TempararyGroupComponent()
+                        //GroupsContent(groups = groups, navController = navController)
                 }
             }
         }
+    }
+}
+
+@Composable
+fun TempararyGroupComponent() {
+    Column (
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "A venir dans une prochaine version."
+        )
     }
 }
 

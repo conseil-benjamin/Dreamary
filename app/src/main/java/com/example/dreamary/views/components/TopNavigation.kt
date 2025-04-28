@@ -58,20 +58,20 @@ fun TopNavigation(navController: NavController) {
                 colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.primaryContainer)
             )
         }
-        Icon(
-            painter = painterResource(id = R.drawable.search),
-            contentDescription = "Menu",
-            modifier = Modifier
-                .weight(1f)
-                .size(24.dp)
-        )
-        Icon(
-            painter = painterResource(id = R.drawable.notification),
-            contentDescription = "Menu",
-            modifier = Modifier
-                .weight(1f)
-                .size(24.dp)
-        )
+//        Icon(
+//            painter = painterResource(id = R.drawable.search),
+//            contentDescription = "Menu",
+//            modifier = Modifier
+//                .weight(1f)
+//                .size(24.dp)
+//        )
+//        Icon(
+//            painter = painterResource(id = R.drawable.notification),
+//            contentDescription = "Menu",
+//            modifier = Modifier
+//                .weight(1f)
+//                .size(24.dp)
+//        )
         Image(
             painter = painterResource(id = R.drawable.user),
             contentDescription = "Menu",
