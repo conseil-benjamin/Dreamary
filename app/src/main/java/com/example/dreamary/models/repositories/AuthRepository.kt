@@ -167,7 +167,8 @@ class AuthRepository(private val context: Context) {
             trySend(AuthResponse.Error(message = "Error"))
             return@callbackFlow
         }
-        auth.createUserWithEmailAndPassword(email, password)
+        val emailTrimmed = email.trimEnd()
+        auth.createUserWithEmailAndPassword(emailTrimmed, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val user = auth.currentUser
@@ -190,7 +191,8 @@ class AuthRepository(private val context: Context) {
     }
 
     fun signInWithEmail(context: Context, email: String, password: String, navController: NavController, screen: String): Flow<AuthResponse> = callbackFlow {
-        auth.signInWithEmailAndPassword(email, password)
+        val emailTrimmed = email.trimEnd()
+        auth.signInWithEmailAndPassword(emailTrimmed, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     trySend(AuthResponse.Success)

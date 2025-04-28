@@ -446,10 +446,10 @@ fun MoreInformations(
                     // Progress indicator
                     LinearProgressIndicator(
                         progress = when {
-                            bio.length > 5 && username.length > 2 && profilePictureUri != null -> 1f    // 100% complete
+                            bio.length > 5 && username.length > 2 && profilePic != "" -> 1f    // 100% complete
                             bio.length > 5 && username.length > 2 -> 0.7f                               // 70% complete
                             bio.isNotEmpty() || username.isNotEmpty() -> 0.4f                           // 40% complete
-                            else -> 0.1f                                                                // 10% complete - just started
+                            else -> 0.0                                                             // 10% complete - just started
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -462,10 +462,10 @@ fun MoreInformations(
 
                     Text(
                         text = when {
-                            bio.length > 5 && username.length > 2 && profilePictureUri != null -> "100%"
+                            bio.length > 5 && username.length > 2 && profilePic != "" -> "100%"
                             bio.length > 5 && username.length > 2 -> "70%"
                             bio.isNotEmpty() || username.isNotEmpty() -> "40%"
-                            else -> "10%"
+                            else -> "0%"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.7f),
