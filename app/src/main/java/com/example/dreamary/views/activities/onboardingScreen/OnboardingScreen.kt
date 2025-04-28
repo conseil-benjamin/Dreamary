@@ -1,13 +1,16 @@
 package com.example.dreamary.views.activities.onboardingScreen
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -15,20 +18,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import com.example.dreamary.R
 
 data class OnboardingPage(
     val title: String,
     val subtitle: String,
     val description: String,
-    val icon: ImageVector,
+    val icon: Int,
+    val iconFeatures: Int,
     val gradientColors: List<Color>,
     val features: List<String>
 )
@@ -38,14 +47,17 @@ data class OnboardingPage(
 fun OnboardingScreen(
     onFinish: () -> Unit
 ) {
-    // todo : ajouter une page pour présenter le mode premium et ses avantages
     val pages = listOf(
         OnboardingPage(
             title = "Donnez vie à vos rêves",
             subtitle = "Capturez l'essence de vos aventures nocturnes",
             description = "Dreamary transforme vos rêves en histoires extraordinaires. Explorez vos souvenirs les plus précieux avec une simplicité déconcertante.",
-            icon = Icons.Default.Star,
-            gradientColors = listOf(Color(0xFF4F46E5), Color(0xFF7C3AED)),
+            icon = R.drawable.calendar,
+            iconFeatures = R.drawable.dot,
+            gradientColors = listOf(
+                Color(0xFFF3DFC1), // AccentLight — beige doré très clair
+                Color(0xFF8B6D9C)  // Primary — violet lavande
+            ),
             features = listOf(
                 "Journal intuitif avec texte et audio",
                 "Galerie de rêves personnalisée",
@@ -56,20 +68,27 @@ fun OnboardingScreen(
             title = "Maîtrisez l'art du rêve lucide",
             subtitle = "Devenez le héros de vos rêves",
             description = "Découvrez des techniques éprouvées pour prendre conscience de vos rêves. Transformez votre sommeil en terrain d'exploration infini.",
-            icon = Icons.Default.Star,
-            gradientColors = listOf(Color(0xFF0EA5E9), Color(0xFF2563EB)),
+            icon = R.drawable.lune,
+            iconFeatures = R.drawable.dot,
+            gradientColors = listOf(
+                Color(0xFF6A517B), // PrimaryVariant — violet profond
+                Color(0xFF2A2438)  // DarkBackground — violet très foncé (fonctionne même en light mode)
+            ),
             features = listOf(
                 "Techniques guidées de rêve lucide",
                 "Méditations personnalisées",
-                "Suivi de vos progrès en temps réel"
             )
         ),
         OnboardingPage(
             title = "Une communauté qui comprend",
             subtitle = "Partagez, interprétez, grandissez ensemble",
-            description = "Rejoignez des milliers de rêveurs passionnés. Échangez vos expériences et découvrez de nouvelles perspectives sur vos aventures oniriques.",
-            icon = Icons.Default.Star,
-            gradientColors = listOf(Color(0xFFA855F7), Color(0xFFEC4899)),
+            description = "Rejoignez des rêveurs passionnés. Échangez vos expériences et découvrez de nouvelles perspectives sur vos aventures oniriques.",
+            icon = R.drawable.users,
+            iconFeatures = R.drawable.dot,
+            gradientColors = listOf(
+                Color(0xFFDEEDE8), // TertiaryContainer — vert sauge très clair
+                Color(0xFF5D8A7D)  // Tertiary — vert sauge
+            ),
             features = listOf(
                 "Groupes thématiques passionnants",
                 "Partage sécurisé de vos rêves",
@@ -79,9 +98,13 @@ fun OnboardingScreen(
         OnboardingPage(
             title = "Révélez les secrets",
             subtitle = "Une analyse profonde et personnalisée",
-            description = "Découvrez les patterns cachés de vos rêves grâce à notre intelligence artificielle. Obtenez des insights uniques sur votre monde onirique.",
-            icon = Icons.Default.Star,
-            gradientColors = listOf(Color(0xFFF59E0B), Color(0xFFEF4444)),
+            description = "Plongez dans vos rêves avec des outils d'analyse avancés. Découvrez des tendances, des émotions et des insights uniques pour mieux comprendre votre monde onirique.",
+            icon = R.drawable.search,
+            iconFeatures = R.drawable.dot,
+            gradientColors = listOf(
+                Color(0xFFF1E9F6), // LightSelectElement (lavande très pâle)
+                Color(0xFF8B6D9C)  // Primary (lavande)
+            ),
             features = listOf(
                 "Analyse émotionnelle avancée",
                 "Détection de patterns récurrents",
@@ -90,14 +113,18 @@ fun OnboardingScreen(
         ),
         OnboardingPage(
             title = "Fonctionnalités Premium",
-            subtitle = "Débloquez le potentiel de vos rêves",
+            subtitle = "Débloquez le plein potentiel de vos rêves",
             description = "Accédez à des outils avancés et à des analyses approfondies pour maximiser votre expérience de rêve.",
-            icon = Icons.Default.Star,
-            gradientColors = listOf(Color(0xFFF59E0B), Color(0xFFEF4444)),
+            icon = R.drawable.premium,
+            iconFeatures = R.drawable.dot,
+            gradientColors = listOf(
+                Color(0xFFFAEDD1), // SecondaryContainer (beige doré)
+                Color(0xFFD49149)  // SecondaryVariant (ocre foncé)
+            ),
             features = listOf(
                 "Collections de rêves",
-                "Analyse avancée de vos rêves",
-                "Statistiques détaillées",
+                "Création de groupes (gratuit pour en rejoindre)",
+                "Génération d'images IA pour vos rêves",
             )
         )
     )
@@ -108,7 +135,11 @@ fun OnboardingScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF9FAFB))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFFFDFBFA), Color(0xFFEFE9F4))
+                )
+            )
     ) {
         HorizontalPager(
             state = pagerState,
@@ -122,13 +153,26 @@ fun OnboardingScreen(
                     .background(Brush.verticalGradient(pages[page].gradientColors))
                     .padding(24.dp)
             ) {
+                // Optionnel : halo lumineux en fond
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { alpha = 0.4f }
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(Color.White.copy(alpha = 0.3f), Color.Transparent),
+                                radius = 500f
+                            )
+                        )
+                )
+
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Spacer(modifier = Modifier.height(48.dp))
 
-                    // Icône avec animation
+                    // Icône animée
                     val infiniteTransition = rememberInfiniteTransition()
                     val scale by infiniteTransition.animateFloat(
                         initialValue = 1f,
@@ -142,14 +186,20 @@ fun OnboardingScreen(
                     Box(
                         modifier = Modifier
                             .size(120.dp)
-                            .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                            }
+                            .background(Color.White.copy(alpha = 0.15f), CircleShape)
+                            .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
+                            .shadow(12.dp, CircleShape, ambientColor = Color.White.copy(alpha = 0.3f))
                             .padding(24.dp)
                     ) {
                         Icon(
-                            imageVector = pages[page].icon,
+                            painter = painterResource(id = pages[page].icon),
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(72.dp)
+                            modifier = Modifier.size(64.dp)
                         )
                     }
 
@@ -188,24 +238,28 @@ fun OnboardingScreen(
 
                     Column(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         pages[page].features.forEach { feature ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White.copy(alpha = 0.1f), shape = RoundedCornerShape(12.dp))
+                                    .padding(12.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Star,
+                                    painter = painterResource(id = pages[page].iconFeatures),
                                     contentDescription = null,
                                     tint = Color.White,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
-                                Spacer(modifier = Modifier.width(16.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = feature,
                                     color = Color.White,
-                                    fontSize = 16.sp
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
                         }
@@ -222,17 +276,22 @@ fun OnboardingScreen(
             horizontalArrangement = Arrangement.Center
         ) {
             repeat(pages.size) { iteration ->
-                val width by animateDpAsState(
-                    targetValue = if (pagerState.currentPage == iteration) 24.dp else 8.dp
+                val isSelected = pagerState.currentPage == iteration
+                val dotColor by animateColorAsState(
+                    targetValue = if (isSelected) Color.White else Color.White.copy(alpha = 0.5f)
+                )
+
+                val dotSize by animateDpAsState(
+                    targetValue = if (isSelected) 16.dp else 8.dp
                 )
 
                 Box(
                     modifier = Modifier
-                        .padding(2.dp)
+                        .padding(4.dp)
+                        .size(dotSize)
                         .clip(CircleShape)
-                        .background(Color.White)
-                        .width(width)
-                        .height(8.dp)
+                        .background(dotColor)
+                        .shadow(if (isSelected) 6.dp else 0.dp, CircleShape)
                         .clickable {
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(iteration)
@@ -296,4 +355,5 @@ fun OnboardingScreen(
             }
         }
     }
+
 }

@@ -16,15 +16,15 @@ val Warning = Color(0xFFE6B95D)         // Ambre doux
 val Info = Color(0xFF5D95E6)            // Bleu informatif
 
 // Couleurs du thème clair
-val LightBackground = Color(0xFFF7F3ED)      // Beige clair (conservé)
-val LightSurface = Color(0xFFFCF9F5)         // Beige très clair pour surfaces
-val LightSurfaceVariant = Color(0xFFEEE6DC)  // Beige légèrement plus foncé
-val LightOnBackground = Color(0xFF2D2A33)    // Gris presque noir
-val LightOnSurface = Color(0xFF3D3A43)       // Gris très foncé
-val LightOnSurfaceVariant = Color(0xFF635F69) // Gris moyen
-val LightOutline = Color(0xFFCEC5B7)         // Beige grisé pour contours
-val LightSelectElement = Color(0xFFF1E9F6)   // Violet très pâle pour sélection
-val LightSelectElementColor = Color(0xFF8B6D9C) // Violet lavande pour texte sélectionné
+val LightBackground = Color(0xFFFDFBFA)       // Presque blanc, très doux
+val LightSurface = Color(0xFFFFFFFF)          // Blanc pur pour les surfaces
+val LightSurfaceVariant = Color(0xFFEFE8F2)   // Lavande très pâle
+val LightOnBackground = Color(0xFF2A2438)     // Violet-gris très foncé pour bon contraste
+val LightOnSurface = Color(0xFF332C42)        // Très bon contraste, même en lumière forte
+val LightOnSurfaceVariant = Color(0xFF4F465C) // Un peu plus doux, mais toujours lisible
+val LightOutline = Color(0xFFD9D0DD)          // Contours doux mais visibles
+val LightSelectElement = Color(0xFFF1E9F6)    // Déjà très bien
+val LightSelectElementColor = Color(0xFF6A517B) // Un poil plus sombre que l'ancien
 
 // Couleurs du thème sombre
 val DarkBackground = Color(0xFF2A2438)      // Violet très foncé
