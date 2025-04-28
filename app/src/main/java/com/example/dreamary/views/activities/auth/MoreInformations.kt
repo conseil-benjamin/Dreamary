@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +64,7 @@ import com.example.dreamary.utils.SnackbarManager
 import com.example.dreamary.utils.SnackbarType
 import com.example.dreamary.viewmodels.auth.MoreInformationViewModel
 import com.example.dreamary.viewmodels.auth.MoreInformationViewModelFactory
+import com.example.dreamary.views.activities.auth.MoreInformationsOutlinedTextField
 import com.example.dreamary.views.components.DreamTextFieldCustom
 import com.example.dreamary.views.components.Loading
 import com.google.firebase.Timestamp
@@ -264,6 +266,8 @@ fun MoreInformations(
     val profilePictureUri by viewModel.profilePictureUri.collectAsState()
     val loading by viewModel.loading.collectAsState()
 
+    val isDarkTheme = isSystemInDarkTheme()
+
     // Listen for Snackbar messages
     LaunchedEffect(Unit) {
         SnackbarManager.snackbarMessages.collect { snackbarMessage ->
@@ -371,29 +375,20 @@ fun MoreInformations(
                         }
                     }
 
-                    // Form fields with improved styling
-                    DreamTextFieldCustom(
-                        analysisText = username,
-                        onTextChange = { username = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        label = "Nom d'utilisateur",
-                        maxCharacters = 20,
-                        maxLine = 1,
-                        height = 65,
-                        maxHeight = 65,
-//                        leadingIcon = {
-//                            Icon(
-//                                painterResource(id = R.drawable.ic_person),
-//                                contentDescription = null,
-//                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-//                            )
-//                        }
-                    )
-
-                    DreamTextFieldCustom(
+                   MoreInformationsOutlinedTextField(
+                       analysisText = username,
+                       onTextChange = { username = it },
+                       modifier = Modifier
+                           .fillMaxWidth()
+                           .padding(bottom = 16.dp)
+                           .clip(RoundedCornerShape(12.dp)),
+                       label = "Nom d'utilisateur",
+                       maxCharacters = 20,
+                       maxLine = 1,
+                       height = 65,
+                       maxHeight = 65,
+                   )
+                    MoreInformationsOutlinedTextField(
                         analysisText = bio,
                         onTextChange = { bio = it },
                         modifier = Modifier
@@ -405,13 +400,6 @@ fun MoreInformations(
                         maxLine = 3,
                         height = 96,
                         maxHeight = 120,
-//                        leadingIcon = {
-//                            Icon(
-//                                painterResource(id = R.drawable.ic_description),
-//                                contentDescription = null,
-//                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-//                            )
-//                        }
                     )
                     if (loading) {
                         Text(
