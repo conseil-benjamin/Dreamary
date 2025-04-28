@@ -22,12 +22,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,6 +70,7 @@ private fun PreviewLoginActivity() {
     LoginActivity(navController = previewNavController)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = viewModel(
@@ -142,7 +145,13 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 5.dp, end = 5.dp, top = 5.dp)
+                        .padding(start = 5.dp, end = 5.dp, top = 5.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedTrailingIconColor = Color.White,
+                        unfocusedTrailingIconColor = Color.White,
+                    )
                 )
 
                 OutlinedTextField(
@@ -181,7 +190,13 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 5.dp, end = 5.dp, top = 5.dp)
+                        .padding(start = 5.dp, end = 5.dp, top = 5.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedTrailingIconColor = Color.White,
+                        unfocusedTrailingIconColor = Color.White,
+                    )
                 )
 
                 Button(
@@ -266,7 +281,7 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
 
                 Text(
                     text = stringResource(id = R.string.Login_forgot_password),
-                    color = Color(Color(0xFF6200EE).toArgb()),
+                    color = Color(Color(0xFF9575CD).toArgb()),
                     modifier = Modifier
                         .padding(top = 16.dp)
                 )
@@ -284,7 +299,7 @@ fun LoginActivity(navController: NavController,  viewModel: LoginViewModel = vie
                             .clickable(onClick = {
                                 navController.navigate(NavRoutes.Register.route)
                             }),
-                        color = Color(Color(0xFF6200EE).toArgb())
+                        color = Color(Color(0xFF9575CD).toArgb())
                     )
                 }
             }

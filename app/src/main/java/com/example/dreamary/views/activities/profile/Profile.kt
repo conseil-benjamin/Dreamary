@@ -392,7 +392,8 @@ private fun DreamStatsSection(
 
             Grid(
                 columns = 2,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
             ) {
                 StatCard(
                     icon = R.drawable.badge,

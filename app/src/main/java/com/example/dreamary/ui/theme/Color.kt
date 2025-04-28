@@ -15,16 +15,15 @@ val Success = Color(0xFF5EB489)         // Vert apaisant
 val Warning = Color(0xFFE6B95D)         // Ambre doux
 val Info = Color(0xFF5D95E6)            // Bleu informatif
 
-// Couleurs du thème clair
-val LightBackground = Color(0xFFFDFBFA)       // Presque blanc, très doux
-val LightSurface = Color(0xFFFFFFFF)          // Blanc pur pour les surfaces
-val LightSurfaceVariant = Color(0xFFEFE8F2)   // Lavande très pâle
-val LightOnBackground = Color(0xFF2A2438)     // Violet-gris très foncé pour bon contraste
-val LightOnSurface = Color(0xFF332C42)        // Très bon contraste, même en lumière forte
-val LightOnSurfaceVariant = Color(0xFF4F465C) // Un peu plus doux, mais toujours lisible
-val LightOutline = Color(0xFFD9D0DD)          // Contours doux mais visibles
-val LightSelectElement = Color(0xFFF1E9F6)    // Déjà très bien
-val LightSelectElementColor = Color(0xFF6A517B) // Un poil plus sombre que l'ancien
+val LightBackground = Color(0xFFF6F2F7)       // Mauve-lavande très pâle
+val LightSurface = Color(0xFFEBE4F0)          // Teinte lavande plus visible
+val LightSurfaceVariant = Color(0xFFEDEAED)   // Mauve doux
+val LightOnBackground = Color(0xFF1D1C1D)     // Noir profond
+val LightOnSurface = Color(0xFF2C2D30)        // Noir grisé Slack
+val LightOnSurfaceVariant = Color(0xFF3F3F3F) // Gris foncé
+val LightOutline = Color(0xFFDCD9DC)          // Mauve moyen pour contours
+val LightSelectElement = Color(0xFFE8E5E8)    // Mauve clair pour sélection
+val LightSelectElementColor = Color(0xFF611F69) // Violet Slack
 
 // Couleurs du thème sombre
 val DarkBackground = Color(0xFF2A2438)      // Violet très foncé

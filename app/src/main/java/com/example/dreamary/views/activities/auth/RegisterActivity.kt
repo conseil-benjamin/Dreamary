@@ -21,6 +21,7 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -28,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,6 +77,7 @@ private fun PreviewRegisterActivity() {
     RegisterActivity(navController = previewNavController)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel = viewModel(
@@ -211,7 +214,11 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 5.dp, end = 5.dp, top = 5.dp)
+                        .padding(start = 5.dp, end = 5.dp, top = 5.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedTrailingIconColor = Color.White,
+                        unfocusedTrailingIconColor = Color.White,
+                    )
                 )
 
                 OutlinedTextField(
@@ -376,8 +383,8 @@ fun RegisterActivity(navController: NavController, viewModel: RegisterViewModel 
                                     navController.navigate(NavRoutes.Login.route)
                                 }
                             ),
-                        color = Color(Color(0xFF6200EE).toArgb())
-                    )
+                        color = Color(Color(0xFF9575CD).toArgb()),
+                        )
                 }
             }
         }
