@@ -1,3 +1,5 @@
+import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -7,8 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.example.dreamary.R
+import com.example.dreamary.ui.theme.DreamaryTheme
 import com.google.firebase.auth.FirebaseAuth
 
 @Preview
@@ -26,70 +33,72 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToSection: (String) -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            SmallTopAppBar(
-                title = { Text("Paramètres") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Retour"
-                        )
+    DreamaryTheme {
+        Scaffold(
+            topBar = {
+                SmallTopAppBar(
+                    title = { Text("Paramètres") },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Retour"
+                            )
+                        }
                     }
+                )
+            }
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Compte
+                item {
+                    AccountSection(
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
                 }
-            )
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Compte
-            item {
-                AccountSection(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
 
-            // Préférences
-            item {
-                PreferencesSection(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    onNavigateToSection = onNavigateToSection
-                )
-            }
+                // Préférences
+                item {
+                    PreferencesSection(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        onNavigateToSection = onNavigateToSection
+                    )
+                }
 
-            // Groupes
-            item {
-                GroupsSection(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    onNavigateToSection = onNavigateToSection
-                )
-            }
+                // Groupes
+                item {
+                    GroupsSection(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        onNavigateToSection = onNavigateToSection
+                    )
+                }
 
-            // Support
-            item {
-                SupportSection(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    onNavigateToSection = onNavigateToSection
-                )
-            }
+                // Support
+                item {
+                    SupportSection(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        onNavigateToSection = onNavigateToSection
+                    )
+                }
 
-            // Déconnexion
-            item {
-                LogoutButton(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
+                // Déconnexion
+                item {
+                    LogoutButton(
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
 
-            // Version
-            item {
-                VersionInfo(
-                    modifier = Modifier.padding(16.dp)
-                )
+                // Version
+                item {
+                    VersionInfo(
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
         }
     }
@@ -98,12 +107,18 @@ fun SettingsScreen(
 @Composable
 private fun AccountSection(modifier: Modifier = Modifier) {
     val user = FirebaseAuth.getInstance().currentUser
+
+    val context = LocalContext.current
+    val userDatabase = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
+    val profilPicture = userDatabase.getString("profilePictureUrl", null)
+
     SettingsSection(
         title = "Compte",
         modifier = modifier
     ) {
         UserInfoCard(
             name = user?.displayName ?: "Unknown",
+            profilePicture = profilPicture ?: "",
             onClick = {}
         )
     }
@@ -119,17 +134,17 @@ private fun PreferencesSection(
         modifier = modifier
     ) {
         SettingItem(
-            icon = Icons.Default.Notifications,
+            icon = R.drawable.notification,
             title = "Notifications",
             onClick = { onNavigateToSection("notifications") }
         )
         SettingItem(
-            icon = Icons.Default.Face,
+            icon = R.drawable.palette,
             title = "Apparence",
             onClick = { onNavigateToSection("appearance") }
         )
         SettingItem(
-            icon = Icons.Default.Lock,
+            icon = R.drawable.lock,
             title = "Confidentialité",
             onClick = { onNavigateToSection("privacy") }
         )
@@ -146,7 +161,7 @@ private fun GroupsSection(
         modifier = modifier
     ) {
         SettingItem(
-            icon = Icons.Default.Face,
+            icon = R.drawable.users,
             title = "Gestion des groupes",
             subtitle = "3 groupes actifs",
             onClick = { onNavigateToSection("groups") }
@@ -164,7 +179,7 @@ private fun SupportSection(
         modifier = modifier
     ) {
         SettingItem(
-            icon = Icons.Default.Info,
+            icon = R.drawable.info,
             title = "Aide & Support",
             onClick = { onNavigateToSection("help") }
         )
@@ -238,13 +253,15 @@ public fun SettingsSection(
 
 @Composable
 public fun SettingItem(
-    icon: ImageVector,
+    icon: Int,
     title: String,
     subtitle: String? = null,
     onClick: () -> Unit // correspond au type void en java ou Unit en kotlin
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface),
         onClick = onClick
     ) {
         Row(
@@ -254,7 +271,8 @@ public fun SettingItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = icon,
+                painter = painterResource(id = icon),
+                modifier = Modifier.size(24.dp),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -279,8 +297,9 @@ public fun SettingItem(
 }
 
 @Composable
-public fun UserInfoCard(
+fun UserInfoCard(
     name: String,
+    profilePicture: String,
     onClick: () -> Unit
 ) {
     Surface(
@@ -299,10 +318,10 @@ public fun UserInfoCard(
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    Text(
-                        text = name.take(2).uppercase(),
-                        modifier = Modifier.align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    AsyncImage(
+                        model = profilePicture,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }

@@ -85,6 +85,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import com.example.dreamary.models.entities.Tag
@@ -213,6 +214,16 @@ private fun ShareDreamWithPeople(
                             Text(
                                 text = "Amis",
                                 style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                    } else {
+                        item {
+                            Text(
+                                textAlign = TextAlign.Center,
+                                text = "Aucun ami trouvé.",
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(vertical = 8.dp)
                             )
@@ -1054,7 +1065,7 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
     ) {
         Text(
@@ -1067,8 +1078,8 @@ fun Topbar (navController: NavController, viewModel: AddDreamViewModel, coroutin
         )
         Button(
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ),
             onClick = {
                 Log.d("test1232", dream.toString())
@@ -1581,16 +1592,16 @@ fun DescribeDream(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.camera),
-            contentDescription = null,
-            modifier = Modifier
-                .padding(16.dp)
-                .size(24.dp)
-                .clickable {
-                    // TODO
-                }
-        )
+//        Icon(
+//            painter = painterResource(id = R.drawable.camera),
+//            contentDescription = null,
+//            modifier = Modifier
+//                .padding(16.dp)
+//                .size(24.dp)
+//                .clickable {
+//                    // TODO
+//                }
+//        )
         Icon(
             painter = painterResource(id = R.drawable.microphone),
             contentDescription = null,
@@ -1935,7 +1946,7 @@ fun Features  (
                 onValueChange = { newClarity ->
                     onClarityChanged(newClarity.toInt())
                 },
-                valueRange = 1f..5f,
+                valueRange = 0f..5f,
                 steps = 0
             )
         }
@@ -1953,7 +1964,7 @@ fun Features  (
                 onValueChange = { newImpact ->
                     onEmotionalImpactChanged(newImpact.toInt())
                 },
-                valueRange = 1f..5f,
+                valueRange = 0f..5f,
                 steps = 0
             )
         }

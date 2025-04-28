@@ -410,17 +410,17 @@ fun MessageField(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             // Attachment button
-            IconButton(
-                onClick = { /* Open attachment options */ },
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.picture),
-                    contentDescription = "Joindre",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+//            IconButton(
+//                onClick = { /* Open attachment options */ },
+//                modifier = Modifier.size(40.dp)
+//            ) {
+//                Icon(
+//                    painter = painterResource(id = R.drawable.picture),
+//                    contentDescription = "Joindre",
+//                    tint = MaterialTheme.colorScheme.primary,
+//                    modifier = Modifier.size(24.dp)
+//                )
+//            }
 
             // Message input field
             OutlinedTextField(
@@ -439,17 +439,17 @@ fun MessageField(
                     .clip(RoundedCornerShape(24.dp)),
                 maxLines = 4,
                 shape = RoundedCornerShape(24.dp),
-                trailingIcon = {
-                    AnimatedVisibility(visible = !isTyping) {
-                        IconButton(onClick = { /* Open voice recording */ }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.microphone),
-                                contentDescription = "Enregistrer",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-                }
+//                trailingIcon = {
+//                    AnimatedVisibility(visible = !isTyping) {
+//                        IconButton(onClick = { /* Open voice recording */ }) {
+//                            Icon(
+//                                painter = painterResource(id = R.drawable.microphone),
+//                                contentDescription = "Enregistrer",
+//                                modifier = Modifier.size(24.dp)
+//                            )
+//                        }
+//                    }
+//                }
             )
 
             // Send button
