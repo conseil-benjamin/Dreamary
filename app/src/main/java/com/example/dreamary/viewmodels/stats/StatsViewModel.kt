@@ -12,6 +12,7 @@ import com.example.dreamary.utils.SnackbarType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 class StatsViewModel (private val dreamRepository: DreamRepository, private val authRepository: AuthRepository): ViewModel() {
@@ -21,15 +22,21 @@ class StatsViewModel (private val dreamRepository: DreamRepository, private val 
     private var _user = MutableStateFlow<User?>(null)
     var user = _user.asStateFlow()
 
+    private var _loading = MutableStateFlow(false)
+    var loading = _loading.asStateFlow()
+
     fun getAllDreamsForUser(userId: String, coroutineScope: CoroutineScope) {
         viewModelScope.launch {
             dreamRepository.getAllDreamsForUser(userId, onFailure = {
                 coroutineScope.launch{
                     SnackbarManager.showMessage("Erreur lors de la récupération des rêves", SnackbarType.ERROR)
                 }
-            }).collect { dreams ->
+            })
+                .filterNotNull()
+                .collect{ dreams ->
                 Log.d("Dreams5", "Rêves récupérés: $dreams")
                 _dreams.value = dreams
+                _loading.value = true
             }
         }
     }

@@ -58,12 +58,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import com.example.dreamary.R
 import ir.ehsannarmani.compose_charts.ColumnChart
 import ir.ehsannarmani.compose_charts.models.BarProperties
 import ir.ehsannarmani.compose_charts.models.Bars
+import androidx.compose.foundation.isSystemInDarkTheme
 
 @Composable
 fun StatsScreen(
@@ -77,10 +79,16 @@ fun StatsScreen(
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     val user by viewModel.user.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+    var userHaveDream by remember { mutableStateOf(false) }
+    val loading by viewModel.loading.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.getProfileData(userId ?: "")
         viewModel.getAllDreamsForUser(userId ?: "", coroutineScope)
+    }
+
+    LaunchedEffect(dreams) {
+        userHaveDream = !dreams.isNullOrEmpty()
     }
 
     // TODO : faire un loader tant que les données ne sont pas récupérer et les graph définit
@@ -94,69 +102,67 @@ fun StatsScreen(
             Loading()
             return@Scaffold
         }
-//        else if (dreams.isEmpty() && user !== null && dreams != null){
-//            Column (
-//                modifier = Modifier
-//                    .padding(paddingValues)
-//                    .fillMaxSize(),
-//                verticalArrangement = Arrangement.Center,
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//                Text(
-//                    text = "Vous n'avez pas encore de rêves !",
-//                    modifier = Modifier
-//                        .padding(paddingValues)
-//                        .fillMaxSize(),
-//                    fontSize = 20.sp,
-//                    color = MaterialTheme.colorScheme.onSurface,
-//                    textAlign = TextAlign.Center,
-//                    style = androidx.compose.material3.MaterialTheme.typography.titleLarge
-//                )
-//            }
-//            return@Scaffold
-//        }
         // TODO : ensuite récupérer directement tous les rêves et faire par exemple
         // TODO : une proportion des émotions, des tags, une moyenne de l'impact émotionnel et également de clareté
-        LazyColumn (
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            item {
-                Text(
-                    modifier = Modifier
-                        .padding(16.dp),
-                    textAlign = TextAlign.Center,
-                    text = "Tableau de Bord Dreamary",
-                    fontStyle = MaterialTheme.typography.titleLarge.fontStyle
-                )
-                Text(
-                    modifier = Modifier
-                        .padding(8.dp),
-                    text ="Analysez vos rêves et découvrez des tendances fascinantes",
-                    textAlign = TextAlign.Center,
-                    fontStyle = MaterialTheme.typography.bodyMedium.fontStyle
-                )
-            }
-            item {
-                StatsGenerals(
-                    user,
-                    dreams
-                )
-            }
+        if (userHaveDream) {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                item {
+                    Text(
+                        modifier = Modifier
+                            .padding(16.dp),
+                        textAlign = TextAlign.Center,
+                        text = "Tableau de Bord Dreamary",
+                        fontStyle = MaterialTheme.typography.titleLarge.fontStyle,
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(8.dp),
+                        text = "Analysez vos rêves et découvrez des tendances fascinantes",
+                        textAlign = TextAlign.Center,
+                        fontStyle = MaterialTheme.typography.bodyMedium.fontStyle,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                }
+                item {
+                    StatsGenerals(
+                        user,
+                        dreams
+                    )
+                }
 //            item {
 //                ComposableCharts()
 //            }
-            item {
-                PieChartStatsDreamUser(user)
-            }
+                item {
+                    PieChartStatsDreamUser(user)
+                }
 //            item {
 //                LineChart()
 //            }
+            }
+        } else if (user != null && dreams.isEmpty() && loading) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Aucun rêve trouvé",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        } else {
+            Loading()
         }
-
     }
 }
 
@@ -164,12 +170,29 @@ fun StatsScreen(
 fun PieChartStatsDreamUser(user: User?) {
     Log.i("StatsScreen", "user: $user")
     val dreamsNormal: Double = (user?.dreamStats?.get("totalDreams")?.toDouble() ?: 0.0) - (user?.dreamStats?.get("lucidDreams")?.toDouble() ?: 0.0) - (user?.dreamStats?.get("nightmares")?.toDouble() ?: 0.0)
+    val isDarkTheme = isSystemInDarkTheme()
+
     var data by remember {
         mutableStateOf(
             listOf(
-                Pie(label = "Cauchemar", data = user?.dreamStats?.get("nightmares")?.toDouble() ?: 0.0, color = Color(0xFFeff2fe), selectedColor = Color(0xFFeff2fe)),
-                Pie(label = "Lucide", data = user?.dreamStats?.get("lucidDreams")?.toDouble() ?: 0.0, color = Color(0xFFfef9c2), selectedColor = Color(0xFFfef9c2)),
-                Pie(label = "Rêve", data = dreamsNormal, color = Color(0xFFfee3e1), selectedColor = Color(0xFFfee3e1)),
+                Pie(
+                    label = "Cauchemar",
+                    data = user?.dreamStats?.get("nightmares")?.toDouble() ?: 0.0,
+                    color = if (isDarkTheme) Color(0xFFD32F2F) else Color(0xFFFFCDD2),
+                    selectedColor = if (isDarkTheme) Color(0xFFD32F2F) else Color(0xFFFFCDD2)
+                ),
+                Pie(
+                    label = "Lucide",
+                    data = user?.dreamStats?.get("lucidDreams")?.toDouble() ?: 0.0,
+                    color = if (isDarkTheme) Color(0xFF1976D2) else Color(0xFFBBDEFB),
+                    selectedColor = if (isDarkTheme) Color(0xFF1976D2) else Color(0xFFBBDEFB)
+                ),
+                Pie(
+                    label = "Rêve",
+                    data = dreamsNormal,
+                    color = if (isDarkTheme) Color(0xFF388E3C) else Color(0xFFC8E6C9),
+                    selectedColor = if (isDarkTheme) Color(0xFF388E3C) else Color(0xFFC8E6C9)
+                ),
             )
         )
     }
