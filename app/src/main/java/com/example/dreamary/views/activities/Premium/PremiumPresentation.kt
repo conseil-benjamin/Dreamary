@@ -37,27 +37,27 @@ fun PremiumPresentation(
 
     val features = listOf(
         Feature(
-            icon = { Icon(imageVector = Icons.Default.Star, contentDescription = null) },
+            icon = { Icon(painter = painterResource(id = R.drawable.generation_image_ai), contentDescription = null) },
             title = "Génération d'images AI",
             description = "Visualisez vos rêves"
         ),
         Feature(
-            icon = { Icon(imageVector = Icons.Default.Star, contentDescription = null) },
+            icon = {Icon(painter = painterResource(id = R.drawable.advanced_analys), contentDescription = null) },
             title = "Analyse avancée",
             description = "Patterns et prédictions"
         ),
         Feature(
-            icon = { Icon(imageVector = Icons.Default.Star, contentDescription = null) },
-            title = "Collections",
+            icon = { Icon(painter = painterResource(id = R.drawable.collections), contentDescription = null) },
+            title = "Collections personnalisées",
             description = "Organisez vos rêves par thème"
         ),
+//        Feature(
+//            icon = { Icon(painter = painterResource(id = R.drawable.generation_image_ai), contentDescription = null) },  // Utilisé en remplacement d'Infinity
+//            title = "Audio illimité",
+//            description = "Enregistrez tous vos rêves"
+//        ),
         Feature(
-            icon = { Icon(imageVector = Icons.Default.Star, contentDescription = null) },  // Utilisé en remplacement d'Infinity
-            title = "Audio illimité",
-            description = "Enregistrez tous vos rêves"
-        ),
-        Feature(
-            icon = { Icon(imageVector = Icons.Default.Star, contentDescription = null) },
+            icon = { Icon(painter = painterResource(id = R.drawable.generation_image_ai), contentDescription = null) },
             title = "Thèmes exclusifs",
             description = "Personnalisation avancée"
         )
@@ -185,61 +185,61 @@ fun PremiumPresentation(
                 }
             }
 
-            // Additional Benefits
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFFEF9E7)
-                        )
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = null,
-                                    tint = Color(0xFFCA8A04),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Bonus Premium",
-                                    fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF78350F)
-                                )
-                            }
+//            // Additional Benefits
+//            item {
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(16.dp)
+//                ) {
+//                    Card(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        shape = RoundedCornerShape(16.dp),
+//                        colors = CardDefaults.cardColors(
+//                            containerColor = Color(0xFFFEF9E7)
+//                        )
+//                    ) {
+//                        Column(modifier = Modifier.padding(16.dp)) {
+//                            Row(
+//                                verticalAlignment = Alignment.CenterVertically,
+//                                modifier = Modifier.padding(bottom = 8.dp)
+//                            ) {
+//                                Icon(
+//                                    imageVector = Icons.Default.Star,
+//                                    contentDescription = null,
+//                                    tint = Color(0xFFCA8A04),
+//                                    modifier = Modifier.size(20.dp)
+//                                )
+//                                Spacer(modifier = Modifier.width(8.dp))
+//                                Text(
+//                                    text = "Bonus Premium",
+//                                    fontWeight = FontWeight.Medium,
+//                                    color = Color(0xFF78350F)
+//                                )
+//                            }
 
-                            bonuses.forEach { bonus ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(vertical = 4.dp)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(4.dp)
-                                            .background(Color(0xFFCA8A04), CircleShape)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = bonus,
-                                        fontSize = 14.sp,
-                                        color = Color(0xFF78350F)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+//                            bonuses.forEach { bonus ->
+//                                Row(
+//                                    verticalAlignment = Alignment.CenterVertically,
+//                                    modifier = Modifier.padding(vertical = 4.dp)
+//                                ) {
+//                                    Box(
+//                                        modifier = Modifier
+//                                            .size(4.dp)
+//                                            .background(Color(0xFFCA8A04), CircleShape)
+//                                    )
+//                                    Spacer(modifier = Modifier.width(8.dp))
+//                                    Text(
+//                                        text = bonus,
+//                                        fontSize = 14.sp,
+//                                        color = Color(0xFF78350F)
+//                                    )
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
 
             // Spacer to push CTA to bottom when content is short
             item {

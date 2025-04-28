@@ -122,9 +122,10 @@ fun OnboardingScreen(
                 Color(0xFFD49149)  // SecondaryVariant (ocre foncé)
             ),
             features = listOf(
-                "Collections de rêves",
-                "Création de groupes (gratuit pour en rejoindre)",
                 "Génération d'images IA pour vos rêves",
+                "Analyse avancée",
+                "Collections personnalisées",
+                "Création de groupes (gratuit pour en rejoindre)",
             )
         )
     )
