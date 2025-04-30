@@ -55,8 +55,8 @@ fun OnboardingScreen(
             icon = R.drawable.calendar,
             iconFeatures = R.drawable.dot,
             gradientColors = listOf(
-                Color(0xFFF3DFC1), // AccentLight — beige doré très clair
-                Color(0xFF8B6D9C)  // Primary — violet lavande
+                Color(0xFF6A517B), // PrimaryVariant — violet profond
+                Color(0xFF2A2438)  // DarkBackground — violet très foncé (fonctionne même en light mode)
             ),
             features = listOf(
                 "Journal intuitif avec texte et audio",
@@ -86,8 +86,8 @@ fun OnboardingScreen(
             icon = R.drawable.users,
             iconFeatures = R.drawable.dot,
             gradientColors = listOf(
-                Color(0xFFDEEDE8), // TertiaryContainer — vert sauge très clair
-                Color(0xFF5D8A7D)  // Tertiary — vert sauge
+                Color(0xFF6A517B), // PrimaryVariant — violet profond
+                Color(0xFF2A2438)  // DarkBackground — violet très foncé (fonctionne même en light mode)
             ),
             features = listOf(
                 "Groupes thématiques passionnants",
@@ -102,8 +102,8 @@ fun OnboardingScreen(
             icon = R.drawable.search,
             iconFeatures = R.drawable.dot,
             gradientColors = listOf(
-                Color(0xFFF1E9F6), // LightSelectElement (lavande très pâle)
-                Color(0xFF8B6D9C)  // Primary (lavande)
+                Color(0xFF6A517B), // PrimaryVariant — violet profond
+                Color(0xFF2A2438)  // DarkBackground — violet très foncé (fonctionne même en light mode)
             ),
             features = listOf(
                 "Analyse émotionnelle avancée",
@@ -118,14 +118,13 @@ fun OnboardingScreen(
             icon = R.drawable.premium,
             iconFeatures = R.drawable.dot,
             gradientColors = listOf(
-                Color(0xFFFAEDD1), // SecondaryContainer (beige doré)
-                Color(0xFFD49149)  // SecondaryVariant (ocre foncé)
+                Color(0xFF6A517B), // PrimaryVariant — violet profond
+                Color(0xFF2A2438)  // DarkBackground — violet très foncé (fonctionne même en light mode)
             ),
             features = listOf(
                 "Génération d'images IA pour vos rêves",
                 "Analyse avancée",
                 "Collections personnalisées",
-                "Création de groupes (gratuit pour en rejoindre)",
             )
         )
     )
@@ -173,28 +172,12 @@ fun OnboardingScreen(
                 ) {
                     Spacer(modifier = Modifier.height(48.dp))
 
-                    // Icône animée
-                    val infiniteTransition = rememberInfiniteTransition()
-                    val scale by infiniteTransition.animateFloat(
-                        initialValue = 1f,
-                        targetValue = 1.1f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(1000),
-                            repeatMode = RepeatMode.Reverse
-                        )
-                    )
-
                     Box(
                         modifier = Modifier
                             .size(120.dp)
-                            .graphicsLayer {
-                                scaleX = scale
-                                scaleY = scale
-                            }
                             .background(Color.White.copy(alpha = 0.15f), CircleShape)
                             .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
-                            .shadow(12.dp, CircleShape, ambientColor = Color.White.copy(alpha = 0.3f))
-                            .padding(24.dp)
+                            .padding(30.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = pages[page].icon),
@@ -235,11 +218,11 @@ fun OnboardingScreen(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(48.dp))
+                    Spacer(modifier = Modifier.height(15.dp))
 
                     Column(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         pages[page].features.forEach { feature ->
                             Row(
@@ -273,7 +256,7 @@ fun OnboardingScreen(
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 90.dp, top = 16.dp),
+                .padding(bottom = 100.dp, top = 25.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             repeat(pages.size) { iteration ->
