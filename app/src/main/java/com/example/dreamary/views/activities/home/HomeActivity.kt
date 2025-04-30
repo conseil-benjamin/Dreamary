@@ -504,7 +504,7 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
                                     .get(Calendar.DAY_OF_MONTH) - 1
                             ) "Hier" else dateJourMoisAnnee,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.outline,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
