@@ -69,7 +69,7 @@ fun DreamaryGuideScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(MaterialTheme.colorScheme.outline)
                     .padding(16.dp)
             ) {
                 Row(
@@ -486,7 +486,7 @@ fun GuideSection(
 
             if (isExpanded) {
                 Surface(
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     content()
                 }
@@ -499,7 +499,7 @@ fun GuideSection(
 fun SectionTitle(text: String) {
     Text(
         text = text,
-        color = Color(0xFF111827),
+        color = MaterialTheme.colorScheme.onSurface,
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
         modifier = Modifier.padding(bottom = 8.dp)

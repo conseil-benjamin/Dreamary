@@ -144,7 +144,7 @@ fun BottomNavigation(navController: NavController) {
             ) {
                 Icon(
                     tint = if (currentRoute == "guide") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    painter = painterResource(id = R.drawable.book),
+                    painter = painterResource(id = R.drawable.guide),
                     contentDescription = "Home",
                     modifier = Modifier.size(24.dp)
                 )
