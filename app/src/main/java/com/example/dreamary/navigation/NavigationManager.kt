@@ -42,6 +42,7 @@ import com.example.dreamary.views.activities.Social.ChatScreenFriendActivity
 import com.example.dreamary.views.activities.profile.ProfileActivity
 import com.example.dreamary.views.activities.Social.HomePageSocialActivity
 import com.example.dreamary.views.activities.Social.LeaderboardScreen
+import com.example.dreamary.views.activities.Support.Support
 import com.example.dreamary.views.activities.auth.LoginActivity
 import com.example.dreamary.views.activities.auth.RegisterActivity
 import com.example.dreamary.views.activities.home.HomeActivity
@@ -298,6 +299,14 @@ fun NavigationManager() {
             exitTransition = { unifiedExitTransition() }
         ) {
             PremiumPresentation(navController = navController)
+        }
+
+        composable(
+            route = NavRoutes.Support.route,
+            enterTransition = { unifiedEnterTransition() },
+            exitTransition = { unifiedExitTransition() }
+        ) {
+            Support(navController = navController)
         }
     }
 }
