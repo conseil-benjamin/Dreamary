@@ -1,4 +1,5 @@
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,8 +16,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.dreamary.R
+import com.example.dreamary.models.entities.User
 import com.example.dreamary.ui.theme.DreamaryTheme
 import com.google.firebase.auth.FirebaseAuth
+import com.google.gson.Gson
 
 @Preview
 @Composable
@@ -71,12 +74,12 @@ fun SettingsScreen(
                 }
 
                 // Groupes
-                item {
-                    GroupsSection(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        onNavigateToSection = onNavigateToSection
-                    )
-                }
+//                item {
+//                    GroupsSection(
+//                        modifier = Modifier.padding(horizontal = 16.dp),
+//                        onNavigateToSection = onNavigateToSection
+//                    )
+//                }
 
                 // Support
                 item {
@@ -109,8 +112,19 @@ private fun AccountSection(modifier: Modifier = Modifier) {
     val user = FirebaseAuth.getInstance().currentUser
 
     val context = LocalContext.current
-    val userDatabase = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
-    val profilPicture = userDatabase.getString("profilePictureUrl", null)
+    val userJson = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
+        .getString("userDatabase", null)
+
+    var profilPicture: String? = null
+
+    if (userJson != null) {
+        val gson = Gson()
+        val userState = gson.fromJson(userJson, User::class.java)
+        profilPicture = userState.profilePictureUrl
+        Log.i("userDatabase", profilPicture.toString())
+    } else {
+        Log.i("userDatabase", "Aucun utilisateur trouvé dans le cache.")
+    }
 
     SettingsSection(
         title = "Compte",
@@ -217,7 +231,7 @@ private fun LogoutButton(modifier: Modifier = Modifier) {
 @Composable
 private fun VersionInfo(modifier: Modifier = Modifier) {
     Text(
-        text = "Version 1.0.0",
+        text = "Version 0.1.0",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
@@ -315,7 +329,6 @@ fun UserInfoCard(
             Surface(
                 modifier = Modifier.size(40.dp),
                 shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     AsyncImage(

@@ -21,10 +21,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.dreamary.R
+import com.example.dreamary.models.entities.User
 import com.example.dreamary.models.routes.NavRoutes
 import com.example.dreamary.ui.theme.DreamaryTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.gson.Gson
 
 @Preview
 @Composable
@@ -51,10 +53,19 @@ fun MenuBurgerScreen(
     val context = LocalContext.current
     val user = auth.currentUser
 
-    val userDatabase = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
-    Log.d("userDatabase2", userDatabase.toString())
-    val profilPicture = userDatabase.getString("profilePictureUrl", null)
-    Log.i("userDatabase", profilPicture.toString())
+    val userJson = context.getSharedPreferences("userDatabase", Context.MODE_PRIVATE)
+        .getString("userDatabase", null)
+
+    var profilPicture: String? = null
+
+    if (userJson != null) {
+        val gson = Gson()
+        val userState = gson.fromJson(userJson, User::class.java) // Remplacez `User` par votre classe utilisateur
+        profilPicture = userState.profilePictureUrl // Assurez-vous que cette propriété existe dans votre classe `User`
+        Log.i("userDatabase", profilPicture.toString())
+    } else {
+        Log.i("userDatabase", "Aucun utilisateur trouvé dans le cache.")
+    }
 
     Scaffold(
         topBar = {
@@ -153,7 +164,7 @@ fun MenuBurgerScreen(
                     SettingItem(
                         icon = R.drawable.info,
                         title = "Aide & Support",
-                        onClick = { navController.navigate(NavRoutes.Home.route) }
+                        onClick = { navController.navigate(NavRoutes.Support.route) }
                     )
                 }
             }
@@ -196,7 +207,7 @@ fun MenuBurgerScreen(
             // Version
             item {
                 Text(
-                    text = "Version 1.0.0",
+                    text = "Version 0.1.0",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
