@@ -237,14 +237,14 @@ fun PieChartStatsDreamUser(user: User?) {
                 modifier = Modifier
                     .padding(8.dp)
                     .background(
-                        color = Color.Red,
+                        color = if (isDarkTheme) Color(0xFFD32F2F) else Color(0xFFFFCDD2),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Cauchemar",
-                    modifier = Modifier.padding(2.dp),
+                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
                     color = Color.White,
                     fontSize = 12.sp
                 )
@@ -253,13 +253,13 @@ fun PieChartStatsDreamUser(user: User?) {
                 modifier = Modifier
                     .padding(8.dp)
                     .background(
-                        color = Color.Cyan,
+                        color = if (isDarkTheme) Color(0xFF1976D2) else Color(0xFFBBDEFB),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
                     )
             ) {
                 Text(
                     text = "Lucide",
-                    modifier = Modifier.padding(4.dp),
+                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
                     color = Color.White,
                     fontSize = 12.sp
                 )
@@ -268,13 +268,13 @@ fun PieChartStatsDreamUser(user: User?) {
                 modifier = Modifier
                     .padding(8.dp)
                     .background(
-                        color = Color.Gray,
+                        color = if (isDarkTheme) Color(0xFF388E3C) else Color(0xFFC8E6C9),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
                     )
             ) {
                 Text(
                     text = "Rêve",
-                    modifier = Modifier.padding(4.dp),
+                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
                     color = Color.White,
                     fontSize = 12.sp
                 )

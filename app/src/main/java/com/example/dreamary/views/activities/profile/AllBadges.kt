@@ -415,6 +415,7 @@ fun RarityLegend() {
             .fillMaxWidth()
             .height(50.dp)
             .background(MaterialTheme.colorScheme.surface),
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
         Rarity.entries.forEach { rarity ->

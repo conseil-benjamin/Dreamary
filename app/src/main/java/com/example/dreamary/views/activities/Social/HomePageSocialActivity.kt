@@ -562,7 +562,7 @@ fun FriendsContent(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 8.dp)
+            .padding(top = 8.dp)
     ) {
         if (friendRequests.isNotEmpty()) {
             item {

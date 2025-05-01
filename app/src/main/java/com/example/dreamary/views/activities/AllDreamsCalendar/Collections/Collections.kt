@@ -42,7 +42,7 @@ fun UserNotPremium(
                 .padding(16.dp)
                 .fillMaxWidth()
                 .background(
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.surfaceVariant,
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
                 ),
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
@@ -75,7 +75,7 @@ fun UserNotPremium(
                 modifier = Modifier
                     .padding(8.dp)
                     .background(
-                        color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.outline,
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
                     )
                     .padding(8.dp)
@@ -115,7 +115,7 @@ fun Collections(
     navController: NavController,
     userData: User?
 ) {
-    if (userData?.metadata["isPremium"] != false) {
+    if (userData?.metadata?.get("isPremium") != false) {
         Column {
             HeaderCollections()
             Row(
@@ -131,7 +131,7 @@ fun Collections(
                     }
             ) {
                 AsyncImage(
-                    model = userData?.metadata["imageUrl"],
+                    model = userData?.metadata?.get("imageUrl"),
                     contentDescription = "User Image",
                     modifier = Modifier
                         .size(64.dp)
