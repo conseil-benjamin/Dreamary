@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -85,9 +86,8 @@ fun HeaderChat(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
-                .fillMaxWidth()
                 .height(100.dp)
-                .padding(horizontal = 8.dp)
+                .padding(top = 24.dp)
         ) {
             IconButton(
                 onClick = { navController.popBackStack() }
@@ -200,8 +200,8 @@ fun ListOfMessages(
         reverseLayout = false,
         state = listState,
         modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 8.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
     ) {
     if (messages.isNotEmpty()) {
         // Prétraiter les messages pour créer une liste d'éléments à afficher
@@ -282,14 +282,14 @@ fun MessageBubble(
     )
 
     val bubbleColor = if (isCurrentUser)
-        MaterialTheme.colorScheme.primary
-    else
         MaterialTheme.colorScheme.surfaceVariant
+    else
+        MaterialTheme.colorScheme.primary
 
     val textColor = if (isCurrentUser)
-        MaterialTheme.colorScheme.onPrimary
-    else
         MaterialTheme.colorScheme.onSurface
+    else
+        MaterialTheme.colorScheme.onPrimary
 
     val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
     val timeString = formatter.format(message.createdAt.toDate())
@@ -304,8 +304,13 @@ fun MessageBubble(
                 colors = CardDefaults.cardColors(containerColor = bubbleColor),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                 modifier = Modifier
-                    .clickable{
-                        navController.navigate(NavRoutes.DreamDetail.createRoute(message.dream?.id.toString(), message.dream?.userId))
+                    .clickable {
+                        navController.navigate(
+                            NavRoutes.DreamDetail.createRoute(
+                                message.dream?.id.toString(),
+                                message.dream?.userId
+                            )
+                        )
                     }
             ) {
                 Text(
@@ -320,6 +325,7 @@ fun MessageBubble(
                 )
                 Text(
                     text = message.dream?.content ?: "",
+                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
                     modifier = Modifier
                         .padding(12.dp),
@@ -332,8 +338,8 @@ fun MessageBubble(
                                 .padding(8.dp),
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.onSurface
                             ),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         ) {
@@ -346,7 +352,7 @@ fun MessageBubble(
                     }
                 }
                 Text(
-                    text= "Cliquez sur le message pour accéder au rêve en détails",
+                    text = "Cliquez sur le message pour accéder au rêve en détails.",
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(8.dp),
                 )
