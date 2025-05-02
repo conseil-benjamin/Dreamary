@@ -953,15 +953,16 @@ fun DreamCalendarScreen(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .offset(x = (5).dp, y = (-5).dp)
-                                .size(16.dp)
+                                .size(20.dp)
                                 .background(Color.Red, shape = CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = if (dreamsForToday.size > 9) "9+" else dreamsForToday.size.toString(),
                                 color = Color.White,
-                                fontSize = 10.sp,
+                                fontSize = 8.sp,
                                 fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 2.dp)
                             )
                         }
                     }
