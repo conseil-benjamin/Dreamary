@@ -58,8 +58,8 @@ fun PremiumPresentation(
 //        ),
         Feature(
             icon = { Icon(painter = painterResource(id = R.drawable.generation_image_ai), contentDescription = null) },
-            title = "Thèmes exclusifs",
-            description = "Personnalisation avancée"
+            title = "Interprétations de vos rêves via l'IA",
+            description = "Comprenez vos rêves"
         )
     )
 

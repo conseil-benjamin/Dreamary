@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -215,7 +216,7 @@ private fun LogoutButton(modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.Call,
+                imageVector = Icons.Default.ExitToApp,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error
             )
@@ -235,7 +236,8 @@ private fun VersionInfo(modifier: Modifier = Modifier) {
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
+        textAlign = TextAlign.Center
     )
 }
 

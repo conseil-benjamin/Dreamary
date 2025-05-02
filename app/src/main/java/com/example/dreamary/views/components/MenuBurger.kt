@@ -121,12 +121,6 @@ fun MenuBurgerScreen(
                         subtitle = "Apprenez le rêve lucide",
                         onClick = { navController.navigate(NavRoutes.Guide.route) }
                     )
-                    SettingItem(
-                        icon = R.drawable.settings,
-                        title = "Paramètres",
-                        subtitle = "Personnalisez votre expérience",
-                        onClick = { navController.navigate(NavRoutes.Settings.route) }
-                    )
                 }
             }
 
@@ -143,15 +137,21 @@ fun MenuBurgerScreen(
                         onClick = { navController.navigate(NavRoutes.Premium.route) }
                     )
                     SettingItem(
-                        icon = R.drawable.notification,
-                        title = "Notifications",
-                        onClick = { navController.navigate(NavRoutes.Home.route) }
+                        icon = R.drawable.settings,
+                        title = "Paramètres",
+                        subtitle = "Personnalisez votre expérience",
+                        onClick = { navController.navigate(NavRoutes.Settings.route) }
                     )
-                    SettingItem(
-                        icon = R.drawable.lock,
-                        title = "Confidentialité",
-                        onClick = { navController.navigate(NavRoutes.Home.route) }
-                    )
+//                    SettingItem(
+//                        icon = R.drawable.notification,
+//                        title = "Notifications",
+//                        onClick = { navController.navigate(NavRoutes.Home.route) }
+//                    )
+//                    SettingItem(
+//                        icon = R.drawable.lock,
+//                        title = "Confidentialité",
+//                        onClick = { navController.navigate(NavRoutes.Home.route) }
+//                    )
                 }
             }
 

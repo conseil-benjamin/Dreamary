@@ -123,7 +123,7 @@ fun OnboardingScreen(
             ),
             features = listOf(
                 "Génération d'images IA pour vos rêves",
-                "Analyse avancée",
+                "Analyse avancée et interprétation de vos rêvs via IA",
                 "Collections personnalisées",
             )
         )
