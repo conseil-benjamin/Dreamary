@@ -9,6 +9,15 @@ android {
     namespace = "com.example.dreamary"
     compileSdk = 35
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("C:\\Users\\benle\\AndroidStudioProjects\\Dreamary\\release_dreamary.jks")
+            storePassword = project.properties["KEYSTORE_PASSWORD"] as String
+            keyAlias = "dreamary"
+            keyPassword = project.properties["KEY_PASSWORD"] as String
+        }
+    }
+
     defaultConfig {
         applicationId = "com.example.dreamary"
         minSdk = 24
@@ -22,6 +31,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
