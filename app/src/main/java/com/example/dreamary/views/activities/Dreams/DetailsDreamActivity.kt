@@ -172,14 +172,14 @@ fun DetailsDreamActivity(
                                     .size(24.dp)
                             )
                         }
-                        IconButton(onClick = { /* TODO: Share */ }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.share),
-                                contentDescription = "Partager",
-                                modifier = Modifier
-                                    .size(24.dp)
-                            )
-                        }
+//                        IconButton(onClick = { /* TODO: Share */ }) {
+//                            Icon(
+//                                painter = painterResource(id = R.drawable.share),
+//                                contentDescription = "Partager",
+//                                modifier = Modifier
+//                                    .size(24.dp)
+//                            )
+//                        }
                         IconButton(onClick = {
                             navController.navigate(NavRoutes.EditDream.createRoute(dreamId))
                         }) {

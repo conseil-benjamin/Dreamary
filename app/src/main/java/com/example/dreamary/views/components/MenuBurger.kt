@@ -136,12 +136,12 @@ fun MenuBurgerScreen(
                         subtitle = "Accédez à toutes les fonctionnalités",
                         onClick = { navController.navigate(NavRoutes.Premium.route) }
                     )
-                    SettingItem(
-                        icon = R.drawable.settings,
-                        title = "Paramètres",
-                        subtitle = "Personnalisez votre expérience",
-                        onClick = { navController.navigate(NavRoutes.Settings.route) }
-                    )
+//                    SettingItem(
+//                        icon = R.drawable.settings,
+//                        title = "Paramètres",
+//                        subtitle = "Personnalisez votre expérience",
+//                        onClick = { navController.navigate(NavRoutes.Settings.route) }
+//                    )
 //                    SettingItem(
 //                        icon = R.drawable.notification,
 //                        title = "Notifications",
