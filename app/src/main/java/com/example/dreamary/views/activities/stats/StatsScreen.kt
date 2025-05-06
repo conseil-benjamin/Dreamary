@@ -242,12 +242,24 @@ fun PieChartStatsDreamUser(user: User?) {
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Cauchemar",
-                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
-                    color = Color.White,
-                    fontSize = 12.sp
-                )
+                Column (
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Text(
+                        text = "Cauchemar",
+                        modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        text = "${user?.dreamStats?.get("nightmares")}",
+                        modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                }
             }
             Box(
                 modifier = Modifier
@@ -257,12 +269,24 @@ fun PieChartStatsDreamUser(user: User?) {
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
                     )
             ) {
-                Text(
-                    text = "Lucide",
-                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
-                    color = Color.White,
-                    fontSize = 12.sp
-                )
+                Column (
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Lucide",
+                        modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        text = "${user?.dreamStats?.get("lucidDreams")}",
+                        modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                }
             }
             Box(
                 modifier = Modifier
@@ -272,12 +296,26 @@ fun PieChartStatsDreamUser(user: User?) {
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
                     )
             ) {
-                Text(
-                    text = "Rêve",
-                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
-                    color = Color.White,
-                    fontSize = 12.sp
-                )
+                Column (
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Rêve",
+                        modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        text = "${(user?.dreamStats?.get("totalDreams") ?: 0) -
+                                (user?.dreamStats?.get("lucidDreams") ?: 0) -
+                                (user?.dreamStats?.get("nightmares") ?: 0)}",
+                        modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                }
             }
         }
     }
