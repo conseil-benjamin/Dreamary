@@ -273,7 +273,7 @@ fun PremiumPresentation(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Passer Premium", fontSize = 16.sp)
+                    Text(text = "Bientot disponible", fontSize = 16.sp)
                 }
                 Spacer(modifier = Modifier.height(12.dp))
 //                Text(

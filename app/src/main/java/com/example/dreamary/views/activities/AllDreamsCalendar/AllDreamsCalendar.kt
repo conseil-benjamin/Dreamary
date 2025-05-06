@@ -820,7 +820,10 @@ fun LegendColorDream() {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
         for (dayOfWeek in daysOfWeek) {
             Text(
                 modifier = Modifier.weight(1f),
@@ -872,17 +875,17 @@ fun DreamCalendarScreen(
         )
     }
 
+    Row (
+        modifier = Modifier
+            .padding(bottom = 16.dp)
+    ) {
+        DaysOfWeekTitle(
+            daysOfWeek = daysOfWeek
+        )
+    }
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
     ) {
-        Row (
-            modifier = Modifier
-                .padding(bottom = 16.dp)
-        ) {
-            DaysOfWeekTitle(
-                daysOfWeek = daysOfWeek
-            )
-        }
         VerticalCalendar(
             state = state,
             monthHeader = { month ->
