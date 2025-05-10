@@ -284,7 +284,7 @@ fun HeaderDream(dream: Dream) {
             .background(
                 color = when (dream?.dreamType) {
                     "Rêve" -> Color(0xFFeff2fe)
-                    "Lucide" -> Color(0xFFfef9c2)
+                    "Lucide" -> Color(0xFFefdefe)
                     "Cauchemar" -> Color(0xFFfee3e1)
                     else -> Color(0xFFeff2fe)
                 }

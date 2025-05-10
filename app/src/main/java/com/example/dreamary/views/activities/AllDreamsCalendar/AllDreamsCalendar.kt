@@ -451,6 +451,7 @@ fun ResearchForAdream(
     var debounceJob by remember { mutableStateOf<Job?>(null) }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    var finishedFilter by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -477,6 +478,7 @@ fun ResearchForAdream(
                         if (it.isNotEmpty()) {
                             expanded = true
                             dreamsFound = onResearchChange(it, dreams) as MutableList<Dream>
+                            finishedFilter = true
                             Log.d("Research1", "Rêves trouvés: $dreamsFound")
                         } else {
                             expanded = false
@@ -526,24 +528,32 @@ fun ResearchForAdream(
                 Log.d("dreamsFound45", "$dreamsFound")
                 ExposedDropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false },
+                    onDismissRequest = {
+                        expanded = false
+                        focusManager.clearFocus()
+                        finishedFilter = false
+                                       },
                     modifier = Modifier
                         .clip(shape = RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surface)
                         .heightIn(max = 220.dp) // définit la taille maximale du menu déroulant
                 ) {
-                    if (dreamsFound.isEmpty() && research.isNotEmpty()) {
+                    if (dreamsFound.isEmpty() && research.isNotEmpty() && finishedFilter) {
                         Box(
                             modifier = Modifier
+                                .fillMaxWidth()
                                 .padding(vertical = 16.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Star,
+                                    painter = painterResource(id = R.drawable.search),
                                     contentDescription = "Aucun résultat",
                                     tint = MaterialTheme.colorScheme.outline,
                                     modifier = Modifier.size(32.dp)
@@ -600,7 +610,7 @@ fun ResearchForAdream(
                                             Text(
                                                 text = dateJourMoisAnnee,
                                                 style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.outline
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer
                                             )
                                         }
 
@@ -613,32 +623,46 @@ fun ResearchForAdream(
                                             Card(
                                                 shape = RoundedCornerShape(8.dp),
                                                 colors = CardDefaults.cardColors(
-                                                    containerColor = if (dream.dreamType.contains("lucide", ignoreCase = true))
-                                                        MaterialTheme.colorScheme.primaryContainer
-                                                    else MaterialTheme.colorScheme.tertiaryContainer,
-                                                    contentColor = if (dream.dreamType.contains("lucide", ignoreCase = true))
-                                                        MaterialTheme.colorScheme.onPrimaryContainer
-                                                    else MaterialTheme.colorScheme.onTertiaryContainer
+                                                    containerColor = when (dream.dreamType) {
+                                                        "Rêve" -> Color(0xFFeff2fe)
+                                                        "Lucide" -> Color(0xFFefdefe)
+                                                        "Cauchemar" -> Color(0xFFfee3e1)
+                                                        else -> Color(0xFFeff2fe)
+                                                    },
+                                                    contentColor = when (dream.dreamType) {
+                                                        "Rêve" -> Color(0xFF5682d5)
+                                                        "Lucide" -> Color(0xFFa25ce6)
+                                                        "Cauchemar" -> Color(0xFFce5656)
+                                                        else -> Color(0xFFeff2fe)
+                                                    },
                                                 ),
                                                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                                             ) {
                                                 Row(
                                                     verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                                    modifier = Modifier
+                                                        .padding(horizontal = 8.dp, vertical = 4.dp)
                                                 ) {
-                                                    if (dream.dreamType.contains("lucide", ignoreCase = true)) {
+                                                    if (dream.dreamType == "Rêve") {
                                                         Icon(
-                                                            imageVector = Icons.Default.Star,
+                                                            painter = painterResource(id = R.drawable.lune),
+                                                            tint = Color(0xFF555393),
                                                             contentDescription = "Type de rêve",
                                                             modifier = Modifier.size(14.dp),
-                                                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                                                         )
-                                                    } else {
+                                                    } else if (dream.dreamType == "Lucide") {
                                                         Icon(
-                                                            imageVector = Icons.Default.Star,
+                                                            painter = painterResource(id = R.drawable.etoile),
                                                             contentDescription = "Type de rêve",
                                                             modifier = Modifier.size(14.dp),
-                                                            tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                                            tint = Color(0xFF8c4f54)
+                                                        )
+                                                    } else if (dream.dreamType == "Cauchemar") {
+                                                        Icon(
+                                                            painter = painterResource(id = R.drawable.cauchemar),
+                                                            contentDescription = "Type de rêve",
+                                                            modifier = Modifier.size(14.dp),
+                                                            tint = Color(0xFF8f7036)
                                                         )
                                                     }
                                                     Spacer(modifier = Modifier.width(4.dp))

@@ -194,7 +194,7 @@ fun HomePageSocialActivity(
                         SocialTab(
                             title = title,
                             selected = selectedTab == index,
-                            hasNotification = index == 2 && friendRequests.isNotEmpty(),
+                            hasNotification = index == 1 && friendRequests.isNotEmpty(),
                             onClick = { selectedTab = index }
                         )
                     }
@@ -1183,12 +1183,21 @@ fun FriendCard(
 
 @Composable
 fun EmptyStateMessage(message: String) {
-    Text(
-        text = message,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(16.dp)
-    )
+    Row (
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(16.dp),
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 

@@ -426,7 +426,7 @@ private fun LastTwoDreams(dreams: List<Dream>?, navController: NavController) {
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Star,
+                                        painter = painterResource(id = R.drawable.etoile),
                                         contentDescription = "Lucide",
                                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                         modifier = Modifier.size(16.dp)

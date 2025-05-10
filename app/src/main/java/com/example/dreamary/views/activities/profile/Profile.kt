@@ -262,10 +262,14 @@ private fun Header(
                     )
                 }
             } else if (isVisitor && isAlreadyFriend == "accepted") {
-                Card {
+                Card (
+                    modifier = Modifier.padding(bottom = 8.dp),
+                ){
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement
+                            .spacedBy(8.dp),
+                        modifier = Modifier.padding(8.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.check_circle),
@@ -282,10 +286,14 @@ private fun Header(
                     }
                 }
             } else if (isVisitor && isAlreadyFriend == "pending") {
-                Card {
+                Card (
+                    modifier = Modifier.padding(bottom = 8.dp),
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement
+                            .spacedBy(8.dp),
+                        modifier = Modifier.padding(8.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.pending),
